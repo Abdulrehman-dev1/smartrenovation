@@ -3,6 +3,7 @@ import SiteFooter from '@/Components/Public/SiteFooter';
 import SiteHeader from '@/Components/Public/SiteHeader';
 import WaFloat from '@/Components/Public/WaFloat';
 import { useFlashNotifications } from '@/hooks/useFlashNotifications';
+import { useLiveContentReload } from '@/hooks/useLiveContentReload';
 import { Head } from '@inertiajs/react';
 import { PropsWithChildren } from 'react';
 import { Toaster } from 'sonner';
@@ -16,6 +17,7 @@ type Props = PropsWithChildren<{
 
 export default function PublicLayout({ children, title, description, bare = false }: Props) {
     useFlashNotifications();
+    useLiveContentReload(45000);
 
     return (
         <>
