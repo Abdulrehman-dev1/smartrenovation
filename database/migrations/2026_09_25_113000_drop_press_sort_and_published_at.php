@@ -8,16 +8,37 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (! Schema::hasTable('press_items')) {
+            return;
+        }
+
         Schema::table('press_items', function (Blueprint $table) {
-            $table->dropColumn(['sort_order', 'published_at']);
+            $drop = [];
+            if (Schema::hasColumn('press_items', 'sort_order')) {
+                $drop[] = 'sort_order';
+            }
+            if (Schema::hasColumn('press_items', 'published_at')) {
+                $drop[] = 'published_at';
+            }
+            if ($drop !== []) {
+                $table->dropColumn($drop);
+            }
         });
     }
 
     public function down(): void
     {
+        if (! Schema::hasTable('press_items')) {
+            return;
+        }
+
         Schema::table('press_items', function (Blueprint $table) {
-            $table->integer('sort_order')->default(0)->after('status');
-            $table->timestamp('published_at')->nullable()->after('sort_order');
+            if (! Schema::hasColumn('press_items', 'sort_order')) {
+                $table->integer('sort_order')->default(0)->after('status');
+            }
+            if (! Schema::hasColumn('press_items', 'published_at')) {
+                $table->timestamp('published_at')->nullable()->after('sort_order');
+            }
         });
     }
 };
