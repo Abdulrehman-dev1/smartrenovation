@@ -11,11 +11,13 @@ class Service extends Model
         'slug',
         'title',
         'subtitle',
+        'cta_label',
         'short_description',
         'description',
         'cover_image',
         'gallery_images',
         'status',
+        'sort_order',
         'published_at',
         'meta_title',
         'meta_description',
@@ -27,6 +29,7 @@ class Service extends Model
     {
         return [
             'published_at' => 'datetime',
+            'sort_order' => 'integer',
             'gallery_images' => 'array',
         ];
     }

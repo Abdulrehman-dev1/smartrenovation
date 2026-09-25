@@ -43,8 +43,8 @@
 }
 .filters__reset-btn:hover{opacity:.55;}
 
-/* ---------- PROJECT CARD GRID ---------- */
-.grid{
+/* ---------- PROJECT CARD GRID (not Tailwind .grid) ---------- */
+.works-grid{
   padding:0 clamp(20px,4vw,48px) clamp(30px,5vh,60px);
   display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
   gap:clamp(24px,3vw,44px) clamp(18px,2vw,30px);
@@ -95,10 +95,10 @@
 .works .cta-band{margin-top:clamp(60px,10vh,120px);}
 
 /* ---------- RESPONSIVE ---------- */
-@media (max-width:980px){ .grid{grid-template-columns:repeat(2,minmax(0,1fr));} }
+@media (max-width:980px){ .works-grid{grid-template-columns:repeat(2,minmax(0,1fr));} }
 @media (max-width:860px){
   .filters{top:64px;}
   .filters__row{flex-direction:column;gap:10px;}
   .filters__label{width:100%;padding-top:0;}
 }
-@media (max-width:520px){ .grid{grid-template-columns:1fr;} }
+@media (max-width:520px){ .works-grid{grid-template-columns:1fr;} }

@@ -14,15 +14,17 @@ class ServiceController extends Controller
     {
         $services = Service::query()
             ->published()
-            ->orderBy('title')
+            ->orderBy('sort_order')
+            ->orderBy('id')
             ->get()
             ->map(fn (Service $service) => [
                 'id' => $service->id,
                 'slug' => $service->slug,
-                'title' => $service->title,
-                'subtitle' => $service->subtitle,
-                'short_description' => $service->short_description,
+                // Smart card: navLabel + metaDescription
+                'nav_label' => $service->title,
+                'meta_description' => $service->meta_description ?: $service->short_description,
                 'cover_url' => $service->coverUrl(),
+                'url' => '/services/'.$service->slug,
             ]);
 
         return Inertia::render('Public/Services', [
@@ -37,19 +39,19 @@ class ServiceController extends Controller
         return Inertia::render('Public/ServiceShow', [
             'service' => [
                 'slug' => $service->slug,
-                'title' => $service->title,
-                'subtitle' => $service->subtitle,
+                'nav_label' => $service->title,
+                'hero_title' => $service->subtitle ?: $service->title,
+                'cta_label' => $service->cta_label ?: $service->title,
                 'short_description' => $service->short_description,
                 'description' => $service->description,
+                'meta_title' => $service->meta_title,
                 'meta_description' => $service->meta_description,
-                'cover' => $service->cover_image
-                    ? [
-                        'path' => $service->cover_image,
-                        'url' => $service->coverUrl(),
-                        'name' => basename($service->cover_image),
-                    ]
-                    : null,
-                'gallery' => $service->presentGallery(),
+                'cover' => $service->coverUrl(),
+                'gallery' => collect($service->presentGallery())
+                    ->pluck('url')
+                    ->filter()
+                    ->values()
+                    ->all(),
             ],
             'seoJsonLd' => $seo->toJson($seo->webPage(
                 $service->meta_title ?: $service->title,

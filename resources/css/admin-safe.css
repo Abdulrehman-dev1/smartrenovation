@@ -1,0 +1,37 @@
+/**
+ * Safety net: smart public CSS must not override admin Tailwind utilities.
+ * Imported after smart/*.css in app.tsx.
+ */
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    margin: 0;
+    background: #fff;
+    color: #0f172a;
+    font-family: ui-sans-serif, system-ui, sans-serif;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Prefer Tailwind display:grid over any leftover smart .grid rules */
+.grid {
+    display: grid;
+}
+
+/* Admin image thumbs: never inherit public full-bleed img sizing */
+.admin-app img {
+    max-width: 100%;
+    height: auto;
+}
+
+.admin-app .object-cover {
+    object-fit: cover;
+    height: 100%;
+    width: 100%;
+}
+
+.admin-app button {
+    font-family: inherit;
+}

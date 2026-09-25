@@ -53,7 +53,7 @@ export default function AdminLayout({
     );
 
     return (
-        <div className="min-h-screen bg-slate-100">
+        <div className="admin-app min-h-screen bg-slate-100">
             <Toaster richColors position="top-right" />
 
             {mobileOpen && (

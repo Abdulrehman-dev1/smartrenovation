@@ -25,7 +25,7 @@ class ServiceController extends Controller
             'status' => trim((string) $request->string('status')),
         ];
 
-        $query = Service::query()->latest();
+        $query = Service::query()->orderBy('sort_order')->orderBy('id');
 
         if ($filters['search'] !== '') {
             $search = $filters['search'];

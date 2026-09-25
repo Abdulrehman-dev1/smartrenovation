@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Service;
 use App\Support\ServiceImageStorage;
+use App\Support\SmartServiceMapper;
 use Illuminate\Database\Seeder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\File;
@@ -43,7 +44,7 @@ class SmartServicesSeeder extends Seeder
         $images = app(ServiceImageStorage::class);
         $imported = 0;
 
-        foreach ($payload as $item) {
+        foreach ($payload as $index => $item) {
             if (! is_array($item)) {
                 continue;
             }
@@ -53,25 +54,11 @@ class SmartServicesSeeder extends Seeder
                 continue;
             }
 
-            $title = (string) ($item['heroTitle'] ?? $item['navLabel'] ?? Str::title(str_replace('-', ' ', $slug)));
-            $subtitle = is_string($item['navLabel'] ?? null) ? trim($item['navLabel']) : null;
-            if ($subtitle === $title) {
-                $subtitle = null;
-            }
+            $attrs = SmartServiceMapper::attributes($item, $index + 1);
+            $attrs['slug'] = $slug;
+            $attrs['published_at'] = now();
 
-            [$short, $html] = $this->blocksToCopy(is_array($item['blocks'] ?? null) ? $item['blocks'] : []);
-
-            $service = Service::query()->create([
-                'slug' => $slug,
-                'title' => $title,
-                'subtitle' => $subtitle,
-                'short_description' => $short,
-                'description' => $html,
-                'status' => 'published',
-                'published_at' => now(),
-                'meta_title' => is_string($item['metaTitle'] ?? null) ? $item['metaTitle'] : null,
-                'meta_description' => is_string($item['metaDescription'] ?? null) ? $item['metaDescription'] : null,
-            ]);
+            $service = Service::query()->create($attrs);
 
             $cover = $this->uploadedFile($item['cover'] ?? null, $imgRoot);
             if ($cover) {
@@ -92,48 +79,10 @@ class SmartServicesSeeder extends Seeder
             }
 
             $imported++;
-            $this->command?->info("Seeded {$slug}");
+            $this->command?->info('Seeded '.$slug);
         }
 
         $this->command?->info("SmartServicesSeeder finished — {$imported} service(s).");
-    }
-
-    /**
-     * @param  list<mixed>  $blocks
-     * @return array{0: string|null, 1: string|null}
-     */
-    private function blocksToCopy(array $blocks): array
-    {
-        $short = null;
-        $parts = [];
-
-        foreach ($blocks as $block) {
-            if (! is_array($block)) {
-                continue;
-            }
-            $tag = strtolower((string) ($block['tag'] ?? 'p'));
-            $text = trim((string) ($block['text'] ?? ''));
-            if ($text === '') {
-                continue;
-            }
-
-            $safe = e($text);
-            if ($tag === 'h2') {
-                $parts[] = '<h2>'.$safe.'</h2>';
-            } elseif ($tag === 'h3') {
-                $parts[] = '<h3>'.$safe.'</h3>';
-            } else {
-                if ($short === null) {
-                    $short = $text;
-                } else {
-                    $parts[] = '<p>'.$safe.'</p>';
-                }
-            }
-        }
-
-        $html = $parts === [] ? null : implode("\n", $parts);
-
-        return [$short, $html];
     }
 
     private function uploadedFile(mixed $relative, string $imgRoot): ?UploadedFile

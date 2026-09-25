@@ -224,7 +224,7 @@ export default function Works({ projects, roomPhotos, filters, taxonomy }: Props
                         </section>
                     )
                 ) : (
-                    <section className="grid container" ref={gridRef as React.RefObject<HTMLElement>}>
+                    <section className="works-grid container" ref={gridRef as React.RefObject<HTMLElement>}>
                         {projects.map((p, i) => {
                             const title = (p.name || '').split('|')[0].trim();
                             const where = p.location;

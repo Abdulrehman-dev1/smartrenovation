@@ -5,41 +5,51 @@ import { CALL_LINK, WA_LINK, WA_TRACK_CLASS, WaIcon } from '../../Components/Pub
 type Props = {
     service: {
         slug: string;
-        title: string;
-        subtitle?: string | null;
-        short_description?: string | null;
+        nav_label: string;
+        hero_title: string;
+        cta_label?: string | null;
         description?: string | null;
+        meta_title?: string | null;
         meta_description?: string | null;
-        cover?: { url?: string | null } | null;
-        gallery: Array<{ url: string }>;
+        cover?: string | null;
+        gallery: string[];
     };
+    seoJsonLd?: string;
 };
 
-export default function ServiceShow({ service }: Props) {
-    const cover = service.cover?.url;
-    const gallery = (service.gallery || []).map((g) => g.url).filter(Boolean);
-    const lead = service.meta_description || service.short_description;
-    const body = service.description || '';
+export default function ServiceShow({ service, seoJsonLd }: Props) {
+    const pageTitle = service.meta_title || `${service.nav_label} — Smart Renovation`;
+    const gallery = service.gallery || [];
+    const cta = service.cta_label || service.nav_label;
 
     return (
         <PublicLayout>
-            <Head title={`${service.title} — Smart Renovation`} />
+            <Head title={pageTitle}>
+                {service.meta_description ? (
+                    <meta name="description" content={service.meta_description} />
+                ) : null}
+                {seoJsonLd ? (
+                    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: seoJsonLd }} />
+                ) : null}
+            </Head>
             <main className="service">
                 <Link className="back-link" href="/services">
                     ← All services
                 </Link>
 
                 <section className="service-hero container">
-                    <span className="service-hero__kicker">{service.title}</span>
-                    <h1 className="service-hero__title">{service.subtitle || service.title}</h1>
-                    {lead && <p className="service-hero__lead">{lead}</p>}
+                    <span className="service-hero__kicker">{service.nav_label}</span>
+                    <h1 className="service-hero__title">{service.hero_title}</h1>
+                    {service.meta_description && (
+                        <p className="service-hero__lead">{service.meta_description}</p>
+                    )}
                 </section>
 
-                {(cover || gallery.length > 0) && (
+                {(service.cover || gallery.length > 0) && (
                     <div className="service-photos">
-                        {cover && (
+                        {service.cover && (
                             <figure className="service-cover">
-                                <img src={cover} alt={service.title} />
+                                <img src={service.cover} alt={service.nav_label} />
                             </figure>
                         )}
                         {gallery.length > 0 && (
@@ -54,24 +64,17 @@ export default function ServiceShow({ service }: Props) {
                     </div>
                 )}
 
-                {body && (
+                {service.description && (
                     <article
                         className="service-body container"
-                        dangerouslySetInnerHTML={{
-                            __html: body.includes('<')
-                                ? body
-                                : body
-                                      .split(/\n\n+/)
-                                      .map((p) => `<p class="service-body__p">${p}</p>`)
-                                      .join(''),
-                        }}
+                        dangerouslySetInnerHTML={{ __html: service.description }}
                     />
                 )}
 
                 <section className="cta-band">
                     <div className="container">
                         <span className="eyebrow">Let&apos;s talk</span>
-                        <h2 className="cta-band__title">Discuss Your {service.title}.</h2>
+                        <h2 className="cta-band__title">Discuss Your {cta}.</h2>
                         <div className="cta-band__actions">
                             <a className={`btn btn--wa ${WA_TRACK_CLASS}`} href={WA_LINK} target="_blank" rel="noopener">
                                 <WaIcon /> WhatsApp Us

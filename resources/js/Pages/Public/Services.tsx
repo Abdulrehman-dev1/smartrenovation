@@ -5,10 +5,10 @@ import { CALL_LINK, WA_LINK, WA_TRACK_CLASS, WaIcon } from '../../Components/Pub
 type ServiceCard = {
     id: number;
     slug: string;
-    title: string;
-    subtitle?: string | null;
-    short_description?: string | null;
+    nav_label: string;
+    meta_description?: string | null;
     cover_url?: string | null;
+    url: string;
 };
 
 type Props = {
@@ -32,14 +32,14 @@ export default function Services({ services }: Props) {
 
                 <section className="svc-grid container">
                     {services.map((s, i) => (
-                        <Link key={s.slug} className="svc-card reveal in" href={`/services/${s.slug}`}>
+                        <Link key={s.slug} className="svc-card reveal in" href={s.url}>
                             <div className="svc-card__media reveal-img in">
                                 {s.cover_url ? <img src={s.cover_url} alt="" loading="lazy" /> : null}
                             </div>
                             <div className="svc-card__info">
                                 <span className="svc-card__no">{String(i + 1).padStart(2, '0')}</span>
-                                <h2 className="svc-card__title">{s.title}</h2>
-                                <p className="svc-card__sub">{s.short_description || s.subtitle}</p>
+                                <h2 className="svc-card__title">{s.nav_label}</h2>
+                                <p className="svc-card__sub">{s.meta_description}</p>
                                 <span className="svc-card__link">Explore →</span>
                             </div>
                         </Link>
