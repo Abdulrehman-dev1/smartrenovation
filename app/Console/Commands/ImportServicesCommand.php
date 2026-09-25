@@ -18,9 +18,9 @@ class ImportServicesCommand extends Command
 
     public function handle(ServiceImageStorage $images): int
     {
-        $path = $this->option('path') ?: base_path('../smart/content/services.json');
-        if (! File::exists($path)) {
-            $this->error("Path not found: {$path}");
+        $path = $this->option('path') ?: (\App\Support\SmartContent::json('services.json') ?? '');
+        if (! $path || ! File::exists($path)) {
+            $this->error('Path not found: services.json (put it in database/data/smart/)');
 
             return self::FAILURE;
         }
@@ -32,7 +32,7 @@ class ImportServicesCommand extends Command
             return self::FAILURE;
         }
 
-        $imgRoot = base_path('../smart/public');
+        $imgRoot = \App\Support\SmartContent::publicRoot() ?: base_path('../smart/public');
         $imported = 0;
 
         foreach ($payload as $index => $item) {

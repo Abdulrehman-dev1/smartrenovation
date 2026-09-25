@@ -7,6 +7,7 @@ use App\Models\Location;
 use App\Models\Project;
 use App\Support\ProjectImageStorage;
 use App\Support\ProjectTaxonomy;
+use App\Support\SmartContent;
 use Illuminate\Database\Seeder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\File;
@@ -19,18 +20,19 @@ class SmartProjectsSeeder extends Seeder
 
     public function run(): void
     {
-        $projectsPath = base_path('../smart/content/projects.json');
-        $roomsPath = base_path('../smart/content/rooms.json');
-        $imgRoot = base_path('../smart/public');
+        $projectsPath = SmartContent::json('projects.json');
+        $roomsPath = SmartContent::json('rooms.json');
+        $collectionPath = SmartContent::json('collection.json');
+        $imgRoot = SmartContent::publicRoot();
 
-        if (! File::exists($projectsPath)) {
-            $this->command?->error("Missing projects.json at {$projectsPath}");
+        if (! $projectsPath) {
+            $this->command?->error('Missing projects.json (expected database/data/smart/projects.json)');
 
             return;
         }
 
-        if (! File::isDirectory($imgRoot)) {
-            $this->command?->error("Missing smart public folder at {$imgRoot}");
+        if (! $imgRoot) {
+            $this->command?->error('Missing public assets root (public/assets or ../smart/public/assets)');
 
             return;
         }
@@ -51,7 +53,7 @@ class SmartProjectsSeeder extends Seeder
         });
 
         $roomMap = $this->loadRoomMap($roomsPath);
-        $collectionBySlug = $this->loadCollectionBySlug(base_path('../smart/content/collection.json'));
+        $collectionBySlug = $this->loadCollectionBySlug($collectionPath);
         $images = app(ProjectImageStorage::class);
         $all = array_values(array_filter($payload, 'is_array'));
         $items = self::LIMIT === null ? $all : array_slice($all, 0, self::LIMIT);
@@ -185,9 +187,9 @@ class SmartProjectsSeeder extends Seeder
      *
      * @return array<string, list<array{img: string, style: string, ar: float}>>
      */
-    private function loadCollectionBySlug(string $path): array
+    private function loadCollectionBySlug(?string $path): array
     {
-        if (! File::exists($path)) {
+        if (! $path || ! File::exists($path)) {
             $this->command?->warn('collection.json not found — projects will have no collection images.');
 
             return [];
@@ -282,9 +284,9 @@ class SmartProjectsSeeder extends Seeder
     /**
      * @return array<string, array<string, string>> slug => [basename => room]
      */
-    private function loadRoomMap(string $roomsPath): array
+    private function loadRoomMap(?string $roomsPath): array
     {
-        if (! File::exists($roomsPath)) {
+        if (! $roomsPath || ! File::exists($roomsPath)) {
             $this->command?->warn('rooms.json not found — gallery rooms default to Other.');
 
             return [];

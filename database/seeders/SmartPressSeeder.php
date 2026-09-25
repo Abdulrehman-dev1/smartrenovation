@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\PressItem;
 use App\Support\PressItemStorage;
+use App\Support\SmartContent;
 use Illuminate\Database\Seeder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\File;
@@ -12,11 +13,11 @@ class SmartPressSeeder extends Seeder
 {
     public function run(): void
     {
-        $path = base_path('../smart/content/press.json');
-        $imgRoot = base_path('../smart/public');
+        $path = SmartContent::json('press.json');
+        $imgRoot = SmartContent::publicRoot();
 
-        if (! File::exists($path)) {
-            $this->command?->error("Missing press.json at {$path}");
+        if (! $path) {
+            $this->command?->error('Missing press.json (expected database/data/smart/press.json)');
 
             return;
         }
@@ -54,7 +55,7 @@ class SmartPressSeeder extends Seeder
                 'status' => 'published',
             ]);
 
-            $cover = $this->uploadedFile($row['img'] ?? null, $imgRoot);
+            $cover = $this->uploadedFile($row['img'] ?? null, $imgRoot ?? '');
             if ($cover) {
                 $storage->storeCover($item, $cover);
             }
@@ -68,7 +69,7 @@ class SmartPressSeeder extends Seeder
 
     private function uploadedFile(mixed $relative, string $imgRoot): ?UploadedFile
     {
-        if (! is_string($relative) || $relative === '') {
+        if ($imgRoot === '' || ! is_string($relative) || $relative === '') {
             return null;
         }
 

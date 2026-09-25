@@ -1,0 +1,93 @@
+{
+  "about": {
+    "heading": "Let Us Add an Italian Flavor to Your Home Renovation.",
+    "excerpt": "Offering top-tier renovation services across Dubai, we specialise in upscale villa, home, and apartment remodeling that blends European design with local expertise.",
+    "cover": null,
+    "images": [
+      "/assets/img/about/about-1.jpg",
+      "/assets/img/about/about-2.jpg"
+    ],
+    "html": "<p>Smart Renovation is one of the UAE’s main home renovation and fit out companies. We are here to help you turn your house to your dream home or to give your office a complete makeover the smart way. We’re here for you every step of the way.</p>\n<p>Smart Renovation came to Dubai after 40 years of experience in Italy and Europe.&nbsp; Our goal is to give your home, villa, apartment or office a unique renovation together with search and import of art, paintings, furniture and special products. Even though every renovation is unique, we strive to make yours exceptional. If you want to bring your home/office to life, Smart Renovation is the clear choice for all your Renovation needs.</p>\n<p>Smart Renovation provides high design with smart solutions, within a smart budget.</p><p>Why Choose Us?</p><p>Our goal is to give your home, villa, apartment or office a unique renovation together with search of smart ideas and the use of art, paintings, furniture and special products. Even though every renovation is unique, we strive to make yours exceptional. If you want to bring your home/office to life, Smart Renovation is the clear choice for all your Renovation needs.</p>\n<p>Our team of selected contractors will be by your side from the beginning to the end of your project. Smart Renovation gives you the best Italian refurb at the most affordable price.</p>"
+  },
+  "team": {
+    "heading": "Meet The Team",
+    "intro": "AC01 Building Sheik Zayed Road, Office 106 – 108 Mezzanine Floor, Dubai, UAE",
+    "members": [
+      {
+        "name": "Marco Tedeschi",
+        "role": "CEO",
+        "img": "/assets/img/team/team-1.jpg"
+      },
+      {
+        "name": "Cinzia Tedeschi",
+        "role": "Interior Decorator",
+        "img": "/assets/img/team/team-2.jpg"
+      },
+      {
+        "name": "Nicola Spessato",
+        "role": "Key Account Manager",
+        "img": "/assets/img/team/team-3.jpg"
+      },
+      {
+        "name": "Maila Nacion",
+        "role": "Admin & Accounts",
+        "img": "/assets/img/team/team-4.jpg"
+      },
+      {
+        "name": "Tanu Sharma",
+        "role": "Designer/Project Manager",
+        "img": "/assets/img/team/team-5.jpg"
+      },
+      {
+        "name": "Feba Shaji",
+        "role": "Designer/Architect",
+        "img": "/assets/img/team/team-6.jpg"
+      },
+      {
+        "name": "Nitheesh Kumar",
+        "role": "Project Manager",
+        "img": "/assets/img/team/team-9.jpg"
+      },
+      {
+        "name": "Serzen Gulay",
+        "role": "Designer",
+        "img": "/assets/img/team/team-12.jpg"
+      },
+      {
+        "name": "Touzeef Anwari",
+        "role": "Designer",
+        "img": "/assets/img/team/team-15.jpg"
+      },
+      {
+        "name": "Rishu Vishwakarma",
+        "role": "Architectural Draughtsman",
+        "img": "/assets/img/team/team-16.jpg"
+      },
+      {
+        "name": "Albina Dinislamova",
+        "role": "Draughtsman",
+        "img": "/assets/img/team/team-17.jpg"
+      },
+      {
+        "name": "Lekshmi Devi",
+        "role": "Kitchen Coordinator",
+        "img": "/assets/img/team/team-18.jpg"
+      },
+      {
+        "name": "Paz Marie Olesco",
+        "role": "Estimator",
+        "img": "/assets/img/team/team-20.jpg"
+      },
+      {
+        "name": "Mary Joy Mapa",
+        "role": "Project Accountant",
+        "img": "/assets/img/team/team-21.jpg"
+      },
+      {
+        "name": "Sunil Kumar",
+        "role": "Site Supervisor",
+        "img": "/assets/img/team/team-22.jpg"
+      }
+    ]
+  }
+}

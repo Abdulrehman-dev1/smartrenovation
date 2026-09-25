@@ -1,0 +1,35 @@
+{
+  "/": {
+    "title": "Smart Renovation — Reinventing Properties Since 1970",
+    "description": "Top-tier renovation and smart-home fit-out across Dubai. Design, build and automation held by one studio."
+  },
+  "/works": {
+    "title": "Smart Renovation — Our Work",
+    "description": "Our work across Dubai — villas, apartments, kitchens, offices, landscape and retail."
+  },
+  "/services": {
+    "title": "Our Services — Smart Renovation Dubai",
+    "description": "Design, build and fit-out services across Dubai: interior fit-out, villa & home renovation, kitchens, landscape, office and retail interiors — held by one studio."
+  },
+  "/collection": {
+    "title": "Collection — Smart Renovation Dubai",
+    "description": "A living moodboard of real Smart Renovation interiors, segmented by style — Mediterranean, Italian Heritage, Oriental, Modern Minimalist and Glam Eclectic."
+  },
+  "/media": {
+    "title": "Smart Renovation — Media Coverage",
+    "description": "Articles, press features and awards — Smart Renovation in the media."
+  },
+  "/about": {
+    "title": "Smart Renovation — About Us & Team",
+    "description": "50+ years of European design and renovation in Dubai. Meet the studio and the team behind Smart Renovation."
+  },
+  "/thank-you-gdn": {
+    "title": "Thank You — Smart Renovation",
+    "description": "We've received your enquiry. Smart Renovation will get back to you shortly."
+  },
+  "/smart-renovation-residential": {
+    "title": "Smart Renovation | Design & Fit-Out Company Dubai UAE",
+    "description": "Smart Renovation is the leading Renovation, Design and Fit-Out Company in Dubai, providing All-In-One Service with Integrity. Call us at +971 56 790 7213",
+    "image": "/assets/img/landing/residential/hero.jpg"
+  }
+}

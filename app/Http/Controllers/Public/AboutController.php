@@ -28,7 +28,8 @@ class AboutController extends Controller
      */
     private function loadAboutJson(): array
     {
-        $path = resource_path('content/about.json');
+        $path = \App\Support\SmartContent::json('about.json')
+            ?: resource_path('content/about.json');
         if (! is_file($path)) {
             return [
                 'about' => [

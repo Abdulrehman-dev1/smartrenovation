@@ -17,9 +17,9 @@ class ImportArticlesCommand extends Command
 
     public function handle(): int
     {
-        $path = $this->option('path') ?: base_path('../smart/content/articles.json');
-        if (! File::exists($path)) {
-            $this->error("Path not found: {$path}");
+        $path = $this->option('path') ?: (\App\Support\SmartContent::json('articles.json') ?? '');
+        if (! $path || ! File::exists($path)) {
+            $this->error('Path not found: articles.json (put it in database/data/smart/)');
 
             return self::FAILURE;
         }
@@ -31,7 +31,7 @@ class ImportArticlesCommand extends Command
             return self::FAILURE;
         }
 
-        $imgRoot = base_path('../smart/public');
+        $imgRoot = \App\Support\SmartContent::publicRoot() ?: base_path('../smart/public');
         $images = app(ArticleImageStorage::class);
         $imported = 0;
 

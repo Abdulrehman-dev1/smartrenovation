@@ -16,9 +16,9 @@ class SyncServicesFromSmartCommand extends Command
 
     public function handle(): int
     {
-        $path = $this->option('path') ?: base_path('../smart/content/services.json');
-        if (! File::exists($path)) {
-            $this->error("Path not found: {$path}");
+        $path = $this->option('path') ?: (\App\Support\SmartContent::json('services.json') ?? '');
+        if (! $path || ! File::exists($path)) {
+            $this->error('Path not found: services.json (put it in database/data/smart/)');
 
             return self::FAILURE;
         }

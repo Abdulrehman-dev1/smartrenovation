@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Article;
 use App\Support\ArticleImageStorage;
+use App\Support\SmartContent;
 use Illuminate\Database\Seeder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\File;
@@ -13,17 +14,17 @@ class SmartArticlesSeeder extends Seeder
 {
     public function run(): void
     {
-        $path = base_path('../smart/content/articles.json');
-        $imgRoot = base_path('../smart/public');
+        $path = SmartContent::json('articles.json');
+        $imgRoot = SmartContent::publicRoot();
 
-        if (! File::exists($path)) {
-            $this->command?->error("Missing articles.json at {$path}");
+        if (! $path) {
+            $this->command?->error('Missing articles.json (expected database/data/smart/articles.json)');
 
             return;
         }
 
-        if (! File::isDirectory($imgRoot)) {
-            $this->command?->error("Missing smart public folder at {$imgRoot}");
+        if (! $imgRoot) {
+            $this->command?->error('Missing public assets root (public/assets or ../smart/public/assets)');
 
             return;
         }

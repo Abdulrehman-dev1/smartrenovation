@@ -19,10 +19,10 @@ class ImportProjectsCommand extends Command
 
     public function handle(ProjectImageStorage $images): int
     {
-        $path = $this->option('path') ?: base_path('../smart/content/projects.json');
+        $path = $this->option('path') ?: (\App\Support\SmartContent::json('projects.json') ?? '');
 
-        if (! File::exists($path)) {
-            $this->error("Path not found: {$path}");
+        if (! $path || ! File::exists($path)) {
+            $this->error('Path not found: projects.json (put it in database/data/smart/)');
 
             return self::FAILURE;
         }
@@ -34,7 +34,7 @@ class ImportProjectsCommand extends Command
             return self::FAILURE;
         }
 
-        $imgRoot = base_path('../smart/public');
+        $imgRoot = \App\Support\SmartContent::publicRoot() ?: base_path('../smart/public');
         $imported = 0;
 
         foreach ($payload as $index => $item) {

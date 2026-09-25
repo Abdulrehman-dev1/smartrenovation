@@ -17,11 +17,11 @@ class ImportRoomTagsCommand extends Command
 
     public function handle(): int
     {
-        $default = base_path('../smart/content/rooms.json');
+        $default = \App\Support\SmartContent::json('rooms.json') ?? base_path('../smart/content/rooms.json');
         $path = $this->option('path') ?: $default;
 
         if (! is_file($path)) {
-            $this->error("rooms.json not found at {$path}");
+            $this->error('rooms.json not found (expected database/data/smart/rooms.json)');
 
             return self::FAILURE;
         }

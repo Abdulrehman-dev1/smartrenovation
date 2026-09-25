@@ -15,10 +15,10 @@ class SyncProjectSortOrderCommand extends Command
 
     public function handle(): int
     {
-        $path = $this->option('path') ?: base_path('../smart/content/projects.json');
+        $path = $this->option('path') ?: (\App\Support\SmartContent::json('projects.json') ?? '');
 
-        if (! File::exists($path)) {
-            $this->error("Path not found: {$path}");
+        if (! $path || ! File::exists($path)) {
+            $this->error('Path not found: projects.json (put it in database/data/smart/)');
 
             return self::FAILURE;
         }

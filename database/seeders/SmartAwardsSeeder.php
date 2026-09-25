@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Award;
 use App\Support\AwardImageStorage;
+use App\Support\SmartContent;
 use Illuminate\Database\Seeder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\File;
@@ -12,11 +13,11 @@ class SmartAwardsSeeder extends Seeder
 {
     public function run(): void
     {
-        $path = base_path('../smart/content/awards.json');
-        $imgRoot = base_path('../smart/public');
+        $path = SmartContent::json('awards.json');
+        $imgRoot = SmartContent::publicRoot();
 
-        if (! File::exists($path)) {
-            $this->command?->error("Missing awards.json at {$path}");
+        if (! $path) {
+            $this->command?->error('Missing awards.json (expected database/data/smart/awards.json)');
 
             return;
         }
@@ -55,7 +56,7 @@ class SmartAwardsSeeder extends Seeder
                 'status' => 'published',
             ]);
 
-            $cover = $this->uploadedFile($row['img'] ?? null, $imgRoot);
+            $cover = $this->uploadedFile($row['img'] ?? null, $imgRoot ?? '');
             if ($cover) {
                 $images->storeCover($award, $cover);
             } else {
@@ -71,7 +72,7 @@ class SmartAwardsSeeder extends Seeder
 
     private function uploadedFile(mixed $relative, string $imgRoot): ?UploadedFile
     {
-        if (! is_string($relative) || $relative === '') {
+        if ($imgRoot === '' || ! is_string($relative) || $relative === '') {
             return null;
         }
 

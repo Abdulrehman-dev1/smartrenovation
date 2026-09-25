@@ -1,0 +1,44 @@
+[
+  {
+    "title": "Boutique Firm Of The Year",
+    "organization": "Architecture Leaders Awards",
+    "year": "2026",
+    "img": "/assets/img/awards/ala-2026.jpg"
+  },
+  {
+    "title": "Boutique Firm Of The Year",
+    "organization": "Architecture Leaders Awards",
+    "year": "2025",
+    "img": "/assets/img/awards/ala-2025.jpg"
+  },
+  {
+    "title": "Design & Build Project Of The Year",
+    "organization": "Design Middle East Awards",
+    "year": "2024",
+    "img": "/assets/img/awards/dme-2024.jpg"
+  },
+  {
+    "title": "Innovation In Architecture Award",
+    "organization": "Architecture Leaders Awards",
+    "year": "2024",
+    "img": "/assets/img/awards/ala-2024.jpg"
+  },
+  {
+    "title": "Landscape Project Of The Year — Highly Commended",
+    "organization": "Design Middle East Awards",
+    "year": "2023",
+    "img": "/assets/img/awards/dme-2023.jpg"
+  },
+  {
+    "title": "Residential Project Of The Year — Villa Chanel",
+    "organization": "Architecture Leaders Awards",
+    "year": "2023",
+    "img": "/assets/img/awards/ala-2023.jpg"
+  },
+  {
+    "title": "Boutique Firm Of The Year — Highly Commended",
+    "organization": "Design Middle East Awards",
+    "year": "2022",
+    "img": "/assets/img/awards/dme-2022.jpg"
+  }
+]

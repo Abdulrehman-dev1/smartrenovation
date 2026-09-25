@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Service;
 use App\Support\ServiceImageStorage;
+use App\Support\SmartContent;
 use App\Support\SmartServiceMapper;
 use Illuminate\Database\Seeder;
 use Illuminate\Http\UploadedFile;
@@ -14,17 +15,17 @@ class SmartServicesSeeder extends Seeder
 {
     public function run(): void
     {
-        $servicesPath = base_path('../smart/content/services.json');
-        $imgRoot = base_path('../smart/public');
+        $servicesPath = SmartContent::json('services.json');
+        $imgRoot = SmartContent::publicRoot();
 
-        if (! File::exists($servicesPath)) {
-            $this->command?->error("Missing services.json at {$servicesPath}");
+        if (! $servicesPath) {
+            $this->command?->error('Missing services.json (expected database/data/smart/services.json)');
 
             return;
         }
 
-        if (! File::isDirectory($imgRoot)) {
-            $this->command?->error("Missing smart public folder at {$imgRoot}");
+        if (! $imgRoot) {
+            $this->command?->error('Missing public assets root (public/assets or ../smart/public/assets)');
 
             return;
         }
