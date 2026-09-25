@@ -1,83 +1,63 @@
+import ContactForm from '@/Components/Public/ContactForm';
+import {
+    CALL_DISPLAY,
+    CALL_LINK,
+    WA_LINK,
+    WA_TRACK_CLASS,
+    WaIcon,
+} from '@/Components/Public/WaFloat';
 import PublicLayout from '@/Layouts/PublicLayout';
-import { Head, useForm } from '@inertiajs/react';
-import { FormEvent } from 'react';
+import { Head } from '@inertiajs/react';
 
-type ContactInfo = {
-    email?: string | null;
-    phone?: string | null;
-    address?: string | null;
+type Props = {
+    contact?: {
+        email?: string | null;
+        phone?: string | null;
+        address?: string | null;
+    };
 };
 
-export default function Contact({ contact }: { contact: ContactInfo }) {
-    const { data, setData, post, processing, errors } = useForm({
-        name: '',
-        email: '',
-        phone: '',
-        message: '',
-        source: 'contact',
-    });
-
-    const submit = (e: FormEvent) => {
-        e.preventDefault();
-        post('/contact', { preserveScroll: true });
-    };
-
+export default function Contact({ contact }: Props) {
     return (
-        <PublicLayout title="Contact">
-            <Head title="Contact" />
-            <div className="grid gap-10 lg:grid-cols-2">
-                <div className="space-y-3 text-stone-600">
-                    {contact.email && <p>{contact.email}</p>}
-                    {contact.phone && <p>{contact.phone}</p>}
-                    {contact.address && <p>{contact.address}</p>}
-                </div>
-                <form onSubmit={submit} className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium">Name</label>
-                        <input
-                            className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${errors.name ? 'border-rose-500' : 'border-stone-300'}`}
-                            value={data.name}
-                            onChange={(e) => setData('name', e.target.value)}
-                        />
-                        {errors.name && <p className="mt-1 text-xs text-rose-600">{errors.name}</p>}
+        <PublicLayout>
+            <Head title="Contact — Smart Renovation" />
+            <main className="contact">
+                <section className="cta-band cta-band--contact" id="contact">
+                    <div className="container cta-band__grid">
+                        <div className="cta-band__intro">
+                            <span className="eyebrow reveal">Let&apos;s talk</span>
+                            <h1 className="cta-band__title reveal" data-delay="1">
+                                Start Your Project.
+                            </h1>
+                            <p className="cta-band__sub reveal" data-delay="2">
+                                Tell us about your space and timeline — we reply fast with a clear plan.
+                            </p>
+                            <div className="cta-band__actions reveal" data-delay="3">
+                                <a
+                                    className={`btn btn--wa ${WA_TRACK_CLASS}`}
+                                    href={WA_LINK}
+                                    target="_blank"
+                                    rel="noopener"
+                                >
+                                    <WaIcon /> WhatsApp Us
+                                </a>
+                                <a className="btn btn--solid" href={CALL_LINK}>
+                                    Call Us
+                                </a>
+                                <a className="btn btn--light" href="mailto:info@smartrenovation.ae">
+                                    Email
+                                </a>
+                            </div>
+                            <div className="cta-band__meta reveal" data-delay="4">
+                                <span>{contact?.address || 'Sheikh Zayed Road, Dubai, UAE'}</span>
+                                <span>{contact?.phone || CALL_DISPLAY}</span>
+                                <span>{contact?.email || 'info@smartrenovation.ae'}</span>
+                            </div>
+                        </div>
+                        <ContactForm source="contact" />
                     </div>
-                    <div>
-                        <label className="block text-sm font-medium">Email</label>
-                        <input
-                            type="email"
-                            className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${errors.email ? 'border-rose-500' : 'border-stone-300'}`}
-                            value={data.email}
-                            onChange={(e) => setData('email', e.target.value)}
-                        />
-                        {errors.email && <p className="mt-1 text-xs text-rose-600">{errors.email}</p>}
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium">Phone</label>
-                        <input
-                            className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${errors.phone ? 'border-rose-500' : 'border-stone-300'}`}
-                            value={data.phone}
-                            onChange={(e) => setData('phone', e.target.value)}
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium">Message</label>
-                        <textarea
-                            rows={5}
-                            className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${errors.message ? 'border-rose-500' : 'border-stone-300'}`}
-                            value={data.message}
-                            onChange={(e) => setData('message', e.target.value)}
-                        />
-                        {errors.message && <p className="mt-1 text-xs text-rose-600">{errors.message}</p>}
-                    </div>
-                    <button
-                        type="submit"
-                        disabled={processing}
-                        className="rounded-md bg-stone-900 px-5 py-2.5 text-sm text-white disabled:opacity-50"
-                    >
-                        {processing ? 'Sending…' : 'Send message'}
-                    </button>
-                </form>
-            </div>
+                </section>
+            </main>
         </PublicLayout>
     );
 }

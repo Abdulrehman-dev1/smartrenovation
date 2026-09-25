@@ -1,0 +1,45 @@
+/* =========================================================
+   COLLECTION — Pinterest-style masonry board
+   (relies on style.css for tokens, header, footer, reveal)
+   ========================================================= */
+.collection{padding-top:clamp(108px,15vh,148px);}
+
+/* ---------- INTRO ---------- */
+.collection-intro{text-align:center;padding:clamp(18px,4vh,46px) clamp(20px,4vw,48px) clamp(28px,5vh,52px);max-width:960px;}
+.collection-intro__title{font-size:clamp(38px,6.4vw,88px);font-weight:200;margin:16px 0 20px;}
+.collection-intro__title em{font-style:italic;font-weight:200;}
+.collection-intro__lead{max-width:560px;margin:0 auto;font-size:clamp(15px,1.3vw,18px);font-weight:300;color:var(--text);}
+
+/* ---------- MASONRY BOARD ---------- */
+.board{
+  column-count:4;
+  column-gap:clamp(12px,1.4vw,20px);
+  padding:0 clamp(14px,3vw,40px) clamp(40px,8vh,90px);
+  max-width:1500px;margin:0 auto;
+}
+.pin{
+  break-inside:avoid;
+  margin-bottom:clamp(12px,1.4vw,20px);
+}
+.pin__media{position:relative;overflow:hidden;display:block;background:var(--bg-tint);}
+.pin__media img{width:100%;height:100%;display:block;object-fit:cover;}
+/* hover */
+.pin__media::after{content:"";position:absolute;inset:0;background:rgba(20,18,16,0);transition:background .5s var(--ease);}
+.pin:hover .pin__media::after{background:rgba(20,18,16,.18);}
+.pin__media img{transition:transform 1.3s var(--ease);}
+.pin:hover .pin__media img{transform:scale(1.05);}
+.pin__tag{
+  position:absolute;left:0;bottom:0;z-index:2;
+  padding:14px 16px;color:#fff;
+  font-family:var(--font-ui);font-size:10px;letter-spacing:.18em;text-transform:uppercase;
+  opacity:0;transform:translateY(10px);transition:opacity .5s var(--ease),transform .5s var(--ease);
+}
+.pin:hover .pin__tag{opacity:1;transform:none;}
+
+/* ---------- CTA BAND: shared styles in style.css ---------- */
+.collection .cta-band{margin-top:clamp(40px,7vh,70px);}
+
+/* ---------- RESPONSIVE ---------- */
+@media (max-width:1100px){ .board{column-count:3;} }
+@media (max-width:720px){ .board{column-count:2;} }
+@media (max-width:420px){ .board{column-count:1;} }

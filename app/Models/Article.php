@@ -2,46 +2,37 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\HasCmsMedia;
 use Illuminate\Database\Eloquent\Model;
-use Spatie\MediaLibrary\HasMedia;
-use Spatie\MediaLibrary\InteractsWithMedia;
+use Illuminate\Support\Facades\Storage;
 
-class Article extends Model implements HasMedia
+class Article extends Model
 {
-    use HasCmsMedia;
-    use InteractsWithMedia {
-        HasCmsMedia::registerMediaConversions insteadof InteractsWithMedia;
-    }
-
     protected $fillable = [
         'slug',
         'title',
-        'published_on',
-        'excerpt',
-        'body',
+        'subtitle',
+        'cover_image',
+        'description',
         'status',
         'published_at',
         'meta_title',
         'meta_description',
+        'canonical_url',
+        'schema_json',
     ];
 
     protected function casts(): array
     {
         return [
-            'published_on' => 'date',
             'published_at' => 'datetime',
         ];
     }
 
-    public function registerMediaCollections(): void
+    protected static function booted(): void
     {
-        $this->addMediaCollection('cover')->singleFile();
-    }
-
-    protected function conversionCollections(): array
-    {
-        return ['cover'];
+        static::deleting(function (Article $article) {
+            app(\App\Support\ArticleImageStorage::class)->deleteAll($article);
+        });
     }
 
     public function scopePublished($query)
@@ -52,5 +43,19 @@ class Article extends Model implements HasMedia
     public function getRouteKeyName(): string
     {
         return 'slug';
+    }
+
+    public function coverUrl(): ?string
+    {
+        return $this->pathToUrl($this->cover_image);
+    }
+
+    public function pathToUrl(?string $path): ?string
+    {
+        if (! $path) {
+            return null;
+        }
+
+        return Storage::disk('public')->url($path);
     }
 }

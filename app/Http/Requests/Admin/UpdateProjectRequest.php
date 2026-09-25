@@ -32,6 +32,52 @@ class UpdateProjectRequest extends FormRequest
             $trimmed = trim($this->input('schema_json'));
             $this->merge(['schema_json' => $trimmed === '' ? null : $trimmed]);
         }
+
+        if ($this->has('collection_images') && ! is_array($this->input('collection_images'))) {
+            $this->merge(['collection_images' => []]);
+        }
+
+        if (is_array($this->input('collection_images'))) {
+            $normalized = [];
+            foreach ($this->input('collection_images') as $item) {
+                if (! is_array($item)) {
+                    continue;
+                }
+                if (isset($item['path']) && is_string($item['path'])) {
+                    $item['path'] = self::normalizeStoragePath($item['path']);
+                }
+                // Drop undefined/empty ar so validation stays clean.
+                if (array_key_exists('ar', $item) && ($item['ar'] === null || $item['ar'] === '')) {
+                    unset($item['ar']);
+                }
+                $normalized[] = $item;
+            }
+            $this->merge(['collection_images' => $normalized]);
+        }
+    }
+
+    /**
+     * Accept relative disk paths or /storage/... / full URLs and return disk-relative path.
+     */
+    private static function normalizeStoragePath(string $path): string
+    {
+        $path = trim($path);
+        if ($path === '') {
+            return $path;
+        }
+
+        if (preg_match('#^https?://#i', $path)) {
+            $path = parse_url($path, PHP_URL_PATH) ?: $path;
+        }
+
+        $path = str_replace('\\', '/', $path);
+        if (str_starts_with($path, '/storage/')) {
+            $path = substr($path, strlen('/storage/'));
+        } elseif (str_starts_with($path, 'storage/')) {
+            $path = substr($path, strlen('storage/'));
+        }
+
+        return ltrim($path, '/');
     }
 
     public function rules(): array
@@ -47,6 +93,7 @@ class UpdateProjectRequest extends FormRequest
             'subtitle' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'status' => ['required', Rule::in(['draft', 'published'])],
+            'sort_order' => ['nullable', 'integer', 'min:0', 'max:999999'],
             'published_at' => ['nullable', 'date'],
             'meta_title' => ['nullable', 'string', 'max:255'],
             'meta_description' => ['nullable', 'string'],
@@ -69,6 +116,44 @@ class UpdateProjectRequest extends FormRequest
             'gallery_hidden_files.*' => ['file', 'mimes:jpeg,jpg,png,webp', 'max:51200'],
             'gallery_hidden_rooms' => ['nullable', 'array'],
             'gallery_hidden_rooms.*' => ['string', Rule::in(ProjectTaxonomy::imageRooms())],
+            'collection_images' => ['nullable', 'array'],
+            'collection_images.*.path' => ['required', 'string'],
+            'collection_images.*.style' => ['required', 'string', Rule::in(ProjectTaxonomy::collectionStyles())],
+            'collection_images.*.ar' => ['nullable', 'numeric', 'gt:0'],
         ];
+    }
+
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
+            /** @var \App\Models\Project|null $project */
+            $project = $this->route('project');
+            if (! $project) {
+                return;
+            }
+
+            // Re-read from DB so AJAX image changes are reflected.
+            $project->refresh();
+
+            $rawImages = $this->input('collection_images', []);
+            if (! is_array($rawImages)) {
+                $rawImages = [];
+            }
+
+            $allowed = array_flip($project->collectionCandidatePaths());
+            foreach ($rawImages as $index => $item) {
+                $normalized = \App\Models\Project::normalizeCollectionImageItem($item);
+                if (! $normalized) {
+                    $validator->errors()->add("collection_images.{$index}", 'Invalid collection image.');
+                    continue;
+                }
+                if (! isset($allowed[$normalized['path']])) {
+                    $validator->errors()->add(
+                        "collection_images.{$index}.path",
+                        'Image must be the project cover or gallery.'
+                    );
+                }
+            }
+        });
     }
 }

@@ -36,24 +36,46 @@ class ProjectController extends Controller
 
         $jsonLd = $this->resolveJsonLd($project, $seo, $title, (string) $description);
 
+        $ordered = Project::query()
+            ->published()
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->pluck('slug');
+        $idx = $ordered->search($project->slug);
+        $nextSlug = $idx === false
+            ? null
+            : $ordered[($idx + 1) % max($ordered->count(), 1)];
+        $next = $nextSlug && $nextSlug !== $project->slug
+            ? Project::query()->published()->with('location')->where('slug', $nextSlug)->first()
+            : null;
+
+        $rawDescription = (string) ($project->description ?? '');
+        $descriptionHtml = $rawDescription !== '' && str_contains($rawDescription, '<')
+            ? $rawDescription
+            : null;
+        $descriptionText = $descriptionHtml ? null : $rawDescription;
+
         return Inertia::render('Public/ProjectShow', [
             'project' => [
                 'slug' => $project->slug,
                 'name' => $project->name,
-                'studio' => $project->studio,
+                'studio' => $project->studio ?: 'Smart Renovation',
                 'subtitle' => $project->subtitle,
-                'description' => $project->description,
+                'description' => $descriptionText,
+                'description_html' => $descriptionHtml,
                 'location' => $project->location?->name,
                 'type' => $project->category?->type_label,
                 'rooms' => $project->rooms,
-                'cover' => $project->coverUrl()
-                    ? ['original' => $project->coverUrl(), 'large' => $project->coverUrl()]
-                    : null,
-                'gallery' => collect($project->galleryUrls())->map(fn (string $url) => [
-                    'original' => $url,
-                    'large' => $url,
-                ])->all(),
+                'cover' => $project->coverUrl(),
+                'cover_ar' => 1.5,
+                'gallery' => $project->galleryUrls(),
             ],
+            'next' => $next ? [
+                'slug' => $next->slug,
+                'name' => $next->name,
+                'location' => $next->location?->name,
+                'cover' => $next->coverUrl(),
+            ] : null,
             'previewDraft' => $isDraftPreview,
             'seo' => [
                 'title' => $title,

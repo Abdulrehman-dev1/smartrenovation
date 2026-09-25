@@ -1,9 +1,10 @@
+import AdminIndexFilters, { STATUS_FILTER_OPTIONS } from '@/Components/AdminIndexFilters';
 import DangerButton from '@/Components/DangerButton';
 import Modal from '@/Components/Modal';
 import SecondaryButton from '@/Components/SecondaryButton';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { Head, Link, router } from '@inertiajs/react';
-import { useState, type ReactNode } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 
 type Service = {
     id: number;
@@ -85,13 +86,30 @@ function TrashIcon() {
 
 export default function Index({
     services,
+    filters = { search: '', status: '' },
     can,
 }: {
     services: Paginated<Service>;
+    filters?: { search: string; status: string };
     can: { view: boolean; create: boolean; edit: boolean; delete: boolean };
 }) {
     const [deleting, setDeleting] = useState<Service | null>(null);
     const [processing, setProcessing] = useState(false);
+
+    const filterFields = useMemo(
+        () => [
+            { key: 'search', type: 'search' as const, placeholder: 'Search by title, slug…' },
+            {
+                key: 'status',
+                type: 'select' as const,
+                label: 'Status',
+                options: STATUS_FILTER_OPTIONS,
+            },
+        ],
+        [],
+    );
+
+    const hasFilters = Object.values(filters).some((v) => v.trim() !== '');
 
     const closeDeleteModal = () => {
         if (processing) return;
@@ -129,6 +147,8 @@ export default function Index({
                 )}
             </div>
 
+            <AdminIndexFilters url="/admin/services" filters={filters} fields={filterFields} />
+
             <div className="w-full overflow-hidden rounded-lg border border-slate-200 bg-white">
                 <div className="w-full overflow-x-auto">
                     <table className="w-full min-w-[720px] table-fixed divide-y divide-slate-200 text-sm">
@@ -145,7 +165,7 @@ export default function Index({
                             {services.data.length === 0 ? (
                                 <tr>
                                     <td colSpan={5} className="px-4 py-10 text-center text-slate-500">
-                                        No services yet.
+                                        {hasFilters ? 'No services match these filters.' : 'No services yet.'}
                                     </td>
                                 </tr>
                             ) : (

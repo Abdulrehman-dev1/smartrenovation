@@ -17,6 +17,7 @@ class RoleAndPermissionSeeder extends Seeder
             'projects',
             'services',
             'articles',
+            'press',
             'collection_items',
             'awards',
             'pages',

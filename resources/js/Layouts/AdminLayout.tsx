@@ -10,11 +10,9 @@ const navItems = [
     { href: '/admin/projects', label: 'Projects' },
     { href: '/admin/services', label: 'Services' },
     { href: '/admin/articles', label: 'Articles' },
-    { href: '/admin/collection-items', label: 'Collection' },
+    { href: '/admin/press', label: 'Press' },
     { href: '/admin/awards', label: 'Awards' },
-    { href: '/admin/pages', label: 'Pages' },
     { href: '/admin/leads', label: 'Leads' },
-    { href: '/admin/redirects', label: 'Redirects' },
     { href: '/admin/settings', label: 'Settings' },
 ];
 

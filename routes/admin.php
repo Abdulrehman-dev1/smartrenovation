@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\Admin\ArticleController;
+use App\Http\Controllers\Admin\ArticleImageController;
 use App\Http\Controllers\Admin\AwardController;
+use App\Http\Controllers\Admin\AwardImageController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\CollectionItemController;
 use App\Http\Controllers\Admin\DashboardController;
@@ -9,6 +11,9 @@ use App\Http\Controllers\Admin\LeadController;
 use App\Http\Controllers\Admin\LocationController;
 use App\Http\Controllers\Admin\MediaUploadController;
 use App\Http\Controllers\Admin\PageController;
+use App\Http\Controllers\Admin\PressController;
+use App\Http\Controllers\Admin\PressImageController;
+use App\Http\Controllers\Admin\PressPdfController;
 use App\Http\Controllers\Admin\ProjectController;
 use App\Http\Controllers\Admin\RedirectController;
 use App\Http\Controllers\Admin\ServiceController;
@@ -47,11 +52,29 @@ Route::middleware(['auth', 'verified'])
                 ->name('services.images.destroy');
             Route::post('services/{service}/images/reorder', [ServiceImageController::class, 'reorder'])
                 ->name('services.images.reorder');
-            Route::resource('articles', ArticleController::class)->except(['show']);
+            Route::resource('articles', ArticleController::class);
+            Route::post('articles/{article}/images', [ArticleImageController::class, 'store'])
+                ->name('articles.images.store');
+            Route::delete('articles/{article}/images', [ArticleImageController::class, 'destroy'])
+                ->name('articles.images.destroy');
+            Route::resource('press', PressController::class)
+                ->parameters(['press' => 'press']);
+            Route::post('press/{press}/images', [PressImageController::class, 'store'])
+                ->name('press.images.store');
+            Route::delete('press/{press}/images', [PressImageController::class, 'destroy'])
+                ->name('press.images.destroy');
+            Route::post('press/{press}/pdf', [PressPdfController::class, 'store'])
+                ->name('press.pdf.store');
+            Route::delete('press/{press}/pdf', [PressPdfController::class, 'destroy'])
+                ->name('press.pdf.destroy');
             Route::resource('collection-items', CollectionItemController::class)
                 ->parameters(['collection-items' => 'collection_item'])
                 ->except(['show']);
-            Route::resource('awards', AwardController::class)->except(['show']);
+            Route::resource('awards', AwardController::class);
+            Route::post('awards/{award}/images', [AwardImageController::class, 'store'])
+                ->name('awards.images.store');
+            Route::delete('awards/{award}/images', [AwardImageController::class, 'destroy'])
+                ->name('awards.images.destroy');
             Route::resource('pages', PageController::class)->except(['show']);
             Route::resource('redirects', RedirectController::class)->except(['show']);
 

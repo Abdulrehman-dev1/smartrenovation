@@ -1,9 +1,10 @@
+import AdminIndexFilters, { STATUS_FILTER_OPTIONS } from '@/Components/AdminIndexFilters';
 import DangerButton from '@/Components/DangerButton';
 import Modal from '@/Components/Modal';
 import SecondaryButton from '@/Components/SecondaryButton';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { Head, Link, router } from '@inertiajs/react';
-import { useState, type ReactNode } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 
 type Project = {
     id: number;
@@ -11,6 +12,7 @@ type Project = {
     subtitle?: string | null;
     slug: string;
     status: string;
+    sort_order?: number | null;
     location?: string | null;
     category?: string | null;
     cover_url?: string | null;
@@ -87,13 +89,47 @@ function TrashIcon() {
 
 export default function Index({
     projects,
+    filters = { search: '', category: '', location: '', status: '' },
+    filterOptions = { categories: [], locations: [] },
     can,
 }: {
     projects: Paginated<Project>;
+    filters?: { search: string; category: string; location: string; status: string };
+    filterOptions?: {
+        categories: { value: string; label: string }[];
+        locations: { value: string; label: string }[];
+    };
     can: { view: boolean; create: boolean; edit: boolean; delete: boolean };
 }) {
     const [deleting, setDeleting] = useState<Project | null>(null);
     const [processing, setProcessing] = useState(false);
+
+    const filterFields = useMemo(
+        () => [
+            { key: 'search', type: 'search' as const, placeholder: 'Search by title, slug…' },
+            {
+                key: 'category',
+                type: 'select' as const,
+                label: 'Category',
+                options: filterOptions.categories,
+            },
+            {
+                key: 'location',
+                type: 'select' as const,
+                label: 'Location',
+                options: filterOptions.locations,
+            },
+            {
+                key: 'status',
+                type: 'select' as const,
+                label: 'Status',
+                options: STATUS_FILTER_OPTIONS,
+            },
+        ],
+        [filterOptions.categories, filterOptions.locations],
+    );
+
+    const hasFilters = Object.values(filters).some((v) => v.trim() !== '');
 
     const closeDeleteModal = () => {
         if (processing) {
@@ -136,12 +172,15 @@ export default function Index({
                 )}
             </div>
 
+            <AdminIndexFilters url="/admin/projects" filters={filters} fields={filterFields} />
+
             <div className="w-full overflow-hidden rounded-lg border border-slate-200 bg-white">
                 <div className="w-full overflow-x-auto">
                     <table className="w-full min-w-[860px] table-fixed divide-y divide-slate-200 text-sm">
                         <thead className="bg-slate-50">
                             <tr>
                                 <th className="w-20 px-4 py-3 text-left font-medium text-slate-600">Cover</th>
+                                <th className="w-16 px-4 py-3 text-left font-medium text-slate-600">#</th>
                                 <th className="w-[22%] px-4 py-3 text-left font-medium text-slate-600">Name</th>
                                 <th className="px-4 py-3 text-left font-medium text-slate-600">Subtitle</th>
                                 <th className="w-36 px-4 py-3 text-left font-medium text-slate-600">Category</th>
@@ -153,8 +192,8 @@ export default function Index({
                         <tbody className="divide-y divide-slate-100">
                             {projects.data.length === 0 ? (
                                 <tr>
-                                    <td colSpan={7} className="px-4 py-10 text-center text-slate-500">
-                                        No projects yet.
+                                    <td colSpan={8} className="px-4 py-10 text-center text-slate-500">
+                                        {hasFilters ? 'No projects match these filters.' : 'No projects yet.'}
                                     </td>
                                 </tr>
                             ) : (
@@ -174,6 +213,9 @@ export default function Index({
                                                     </div>
                                                 )}
                                             </div>
+                                        </td>
+                                        <td className="px-4 py-3 font-mono text-xs text-slate-500">
+                                            {project.sort_order ?? '—'}
                                         </td>
                                         <td className="px-4 py-3">
                                             <div className="min-w-0">

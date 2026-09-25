@@ -5,10 +5,13 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreProjectRequest;
 use App\Http\Requests\Admin\UpdateProjectRequest;
+use App\Models\Category;
+use App\Models\Location;
 use App\Models\Project;
 use App\Support\ProjectImageStorage;
 use App\Support\ProjectTaxonomy;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -16,25 +19,66 @@ class ProjectController extends Controller
 {
     public function __construct(private ProjectImageStorage $images) {}
 
-    public function index(): Response
+    public function index(Request $request): Response
     {
         $this->authorize('viewAny', Project::class);
 
+        $filters = [
+            'search' => trim((string) $request->string('search')),
+            'category' => trim((string) $request->string('category')),
+            'location' => trim((string) $request->string('location')),
+            'status' => trim((string) $request->string('status')),
+        ];
+
+        $query = Project::query()->with(['category', 'location'])->orderBy('sort_order')->orderBy('id');
+
+        if ($filters['search'] !== '') {
+            $search = $filters['search'];
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('slug', 'like', "%{$search}%")
+                    ->orWhere('subtitle', 'like', "%{$search}%");
+            });
+        }
+
+        if ($filters['category'] !== '') {
+            $query->where('category_id', (int) $filters['category']);
+        }
+
+        if ($filters['location'] !== '') {
+            $query->where('location_id', (int) $filters['location']);
+        }
+
+        if (in_array($filters['status'], ['draft', 'published'], true)) {
+            $query->where('status', $filters['status']);
+        }
+
         return Inertia::render('Admin/Projects/Index', [
-            'projects' => Project::query()
-                ->with(['category', 'location'])
-                ->latest()
+            'projects' => $query
                 ->paginate(12)
+                ->withQueryString()
                 ->through(fn (Project $project) => [
                     'id' => $project->id,
                     'name' => $project->name,
                     'subtitle' => $project->subtitle,
                     'slug' => $project->slug,
                     'status' => $project->status,
+                    'sort_order' => $project->sort_order,
                     'location' => $project->location?->name,
                     'category' => $project->category?->name,
                     'cover_url' => $project->coverUrl(),
                 ]),
+            'filters' => $filters,
+            'filterOptions' => [
+                'categories' => Category::query()->orderBy('name')->get(['id', 'name'])
+                    ->map(fn (Category $c) => ['value' => (string) $c->id, 'label' => $c->name])
+                    ->values()
+                    ->all(),
+                'locations' => Location::query()->orderBy('name')->get(['id', 'name'])
+                    ->map(fn (Location $l) => ['value' => (string) $l->id, 'label' => $l->name])
+                    ->values()
+                    ->all(),
+            ],
             'can' => [
                 'view' => request()->user()->can('projects.view'),
                 'create' => request()->user()->can('projects.create'),
@@ -55,6 +99,7 @@ class ProjectController extends Controller
     {
         $data = collect($request->validated())->except([
             'cover', 'gallery', 'gallery_hidden_files', 'gallery_rooms', 'gallery_hidden_rooms', 'rooms',
+            'collection_entries', 'collection_keys', 'collection_style', 'collection_images',
         ])->all();
 
         $project = Project::query()->create($data);
@@ -81,6 +126,7 @@ class ProjectController extends Controller
 
         $project->refresh();
         $project->syncRoomsFromGallery();
+        $this->applyCollectionFromCreate($project, $request);
 
         return redirect()
             ->route('admin.projects.index')
@@ -107,6 +153,8 @@ class ProjectController extends Controller
                     : null,
                 'gallery' => $project->presentGallery('gallery_images'),
                 'gallery_hidden' => $project->presentGallery('gallery_hidden'),
+                'collection_style' => $project->collection_style,
+                'collection_images' => $project->presentCollectionImages(),
             ]),
             'can' => [
                 'edit' => request()->user()->can('projects.edit'),
@@ -133,6 +181,9 @@ class ProjectController extends Controller
                     : null,
                 'gallery' => $project->presentGallery('gallery_images'),
                 'gallery_hidden' => $project->presentGallery('gallery_hidden'),
+                'collection_style' => $project->collection_style,
+                'collection_images' => $project->normalizedCollectionImages(),
+                'collection_candidates' => $project->presentCollectionCandidates(),
             ]),
         ]));
     }
@@ -141,6 +192,7 @@ class ProjectController extends Controller
     {
         $data = collect($request->validated())->except([
             'cover', 'gallery', 'gallery_hidden_files', 'gallery_rooms', 'gallery_hidden_rooms', 'rooms',
+            'collection_entries', 'collection_keys', 'collection_style', 'collection_images',
         ])->all();
 
         $project->update($data);
@@ -165,8 +217,11 @@ class ProjectController extends Controller
             );
         }
 
+        $project->refresh();
+        $this->applyCollectionFromUpdate($project, $request);
+
         return redirect()
-            ->route('admin.projects.edit', $project->fresh())
+            ->route('admin.projects.index')
             ->with('success', 'Project was successfully updated.');
     }
 
@@ -179,5 +234,81 @@ class ProjectController extends Controller
         return redirect()
             ->route('admin.projects.index')
             ->with('success', 'Project was successfully deleted.');
+    }
+
+    private function applyCollectionFromCreate(Project $project, StoreProjectRequest $request): void
+    {
+        $entries = $request->validated('collection_entries') ?? [];
+        if (! is_array($entries) || $entries === []) {
+            $project->forceFill([
+                'collection_style' => null,
+                'collection_images' => null,
+            ])->save();
+
+            return;
+        }
+
+        $images = $project->resolveCollectionEntries($entries);
+        if ($images === []) {
+            $project->forceFill([
+                'collection_style' => null,
+                'collection_images' => null,
+            ])->save();
+
+            return;
+        }
+
+        $project->forceFill([
+            'collection_style' => $images[0]['style'],
+            'collection_images' => $images,
+        ])->save();
+    }
+
+    private function applyCollectionFromUpdate(Project $project, UpdateProjectRequest $request): void
+    {
+        $raw = $request->validated('collection_images') ?? [];
+
+        if (! is_array($raw) || $raw === []) {
+            $project->forceFill([
+                'collection_style' => null,
+                'collection_images' => null,
+            ])->save();
+
+            return;
+        }
+
+        $existingAr = collect($project->normalizedCollectionImages())
+            ->keyBy('path');
+
+        $images = [];
+        $seen = [];
+        foreach ($raw as $item) {
+            $normalized = Project::normalizeCollectionImageItem($item);
+            if (! $normalized || isset($seen[$normalized['path']])) {
+                continue;
+            }
+            if (! in_array($normalized['path'], $project->collectionCandidatePaths(), true)) {
+                continue;
+            }
+            if (! isset($item['ar']) && $existingAr->has($normalized['path'])) {
+                $normalized['ar'] = $existingAr->get($normalized['path'])['ar'];
+            }
+            $seen[$normalized['path']] = true;
+            $images[] = $normalized;
+        }
+
+        if ($images === []) {
+            $project->forceFill([
+                'collection_style' => null,
+                'collection_images' => null,
+            ])->save();
+
+            return;
+        }
+
+        $project->forceFill([
+            'collection_style' => $images[0]['style'],
+            'collection_images' => $images,
+        ])->save();
     }
 }

@@ -12,6 +12,8 @@ type Props = {
     gallery: ImageItem[];
     galleryHidden: ImageItem[];
     imageRooms: string[];
+    /** When false, room assignment UI is hidden (use the Rooms tab instead). */
+    manageRooms?: boolean;
 };
 
 function csrfToken() {
@@ -43,6 +45,7 @@ function GalleryPanel({
     collection,
     items,
     imageRooms,
+    manageRooms,
     selected,
     onToggle,
     onSelectAll,
@@ -61,6 +64,7 @@ function GalleryPanel({
     collection: 'gallery' | 'gallery_hidden';
     items: ImageItem[];
     imageRooms: string[];
+    manageRooms: boolean;
     selected: Set<string>;
     onToggle: (path: string) => void;
     onSelectAll: () => void;
@@ -76,7 +80,9 @@ function GalleryPanel({
     inputRef: RefObject<HTMLInputElement>;
 }) {
     const selectedCount = items.filter((i) => selected.has(i.path)).length;
-    const sections = groupByRoom(items, imageRooms);
+    const sections = manageRooms
+        ? groupByRoom(items, imageRooms)
+        : [{ room: '', items: items.map((item, index) => ({ item, index })) }];
 
     return (
         <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -134,20 +140,22 @@ function GalleryPanel({
                             >
                                 {transferLabel}
                             </button>
-                            <div className="flex flex-wrap items-center gap-1.5">
-                                <span className="text-xs text-slate-500">Room:</span>
-                                {imageRooms.map((room) => (
-                                    <button
-                                        key={room}
-                                        type="button"
-                                        disabled={busy}
-                                        onClick={() => onAssignRoom(room)}
-                                        className="rounded-full border border-slate-200 bg-white px-2.5 py-0.5 text-[11px] font-medium text-slate-700 hover:border-slate-400 hover:bg-slate-50 disabled:opacity-50"
-                                    >
-                                        {room}
-                                    </button>
-                                ))}
-                            </div>
+                            {manageRooms && (
+                                <div className="flex flex-wrap items-center gap-1.5">
+                                    <span className="text-xs text-slate-500">Room:</span>
+                                    {imageRooms.map((room) => (
+                                        <button
+                                            key={room}
+                                            type="button"
+                                            disabled={busy}
+                                            onClick={() => onAssignRoom(room)}
+                                            className="rounded-full border border-slate-200 bg-white px-2.5 py-0.5 text-[11px] font-medium text-slate-700 hover:border-slate-400 hover:bg-slate-50 disabled:opacity-50"
+                                        >
+                                            {room}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
                         </>
                     )}
                 </div>
@@ -175,14 +183,16 @@ function GalleryPanel({
                 ) : (
                     <div className="space-y-6">
                         {sections.map((section) => (
-                            <section key={`${collection}-${section.room}`}>
-                                <div className="mb-3 flex items-center gap-3">
-                                    <h4 className="text-xs font-semibold tracking-wide text-slate-800">{section.room}</h4>
-                                    <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500">
-                                        {section.items.length}
-                                    </span>
-                                    <div className="h-px flex-1 bg-slate-100" />
-                                </div>
+                            <section key={`${collection}-${section.room || 'all'}`}>
+                                {manageRooms && section.room && (
+                                    <div className="mb-3 flex items-center gap-3">
+                                        <h4 className="text-xs font-semibold tracking-wide text-slate-800">{section.room}</h4>
+                                        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500">
+                                            {section.items.length}
+                                        </span>
+                                        <div className="h-px flex-1 bg-slate-100" />
+                                    </div>
+                                )}
                                 <div className="grid grid-cols-[repeat(auto-fill,minmax(9.5rem,1fr))] gap-3">
                                     {section.items.map(({ item, index }) => {
                                         const isSelected = selected.has(item.path);
@@ -204,9 +214,11 @@ function GalleryPanel({
                                                             onChange={() => onToggle(item.path)}
                                                         />
                                                     </label>
-                                                    <span className="absolute bottom-2 left-2 z-10 rounded-md bg-black/65 px-1.5 py-0.5 text-[10px] font-medium text-white backdrop-blur-sm">
-                                                        {item.room}
-                                                    </span>
+                                                    {manageRooms && (
+                                                        <span className="absolute bottom-2 left-2 z-10 rounded-md bg-black/65 px-1.5 py-0.5 text-[10px] font-medium text-white backdrop-blur-sm">
+                                                            {item.room}
+                                                        </span>
+                                                    )}
                                                     <img
                                                         src={item.url}
                                                         alt={item.name}
@@ -272,6 +284,7 @@ export default function ProjectDualGallery({
     gallery,
     galleryHidden,
     imageRooms,
+    manageRooms = true,
 }: Props) {
     const [galleryItems, setGalleryItems] = useState(gallery);
     const [hiddenItems, setHiddenItems] = useState(galleryHidden);
@@ -292,49 +305,82 @@ export default function ProjectDualGallery({
         setHiddenItems(galleryHidden);
     }, [gallery, galleryHidden]);
 
-    const upload = (collection: 'gallery' | 'gallery_hidden', files: FileList | null) => {
+    /** Stay under PHP max_file_uploads (often 20) by uploading in batches. */
+    const UPLOAD_CHUNK = 15;
+
+    const uploadChunk = (collection: 'gallery' | 'gallery_hidden', chunk: File[]) =>
+        new Promise<{ images: ImageItem[]; message?: string }>((resolve, reject) => {
+            const form = new FormData();
+            chunk.forEach((file) => {
+                form.append('files[]', file);
+                form.append('rooms[]', 'Other');
+            });
+            form.append('collection', collection);
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', base);
+            xhr.setRequestHeader('X-CSRF-TOKEN', csrfToken());
+            xhr.setRequestHeader('Accept', 'application/json');
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            xhr.upload.onprogress = (event) => {
+                if (event.lengthComputable) {
+                    // Progress within current chunk only; overall set by caller.
+                    setProgress(Math.round((event.loaded / event.total) * 100));
+                }
+            };
+            xhr.onload = () => {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    try {
+                        const json = JSON.parse(xhr.responseText);
+                        resolve({
+                            images: (json.images ?? []) as ImageItem[],
+                            message: json.message,
+                        });
+                    } catch {
+                        resolve({ images: [] });
+                    }
+                } else {
+                    reject(new Error('upload_failed'));
+                }
+            };
+            xhr.onerror = () => reject(new Error('network'));
+            xhr.send(form);
+        });
+
+    const upload = async (collection: 'gallery' | 'gallery_hidden', files: FileList | null) => {
         if (!files?.length) return;
+        const all = Array.from(files);
         setBusy(true);
         setError('');
         setProgress(0);
-        setMessage('Uploading…');
+        setMessage(`Uploading 0 / ${all.length}…`);
 
-        const form = new FormData();
-        Array.from(files).forEach((file) => {
-            form.append('files[]', file);
-            form.append('rooms[]', 'Other');
-        });
-        form.append('collection', collection);
-
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', base);
-        xhr.setRequestHeader('X-CSRF-TOKEN', csrfToken());
-        xhr.setRequestHeader('Accept', 'application/json');
-        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-        xhr.upload.onprogress = (event) => {
-            if (event.lengthComputable) setProgress(Math.round((event.loaded / event.total) * 100));
-        };
-        xhr.onload = () => {
-            setBusy(false);
-            if (xhr.status >= 200 && xhr.status < 300) {
-                try {
-                    const json = JSON.parse(xhr.responseText);
-                    const images = (json.images ?? []) as ImageItem[];
-                    if (collection === 'gallery') setGalleryItems(images);
-                    else setHiddenItems(images);
-                    setMessage(json.message ?? 'Uploaded.');
-                } catch {
-                    setMessage('Uploaded.');
-                }
-            } else {
-                setError('Upload failed. Use jpeg/png/webp under 50MB.');
+        try {
+            let lastImages: ImageItem[] | null = null;
+            for (let i = 0; i < all.length; i += UPLOAD_CHUNK) {
+                const chunk = all.slice(i, i + UPLOAD_CHUNK);
+                const done = Math.min(i + chunk.length, all.length);
+                setMessage(`Uploading ${done} / ${all.length}…`);
+                const result = await uploadChunk(collection, chunk);
+                lastImages = result.images;
+                if (collection === 'gallery') setGalleryItems(result.images);
+                else setHiddenItems(result.images);
+                setProgress(Math.round((done / all.length) * 100));
             }
-        };
-        xhr.onerror = () => {
+            setMessage(
+                lastImages
+                    ? `Uploaded ${all.length} image${all.length === 1 ? '' : 's'}.`
+                    : 'Uploaded.',
+            );
+        } catch (err) {
+            setError(
+                err instanceof Error && err.message === 'network'
+                    ? 'Network error during upload.'
+                    : 'Upload failed. Use jpeg/png/webp under 50MB.',
+            );
+        } finally {
             setBusy(false);
-            setError('Network error during upload.');
-        };
-        xhr.send(form);
+        }
     };
 
     const remove = async (collection: 'gallery' | 'gallery_hidden', path: string) => {
@@ -483,6 +529,7 @@ export default function ProjectDualGallery({
                 collection="gallery"
                 items={galleryItems}
                 imageRooms={rooms}
+                manageRooms={manageRooms}
                 selected={selectedGallery}
                 onToggle={(path) =>
                     setSelectedGallery((prev) => {
@@ -509,6 +556,7 @@ export default function ProjectDualGallery({
                 collection="gallery_hidden"
                 items={hiddenItems}
                 imageRooms={rooms}
+                manageRooms={manageRooms}
                 selected={selectedHidden}
                 onToggle={(path) =>
                     setSelectedHidden((prev) => {

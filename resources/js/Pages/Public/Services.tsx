@@ -1,7 +1,8 @@
-import PublicLayout from '@/Layouts/PublicLayout';
 import { Head, Link } from '@inertiajs/react';
+import PublicLayout from '../../Layouts/PublicLayout';
+import { CALL_LINK, WA_LINK, WA_TRACK_CLASS, WaIcon } from '../../Components/Public/WaFloat';
 
-type Service = {
+type ServiceCard = {
     id: number;
     slug: string;
     title: string;
@@ -10,38 +11,61 @@ type Service = {
     cover_url?: string | null;
 };
 
-export default function Services({ services }: { services: Service[] }) {
+type Props = {
+    services: ServiceCard[];
+};
+
+export default function Services({ services }: Props) {
     return (
-        <PublicLayout title="Services">
-            <Head title="Services" />
-            <div className="space-y-6">
-                {services.map((service) => (
-                    <Link
-                        key={service.id}
-                        href={`/services/${service.slug}`}
-                        className="flex gap-4 border-b border-stone-200 pb-6"
-                    >
-                        {service.cover_url && (
-                            <img
-                                src={service.cover_url}
-                                alt=""
-                                className="h-24 w-32 shrink-0 rounded object-cover"
-                            />
-                        )}
-                        <div className="min-w-0">
-                            <h2 className="text-2xl font-semibold">{service.title}</h2>
-                            {service.subtitle && (
-                                <p className="mt-1 text-stone-600">{service.subtitle}</p>
-                            )}
-                            {service.short_description && (
-                                <p className="mt-2 text-sm text-stone-500 line-clamp-2">
-                                    {service.short_description}
-                                </p>
-                            )}
+        <PublicLayout>
+            <Head title="Services — Smart Renovation" />
+            <main className="services-index">
+                <section className="works-intro container">
+                    <span className="eyebrow reveal in">What We Do</span>
+                    <h1 className="works-intro__title reveal in" data-delay="1">
+                        Our <em>Services</em>.
+                    </h1>
+                    <p className="works-intro__lead reveal in" data-delay="2">
+                        One studio for design and build — to deliver your turnkey renovation.
+                    </p>
+                </section>
+
+                <section className="svc-grid container">
+                    {services.map((s, i) => (
+                        <Link key={s.slug} className="svc-card reveal in" href={`/services/${s.slug}`}>
+                            <div className="svc-card__media reveal-img in">
+                                {s.cover_url ? <img src={s.cover_url} alt="" loading="lazy" /> : null}
+                            </div>
+                            <div className="svc-card__info">
+                                <span className="svc-card__no">{String(i + 1).padStart(2, '0')}</span>
+                                <h2 className="svc-card__title">{s.title}</h2>
+                                <p className="svc-card__sub">{s.short_description || s.subtitle}</p>
+                                <span className="svc-card__link">Explore →</span>
+                            </div>
+                        </Link>
+                    ))}
+                </section>
+
+                <section className="cta-band">
+                    <div className="container">
+                        <span className="eyebrow reveal">Let&apos;s talk</span>
+                        <h2 className="cta-band__title reveal" data-delay="1">
+                            Start Your Project.
+                        </h2>
+                        <div className="cta-band__actions reveal" data-delay="2">
+                            <a className={`btn btn--wa ${WA_TRACK_CLASS}`} href={WA_LINK} target="_blank" rel="noopener">
+                                <WaIcon /> WhatsApp Us
+                            </a>
+                            <a className="btn btn--solid" href={CALL_LINK}>
+                                Call Us
+                            </a>
+                            <a className="btn btn--light" href="mailto:info@smartrenovation.ae">
+                                Email
+                            </a>
                         </div>
-                    </Link>
-                ))}
-            </div>
+                    </div>
+                </section>
+            </main>
         </PublicLayout>
     );
 }

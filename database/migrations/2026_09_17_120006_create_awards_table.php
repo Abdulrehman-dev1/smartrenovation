@@ -11,8 +11,10 @@ return new class extends Migration
         Schema::create('awards', function (Blueprint $table) {
             $table->id();
             $table->string('title');
+            $table->string('organization')->nullable();
             $table->string('year')->nullable();
-            $table->integer('sort_order')->default(0);
+            $table->string('cover_image')->nullable();
+            $table->enum('status', ['draft', 'published'])->default('draft');
             $table->timestamps();
         });
     }

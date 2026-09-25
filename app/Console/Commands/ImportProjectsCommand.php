@@ -37,7 +37,7 @@ class ImportProjectsCommand extends Command
         $imgRoot = base_path('../smart/public');
         $imported = 0;
 
-        foreach ($payload as $item) {
+        foreach ($payload as $index => $item) {
             if (! is_array($item)) {
                 continue;
             }
@@ -67,6 +67,7 @@ class ImportProjectsCommand extends Command
                     'subtitle' => $item['subtitle'] ?? null,
                     'description' => $item['description'] ?? null,
                     'status' => 'published',
+                    'sort_order' => $index + 1,
                     'published_at' => now(),
                     'meta_title' => $item['title'] ?? $item['name'] ?? null,
                     'meta_description' => Str::limit(strip_tags((string) ($item['description'] ?? '')), 155),

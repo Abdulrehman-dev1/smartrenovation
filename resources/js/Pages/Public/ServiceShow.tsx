@@ -1,50 +1,91 @@
-import PublicLayout from '@/Layouts/PublicLayout';
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
+import PublicLayout from '../../Layouts/PublicLayout';
+import { CALL_LINK, WA_LINK, WA_TRACK_CLASS, WaIcon } from '../../Components/Public/WaFloat';
 
-type ImageItem = {
-    path: string;
-    url: string;
-    name: string;
+type Props = {
+    service: {
+        slug: string;
+        title: string;
+        subtitle?: string | null;
+        short_description?: string | null;
+        description?: string | null;
+        meta_description?: string | null;
+        cover?: { url?: string | null } | null;
+        gallery: Array<{ url: string }>;
+    };
 };
 
-type Service = {
-    title: string;
-    subtitle?: string | null;
-    short_description?: string | null;
-    description?: string | null;
-    meta_description?: string | null;
-    cover?: ImageItem | null;
-    gallery?: ImageItem[];
-};
+export default function ServiceShow({ service }: Props) {
+    const cover = service.cover?.url;
+    const gallery = (service.gallery || []).map((g) => g.url).filter(Boolean);
+    const lead = service.meta_description || service.short_description;
+    const body = service.description || '';
 
-export default function ServiceShow({ service }: { service: Service; seoJsonLd?: string }) {
     return (
         <PublicLayout>
-            <Head title={service.title} />
-            <article>
-                <p className="text-sm uppercase tracking-widest text-stone-500">Service</p>
-                <h1 className="mt-2 text-4xl font-semibold tracking-tight">{service.title}</h1>
-                {service.subtitle && <p className="mt-2 text-lg text-stone-600">{service.subtitle}</p>}
-                {service.short_description && (
-                    <p className="mt-4 max-w-2xl text-stone-600">{service.short_description}</p>
-                )}
-                {service.cover?.url && (
-                    <img src={service.cover.url} alt="" className="mt-8 w-full object-cover" />
-                )}
-                {service.description && (
-                    <div
-                        className="rich-content mt-8 max-w-none text-stone-700"
-                        dangerouslySetInnerHTML={{ __html: service.description }}
-                    />
-                )}
-                {service.gallery && service.gallery.length > 0 && (
-                    <div className="mt-8 grid gap-4 sm:grid-cols-2">
-                        {service.gallery.map((image) => (
-                            <img key={image.path} src={image.url} alt="" className="w-full object-cover" />
-                        ))}
+            <Head title={`${service.title} — Smart Renovation`} />
+            <main className="service">
+                <Link className="back-link" href="/services">
+                    ← All services
+                </Link>
+
+                <section className="service-hero container">
+                    <span className="service-hero__kicker">{service.title}</span>
+                    <h1 className="service-hero__title">{service.subtitle || service.title}</h1>
+                    {lead && <p className="service-hero__lead">{lead}</p>}
+                </section>
+
+                {(cover || gallery.length > 0) && (
+                    <div className="service-photos">
+                        {cover && (
+                            <figure className="service-cover">
+                                <img src={cover} alt={service.title} />
+                            </figure>
+                        )}
+                        {gallery.length > 0 && (
+                            <section className="service-gallery" aria-label="Service gallery">
+                                {gallery.map((g, i) => (
+                                    <figure key={g + i}>
+                                        <img src={g} alt="" loading="lazy" />
+                                    </figure>
+                                ))}
+                            </section>
+                        )}
                     </div>
                 )}
-            </article>
+
+                {body && (
+                    <article
+                        className="service-body container"
+                        dangerouslySetInnerHTML={{
+                            __html: body.includes('<')
+                                ? body
+                                : body
+                                      .split(/\n\n+/)
+                                      .map((p) => `<p class="service-body__p">${p}</p>`)
+                                      .join(''),
+                        }}
+                    />
+                )}
+
+                <section className="cta-band">
+                    <div className="container">
+                        <span className="eyebrow">Let&apos;s talk</span>
+                        <h2 className="cta-band__title">Discuss Your {service.title}.</h2>
+                        <div className="cta-band__actions">
+                            <a className={`btn btn--wa ${WA_TRACK_CLASS}`} href={WA_LINK} target="_blank" rel="noopener">
+                                <WaIcon /> WhatsApp Us
+                            </a>
+                            <a className="btn btn--solid" href={CALL_LINK}>
+                                Call Us
+                            </a>
+                            <a className="btn btn--light" href="mailto:info@smartrenovation.ae">
+                                Email
+                            </a>
+                        </div>
+                    </div>
+                </section>
+            </main>
         </PublicLayout>
     );
 }

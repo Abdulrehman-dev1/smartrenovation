@@ -3,9 +3,8 @@
 namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
-use App\Models\Article;
+use App\Models\Award;
 use App\Models\Project;
-use App\Models\Service;
 use App\Services\SeoBuilder;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -16,26 +15,37 @@ class HomeController extends Controller
     {
         $featuredProjects = Project::query()
             ->published()
-            ->with('location')
-            ->latest('published_at')
-            ->take(6)
+            ->with(['category', 'location'])
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->take(4)
             ->get()
             ->map(fn (Project $project) => [
-                'id' => $project->id,
                 'slug' => $project->slug,
                 'name' => $project->name,
-                'subtitle' => $project->subtitle,
-                'location' => $project->location?->name,
-                'studio' => $project->studio,
-                'cover' => $project->coverUrl()
-                    ? ['original' => $project->coverUrl(), 'card' => $project->coverUrl(), 'large' => $project->coverUrl()]
-                    : null,
+                'img' => $project->coverUrl(),
+                'meta' => collect([
+                    $project->category?->type_label ?? $project->category?->name,
+                    $project->published_at?->format('Y'),
+                ])->filter()->implode(' · '),
+            ]);
+
+        $awards = Award::query()
+            ->published()
+            ->orderByDesc('year')
+            ->orderByDesc('id')
+            ->take(12)
+            ->get()
+            ->map(fn (Award $award) => [
+                'img' => $award->coverUrl(),
+                'year' => $award->year,
+                'title' => $award->title,
+                'org' => $award->organization,
             ]);
 
         return Inertia::render('Public/Home', [
             'featuredProjects' => $featuredProjects,
-            'services' => Service::query()->published()->orderBy('title')->take(6)->get(['id', 'slug', 'title', 'subtitle']),
-            'articles' => Article::query()->published()->latest('published_at')->take(3)->get(),
+            'awards' => $awards,
             'seoJsonLd' => $seo->toJson($seo->organization()),
         ]);
     }

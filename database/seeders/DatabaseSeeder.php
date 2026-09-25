@@ -46,5 +46,8 @@ class DatabaseSeeder extends Seeder
 
         $this->call(SmartProjectsSeeder::class);
         $this->call(SmartServicesSeeder::class);
+        $this->call(SmartArticlesSeeder::class);
+        $this->call(SmartPressSeeder::class);
+        $this->call(SmartAwardsSeeder::class);
     }
 }

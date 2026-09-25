@@ -8,6 +8,7 @@ use App\Http\Requests\Admin\UpdateServiceRequest;
 use App\Models\Service;
 use App\Support\ServiceImageStorage;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -15,14 +16,34 @@ class ServiceController extends Controller
 {
     public function __construct(private ServiceImageStorage $images) {}
 
-    public function index(): Response
+    public function index(Request $request): Response
     {
         $this->authorize('viewAny', Service::class);
 
+        $filters = [
+            'search' => trim((string) $request->string('search')),
+            'status' => trim((string) $request->string('status')),
+        ];
+
+        $query = Service::query()->latest();
+
+        if ($filters['search'] !== '') {
+            $search = $filters['search'];
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                    ->orWhere('slug', 'like', "%{$search}%")
+                    ->orWhere('subtitle', 'like', "%{$search}%");
+            });
+        }
+
+        if (in_array($filters['status'], ['draft', 'published'], true)) {
+            $query->where('status', $filters['status']);
+        }
+
         return Inertia::render('Admin/Services/Index', [
-            'services' => Service::query()
-                ->latest()
+            'services' => $query
                 ->paginate(12)
+                ->withQueryString()
                 ->through(fn (Service $service) => [
                     'id' => $service->id,
                     'title' => $service->title,
@@ -31,6 +52,7 @@ class ServiceController extends Controller
                     'status' => $service->status,
                     'cover_url' => $service->coverUrl(),
                 ]),
+            'filters' => $filters,
             'can' => [
                 'view' => request()->user()->can('services.view'),
                 'create' => request()->user()->can('services.create'),

@@ -14,8 +14,8 @@ use Illuminate\Support\Str;
 
 class SmartProjectsSeeder extends Seeder
 {
-    /** Import only the first N projects from projects.json */
-    private const LIMIT = 10;
+    /** Import all projects from projects.json (null = no limit). */
+    private const ?int LIMIT = null;
 
     public function run(): void
     {
@@ -51,12 +51,16 @@ class SmartProjectsSeeder extends Seeder
         });
 
         $roomMap = $this->loadRoomMap($roomsPath);
+        $collectionBySlug = $this->loadCollectionBySlug(base_path('../smart/content/collection.json'));
         $images = app(ProjectImageStorage::class);
         $all = array_values(array_filter($payload, 'is_array'));
-        $items = array_slice($all, 0, self::LIMIT);
+        $items = self::LIMIT === null ? $all : array_slice($all, 0, self::LIMIT);
+        $total = count($items);
         $imported = 0;
 
-        foreach ($items as $item) {
+        $this->command?->info("Importing {$total} project(s)…");
+
+        foreach ($items as $index => $item) {
             $slug = $item['slug'] ?? Str::slug((string) ($item['title'] ?? $item['name'] ?? ''));
             if (! $slug) {
                 continue;
@@ -116,15 +120,20 @@ class SmartProjectsSeeder extends Seeder
                     'subtitle' => $subtitle,
                     'description' => $description,
                     'status' => 'published',
+                    'sort_order' => $index + 1,
                     'published_at' => now(),
                     'meta_title' => $name,
                     'meta_description' => Str::limit(strip_tags((string) $description), 155) ?: null,
+                    'collection_style' => null,
+                    'collection_images' => null,
                 ]
             );
 
             $this->resetImages($images, $project);
 
-            $this->attachCover($images, $project, $item['cover'] ?? null, $imgRoot);
+            $pathMap = [];
+            $coverRelative = is_string($item['cover'] ?? null) ? $item['cover'] : null;
+            $this->attachCover($images, $project, $coverRelative, $imgRoot, $pathMap);
 
             $galleryPaths = is_array($item['gallery'] ?? null) ? $item['gallery'] : [];
             $hiddenPaths = is_array($item['galleryHidden'] ?? null) ? $item['galleryHidden'] : [];
@@ -136,7 +145,8 @@ class SmartProjectsSeeder extends Seeder
                 $galleryPaths,
                 'gallery_images',
                 $imgRoot,
-                $basenameRooms
+                $basenameRooms,
+                $pathMap
             );
             $this->attachGalleryWithRooms(
                 $images,
@@ -144,24 +154,129 @@ class SmartProjectsSeeder extends Seeder
                 $hiddenPaths,
                 'gallery_hidden',
                 $imgRoot,
-                $basenameRooms
+                $basenameRooms,
+                $pathMap
             );
 
             $project->refresh();
             $project->syncRoomsFromGallery();
+            $collectionCount = $this->applyCollection($project, $slug, $pathMap, $collectionBySlug);
 
             $imported++;
             $this->command?->info(sprintf(
-                'Seeded %s (location=%s, studio=%s, room-tagged gallery=%d/%d)',
+                '[%d/%d] Seeded %s (location=%s, studio=%s, room-tagged gallery=%d/%d, collection=%d, style=%s)',
+                $imported,
+                $total,
                 $slug,
                 $areaName ?: '—',
                 $studio,
                 $tagged['tagged'],
-                $tagged['total']
+                $tagged['total'],
+                $collectionCount,
+                $project->fresh()->collection_style ?: '—'
             ));
         }
 
         $this->command?->info("SmartProjectsSeeder finished — {$imported} project(s).");
+    }
+
+    /**
+     * Index collection.json by project slug.
+     *
+     * @return array<string, list<array{img: string, style: string, ar: float}>>
+     */
+    private function loadCollectionBySlug(string $path): array
+    {
+        if (! File::exists($path)) {
+            $this->command?->warn('collection.json not found — projects will have no collection images.');
+
+            return [];
+        }
+
+        $entries = json_decode(File::get($path), true);
+        if (! is_array($entries)) {
+            return [];
+        }
+
+        $allowed = array_flip(ProjectTaxonomy::collectionStyles());
+        $bySlug = [];
+
+        foreach ($entries as $entry) {
+            if (! is_array($entry)) {
+                continue;
+            }
+            $slug = $entry['slug'] ?? null;
+            $img = $entry['img'] ?? null;
+            $style = $entry['style'] ?? null;
+            $ar = $entry['ar'] ?? null;
+
+            if (! is_string($slug) || $slug === '' || ! is_string($img) || $img === '') {
+                continue;
+            }
+            if (! is_string($style) || $style === '' || ! isset($allowed[$style])) {
+                $style = 'Modern Minimalist';
+            }
+
+            $bySlug[$slug][] = [
+                'img' => $img,
+                'style' => $style,
+                'ar' => (is_numeric($ar) && (float) $ar > 0)
+                    ? (float) $ar
+                    : ProjectTaxonomy::DEFAULT_COLLECTION_AR,
+            ];
+        }
+
+        return $bySlug;
+    }
+
+    /**
+     * Apply exact collection.json entries for this slug (cover / gallery / hidden).
+     *
+     * @param  array<string, string>  $pathMap  smart relative path => storage path
+     * @param  array<string, list<array{img: string, style: string, ar: float}>>  $collectionBySlug
+     */
+    private function applyCollection(
+        Project $project,
+        string $slug,
+        array $pathMap,
+        array $collectionBySlug
+    ): int {
+        $entries = $collectionBySlug[$slug] ?? [];
+        $images = [];
+
+        foreach ($entries as $entry) {
+            $relative = $entry['img'];
+            $stored = $pathMap[$relative] ?? null;
+            if (! is_string($stored) || $stored === '') {
+                $this->command?->warn("Collection image not in cover/gallery/hidden for {$slug}: {$relative}");
+
+                continue;
+            }
+            $images[] = [
+                'path' => $stored,
+                'ar' => $entry['ar'],
+                'style' => $entry['style'],
+            ];
+        }
+
+        if ($images === []) {
+            $project->forceFill([
+                'collection_style' => null,
+                'collection_images' => null,
+            ])->save();
+
+            return 0;
+        }
+
+        // Primary style = first entry's style (matches FE lead / first hit).
+        $primaryStyle = $images[0]['style'];
+
+        $project->forceFill([
+            'collection_style' => $primaryStyle,
+            'collection_images' => $images,
+        ])->save();
+
+        return count($images);
     }
 
     /**
@@ -215,13 +330,22 @@ class SmartProjectsSeeder extends Seeder
             }
             $project->forceFill([$field => []])->save();
         }
+
+        $project->forceFill([
+            'collection_style' => null,
+            'collection_images' => null,
+        ])->save();
     }
 
+    /**
+     * @param  array<string, string>  $pathMap
+     */
     private function attachCover(
         ProjectImageStorage $images,
         Project $project,
         mixed $relative,
-        string $imgRoot
+        string $imgRoot,
+        array &$pathMap
     ): void {
         if (! is_string($relative) || $relative === '') {
             return;
@@ -232,12 +356,14 @@ class SmartProjectsSeeder extends Seeder
             return;
         }
 
-        $images->storeCover($project, $file);
+        $stored = $images->storeCover($project, $file);
+        $pathMap[$relative] = $stored;
     }
 
     /**
      * @param  list<mixed>  $paths
      * @param  array<string, string>  $basenameRooms
+     * @param  array<string, string>  $pathMap
      * @return array{total: int, tagged: int}
      */
     private function attachGalleryWithRooms(
@@ -246,7 +372,8 @@ class SmartProjectsSeeder extends Seeder
         array $paths,
         string $field,
         string $imgRoot,
-        array $basenameRooms
+        array $basenameRooms,
+        array &$pathMap
     ): array {
         $total = 0;
         $tagged = 0;
@@ -267,7 +394,10 @@ class SmartProjectsSeeder extends Seeder
             if ($room !== ProjectTaxonomy::OTHER_ROOM) {
                 $tagged++;
             }
-            $images->appendGallery($project, [$file], $field, [$room]);
+            $added = $images->appendGallery($project, [$file], $field, [$room]);
+            if (isset($added[0]['path'])) {
+                $pathMap[$relative] = $added[0]['path'];
+            }
         }
 
         return compact('total', 'tagged');

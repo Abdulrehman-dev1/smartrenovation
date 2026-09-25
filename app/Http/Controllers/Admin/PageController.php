@@ -7,17 +7,33 @@ use App\Http\Requests\Admin\StorePageRequest;
 use App\Http\Requests\Admin\UpdatePageRequest;
 use App\Models\Page;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class PageController extends Controller
 {
-    public function index(): Response
+    public function index(Request $request): Response
     {
         $this->authorize('viewAny', Page::class);
 
+        $filters = [
+            'search' => trim((string) $request->string('search')),
+        ];
+
+        $query = Page::query()->latest();
+
+        if ($filters['search'] !== '') {
+            $search = $filters['search'];
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                    ->orWhere('slug', 'like', "%{$search}%");
+            });
+        }
+
         return Inertia::render('Admin/Pages/Index', [
-            'pages' => Page::query()->latest()->paginate(20),
+            'pages' => $query->paginate(20)->withQueryString(),
+            'filters' => $filters,
             'can' => [
                 'create' => request()->user()->can('pages.create'),
                 'edit' => request()->user()->can('pages.edit'),

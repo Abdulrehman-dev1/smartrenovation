@@ -22,7 +22,10 @@ class Project extends Model
         'cover_image',
         'gallery_images',
         'gallery_hidden',
+        'collection_style',
+        'collection_images',
         'status',
+        'sort_order',
         'published_at',
         'meta_title',
         'meta_description',
@@ -34,9 +37,11 @@ class Project extends Model
     {
         return [
             'published_at' => 'datetime',
+            'sort_order' => 'integer',
             'rooms' => 'array',
             'gallery_images' => 'array',
             'gallery_hidden' => 'array',
+            'collection_images' => 'array',
         ];
     }
 
@@ -166,6 +171,224 @@ class Project extends Model
         $this->forceFill(['rooms' => $rooms])->save();
     }
 
+    /**
+     * Cover + gallery (+ hidden) paths eligible for the Collection board.
+     *
+     * @return list<string>
+     */
+    public function collectionCandidatePaths(): array
+    {
+        $paths = [];
+
+        if (is_string($this->cover_image) && $this->cover_image !== '') {
+            $paths[] = $this->cover_image;
+        }
+
+        foreach ($this->normalizedGallery('gallery_images') as $item) {
+            $paths[] = $item['path'];
+        }
+
+        foreach ($this->normalizedGallery('gallery_hidden') as $item) {
+            $paths[] = $item['path'];
+        }
+
+        return array_values(array_unique($paths));
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, source: string}>
+     */
+    public function presentCollectionCandidates(): array
+    {
+        $out = [];
+
+        if (is_string($this->cover_image) && $this->cover_image !== '') {
+            $out[] = [
+                'path' => $this->cover_image,
+                'url' => $this->pathToUrl($this->cover_image) ?? '',
+                'name' => basename($this->cover_image),
+                'source' => 'cover',
+            ];
+        }
+
+        foreach ($this->normalizedGallery('gallery_images') as $index => $item) {
+            $out[] = [
+                'path' => $item['path'],
+                'url' => $this->pathToUrl($item['path']) ?? '',
+                'name' => basename($item['path']),
+                'source' => 'gallery:'.$index,
+            ];
+        }
+
+        foreach ($this->normalizedGallery('gallery_hidden') as $index => $item) {
+            $out[] = [
+                'path' => $item['path'],
+                'url' => $this->pathToUrl($item['path']) ?? '',
+                'name' => basename($item['path']),
+                'source' => 'hidden:'.$index,
+            ];
+        }
+
+        return $out;
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, style: string, ar: float}>
+     */
+    public function presentCollectionImages(): array
+    {
+        return collect($this->normalizedCollectionImages())
+            ->map(fn (array $item) => [
+                'path' => $item['path'],
+                'url' => $this->pathToUrl($item['path']) ?? '',
+                'name' => basename($item['path']),
+                'style' => $item['style'],
+                'ar' => $item['ar'],
+            ])
+            ->filter(fn (array $item) => $item['url'] !== '')
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Normalize collection_images JSON to list of {path, ar, style}.
+     *
+     * @return list<array{path: string, ar: float, style: string}>
+     */
+    public function normalizedCollectionImages(): array
+    {
+        $allowed = array_flip($this->collectionCandidatePaths());
+        $styles = array_flip(ProjectTaxonomy::collectionStyles());
+        $out = [];
+
+        foreach ($this->collection_images ?? [] as $item) {
+            $normalized = self::normalizeCollectionImageItem($item, $this->collection_style);
+            if (! $normalized || ! isset($allowed[$normalized['path']])) {
+                continue;
+            }
+            if (! isset($styles[$normalized['style']])) {
+                continue;
+            }
+            $out[] = $normalized;
+        }
+
+        return $out;
+    }
+
+    /**
+     * @return array{path: string, ar: float, style: string}|null
+     */
+    public static function normalizeCollectionImageItem(mixed $item, ?string $fallbackStyle = null): ?array
+    {
+        if (is_string($item) && $item !== '') {
+            $style = is_string($fallbackStyle) && $fallbackStyle !== ''
+                ? $fallbackStyle
+                : null;
+            if ($style === null || ! in_array($style, ProjectTaxonomy::collectionStyles(), true)) {
+                return null;
+            }
+
+            return [
+                'path' => $item,
+                'ar' => ProjectTaxonomy::DEFAULT_COLLECTION_AR,
+                'style' => $style,
+            ];
+        }
+
+        if (! is_array($item)) {
+            return null;
+        }
+
+        $path = $item['path'] ?? null;
+        if (! is_string($path) || $path === '') {
+            return null;
+        }
+
+        $style = $item['style'] ?? $fallbackStyle;
+        if (! is_string($style) || ! in_array($style, ProjectTaxonomy::collectionStyles(), true)) {
+            return null;
+        }
+
+        $ar = $item['ar'] ?? ProjectTaxonomy::DEFAULT_COLLECTION_AR;
+        if (! is_numeric($ar) || (float) $ar <= 0) {
+            $ar = ProjectTaxonomy::DEFAULT_COLLECTION_AR;
+        }
+
+        return ['path' => $path, 'ar' => (float) $ar, 'style' => $style];
+    }
+
+    /**
+     * Keep collection_images in sync with cover/gallery; sync collection_style from images.
+     */
+    public function pruneCollectionImages(): void
+    {
+        $images = $this->normalizedCollectionImages();
+
+        if ($images === []) {
+            $this->forceFill([
+                'collection_style' => null,
+                'collection_images' => null,
+            ])->save();
+
+            return;
+        }
+
+        $this->forceFill([
+            'collection_style' => $images[0]['style'],
+            'collection_images' => $images,
+        ])->save();
+    }
+
+    /**
+     * Resolve create-form entries [{key, style}] to collection_images after upload.
+     *
+     * @param  list<array{key?: string, style?: string}|mixed>  $entries
+     * @return list<array{path: string, ar: float, style: string}>
+     */
+    public function resolveCollectionEntries(array $entries): array
+    {
+        $gallery = $this->normalizedGallery('gallery_images');
+        $out = [];
+        $seen = [];
+
+        foreach ($entries as $entry) {
+            if (! is_array($entry)) {
+                continue;
+            }
+            $key = $entry['key'] ?? null;
+            $style = $entry['style'] ?? null;
+            if (! is_string($key) || $key === '' || ! is_string($style)) {
+                continue;
+            }
+            if (! in_array($style, ProjectTaxonomy::collectionStyles(), true)) {
+                continue;
+            }
+
+            $path = null;
+            if ($key === 'cover') {
+                $path = is_string($this->cover_image) && $this->cover_image !== ''
+                    ? $this->cover_image
+                    : null;
+            } elseif (preg_match('/^gallery:(\d+)$/', $key, $m)) {
+                $index = (int) $m[1];
+                $path = $gallery[$index]['path'] ?? null;
+            }
+
+            if ($path === null || isset($seen[$path])) {
+                continue;
+            }
+
+            $seen[$path] = true;
+            $out[] = [
+                'path' => $path,
+                'ar' => ProjectTaxonomy::DEFAULT_COLLECTION_AR,
+                'style' => $style,
+            ];
+        }
+
+        return $out;
+    }
+
     public function pathToUrl(?string $path): ?string
     {
         if (! $path) {
@@ -174,4 +397,4 @@ class Project extends Model
 
         return Storage::disk('public')->url($path);
     }
-};
+}

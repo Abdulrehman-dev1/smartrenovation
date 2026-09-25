@@ -1,91 +1,244 @@
+import ContactForm from '@/Components/Public/ContactForm';
+import HeroVideo from '@/Components/Public/HeroVideo';
+import ReviewsSection from '@/Components/Public/ReviewsSection';
+import Slider from '@/Components/Public/Slider';
+import {
+    CALL_DISPLAY,
+    CALL_LINK,
+    WA_LINK,
+    WA_TRACK_CLASS,
+    WaIcon,
+} from '@/Components/Public/WaFloat';
 import PublicLayout from '@/Layouts/PublicLayout';
 import { Head, Link } from '@inertiajs/react';
 
-type Project = {
-    id: number;
+type FeaturedProject = {
     slug: string;
     name: string;
-    subtitle?: string | null;
-    cover?: { card?: string | null; large?: string | null; original: string } | null;
+    img?: string | null;
+    meta?: string;
 };
-type Service = { id: number; slug: string; title: string; subtitle?: string | null };
-type Article = { id: number; slug: string; title: string; excerpt?: string | null };
+
+type AwardSlide = {
+    img?: string | null;
+    year?: string | null;
+    title: string;
+    org?: string | null;
+};
+
+const PROCESS = [
+    {
+        no: '01',
+        name: 'Discovery Stage',
+        desc: 'We visit and survey the space — measurements, structure, light and access — then sit with you to understand how you live and what you want to change.',
+    },
+    {
+        no: '02',
+        name: 'Planning Stage',
+        desc: 'A tailored proposal with scope, materials, cost and timeline — followed by technical drawings, floor plans, mood boards and any permits.',
+    },
+    {
+        no: '03',
+        name: 'Delivery Stage',
+        desc: 'One team runs the build end to end, from demolition to finishes, monitored daily — then deep-cleaned, quality-checked and handed over.',
+    },
+];
 
 export default function Home({
-    featuredProjects,
-    services,
-    articles,
+    featuredProjects = [],
+    awards = [],
+    seoJsonLd,
 }: {
-    featuredProjects: Project[];
-    services: Service[];
-    articles: Article[];
+    featuredProjects?: FeaturedProject[];
+    awards?: AwardSlide[];
     seoJsonLd?: string;
 }) {
     return (
         <PublicLayout>
-            <Head title="Home" />
-            <section className="mb-16">
-                <p className="text-sm uppercase tracking-[0.2em] text-stone-500">Smart Renovation</p>
-                <h1 className="mt-3 max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl">
-                    Thoughtful renovations for modern living
-                </h1>
-                <p className="mt-4 max-w-2xl text-lg text-stone-600">
-                    Residential and commercial spaces crafted with clarity, material honesty, and lasting detail.
-                </p>
-                <div className="mt-8 flex gap-4">
-                    <Link href="/works" className="rounded-md bg-stone-900 px-5 py-2.5 text-sm text-white">
-                        View works
-                    </Link>
-                    <Link href="/contact" className="rounded-md border border-stone-300 px-5 py-2.5 text-sm">
-                        Contact
-                    </Link>
-                </div>
-            </section>
+            <Head title="Smart Renovation — Design & Build Studio in Dubai">
+                <meta
+                    head-key="description"
+                    name="description"
+                    content="Italian craftsmanship in Dubai — turnkey renovation and fit-out, held by one studio from design to handover."
+                />
+                {seoJsonLd ? (
+                    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: seoJsonLd }} />
+                ) : null}
+            </Head>
 
-            <section className="mb-16">
-                <h2 className="text-2xl font-semibold">Selected works</h2>
-                <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                    {featuredProjects.map((project) => (
-                        <Link key={project.id} href={`/projects/${project.slug}`} className="block">
-                            <div className="aspect-[4/3] overflow-hidden bg-stone-200">
-                                {(project.cover?.card || project.cover?.large || project.cover?.original) && (
-                                    <img
-                                        src={project.cover.card || project.cover.large || project.cover.original}
-                                        alt={project.name}
-                                        className="h-full w-full object-cover"
-                                    />
-                                )}
+            <main>
+                <section className="hero hero--stacked">
+                    <div className="hero__media reveal-img in">
+                        <HeroVideo />
+                    </div>
+                    <div className="hero__content container">
+                        <span className="hero__eyebrow reveal in" data-delay="1">
+                            Italian Craftsmanship · Dubai
+                        </span>
+                        <h1 className="hero__title reveal in" data-delay="2">
+                            Reinventing Properties
+                            <br />
+                            Since 1970.
+                        </h1>
+                        <div className="hero__cta reveal in" data-delay="3">
+                            <a
+                                className={`btn btn--wa ${WA_TRACK_CLASS}`}
+                                href={WA_LINK}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                <WaIcon /> WhatsApp Us
+                            </a>
+                            <a className="btn btn--outline" href="#contact">
+                                Discuss Your Vision
+                            </a>
+                        </div>
+                    </div>
+                </section>
+
+                <section className="portfolio container" id="portfolio">
+                    <div className="portfolio__head">
+                        <h2 className="reveal">
+                            Selected <em>Work</em>
+                        </h2>
+                        <Link className="portfolio__head-link reveal" data-delay="1" href="/works">
+                            All projects →
+                        </Link>
+                    </div>
+
+                    <div className="portfolio__grid">
+                        {featuredProjects.map((c, i) => (
+                            <Link
+                                key={c.slug}
+                                className="card reveal"
+                                data-delay={i % 3 || undefined}
+                                href={`/projects/${c.slug}`}
+                            >
+                                <div className="card__media reveal-img">
+                                    {c.img ? <img src={c.img} alt="" /> : null}
+                                </div>
+                                <div className="card__row">
+                                    <span className="card__name">{c.name}</span>
+                                    <span className="card__meta">{c.meta || ''}</span>
+                                </div>
+                            </Link>
+                        ))}
+                    </div>
+
+                    <div className="portfolio__cta reveal">
+                        <Link className="btn btn--outline" href="/works">
+                            View All Projects
+                        </Link>
+                    </div>
+                </section>
+
+                <section className="styles" id="process">
+                    <div className="container">
+                        <div className="styles__head">
+                            <span className="eyebrow reveal">Process</span>
+                            <h2 className="reveal" data-delay="1">
+                                The Smart Renovation <em>Process</em>
+                            </h2>
+                        </div>
+                        <ul className="process__list">
+                            {PROCESS.map((s) => (
+                                <li key={s.no} className="reveal">
+                                    <span className="process__no">{s.no}</span>
+                                    <span className="process__name">{s.name}</span>
+                                    <span className="process__desc">{s.desc}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                </section>
+
+                <section className="feature">
+                    <div className="feature__media reveal-img">
+                        <img src="/assets/img/site/feature.jpg" alt="" />
+                    </div>
+                    <div className="feature__overlay container">
+                        <span className="eyebrow reveal">Crafted in the Italian tradition</span>
+                        <h2 className="reveal" data-delay="1">
+                            Elegance, engineered.
+                        </h2>
+                        <a className="btn btn--light reveal" data-delay="2" href="#contact">
+                            Start The Conversation
+                        </a>
+                    </div>
+                </section>
+
+                {awards.length > 0 && (
+                    <section className="awards" id="press">
+                        <div className="container awards__head">
+                            <span className="eyebrow reveal">Recognitions</span>
+                            <h2 className="reveal" data-delay="1">
+                                Recognitions &amp; Awards.
+                            </h2>
+                        </div>
+
+                        <Slider className="reveal">
+                            {awards.map((a, i) => (
+                                <article className="slide" key={`${a.title}-${i}`}>
+                                    <div className="slide__media">
+                                        {a.img ? (
+                                            <img
+                                                src={a.img}
+                                                alt={`${a.org ?? ''} ${a.year ?? ''}`}
+                                                loading="lazy"
+                                            />
+                                        ) : null}
+                                        <span className="slide__scrim"></span>
+                                    </div>
+                                    <div className="slide__cap">
+                                        {a.year ? <span className="slide__year">{a.year}</span> : null}
+                                        <h3>{a.title}</h3>
+                                        {a.org ? <span className="slide__org">{a.org}</span> : null}
+                                    </div>
+                                </article>
+                            ))}
+                        </Slider>
+                    </section>
+                )}
+
+                <ReviewsSection />
+
+                <section className="cta-band cta-band--contact" id="contact">
+                    <div className="container cta-band__grid">
+                        <div className="cta-band__intro">
+                            <span className="eyebrow reveal">Let&apos;s talk</span>
+                            <h2 className="cta-band__title reveal" data-delay="1">
+                                Discuss Your Project.
+                            </h2>
+                            <p className="cta-band__sub reveal" data-delay="2">
+                                Tell us about your space, ambition and timeline. We answer fast — with a
+                                clear plan and budget.
+                            </p>
+                            <div className="cta-band__actions reveal" data-delay="3">
+                                <a
+                                    className={`btn btn--wa ${WA_TRACK_CLASS}`}
+                                    href={WA_LINK}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    <WaIcon /> WhatsApp Us
+                                </a>
+                                <a className="btn btn--solid" href={CALL_LINK}>
+                                    Call Us
+                                </a>
+                                <a className="btn btn--light" href="mailto:info@smartrenovation.ae">
+                                    Email
+                                </a>
                             </div>
-                            <h3 className="mt-3 font-medium">{project.name}</h3>
-                            {project.subtitle && <p className="text-sm text-stone-500">{project.subtitle}</p>}
-                        </Link>
-                    ))}
-                </div>
-            </section>
-
-            <section className="mb-16">
-                <h2 className="text-2xl font-semibold">Services</h2>
-                <div className="mt-6 grid gap-4 sm:grid-cols-2">
-                    {services.map((service) => (
-                        <Link key={service.id} href={`/services/${service.slug}`} className="border-b border-stone-200 py-4">
-                            <div className="font-medium">{service.title}</div>
-                            {service.subtitle && <div className="text-sm text-stone-500">{service.subtitle}</div>}
-                        </Link>
-                    ))}
-                </div>
-            </section>
-
-            <section>
-                <h2 className="text-2xl font-semibold">Media</h2>
-                <div className="mt-6 space-y-4">
-                    {articles.map((article) => (
-                        <Link key={article.id} href={`/media/${article.slug}`} className="block">
-                            <h3 className="font-medium">{article.title}</h3>
-                            {article.excerpt && <p className="text-sm text-stone-500">{article.excerpt}</p>}
-                        </Link>
-                    ))}
-                </div>
-            </section>
+                            <div className="cta-band__meta reveal" data-delay="4">
+                                <span>Sheikh Zayed Road, Dubai, UAE</span>
+                                <span>{CALL_DISPLAY}</span>
+                                <span>info@smartrenovation.ae</span>
+                            </div>
+                        </div>
+                        <ContactForm source="home" />
+                    </div>
+                </section>
+            </main>
         </PublicLayout>
     );
 }

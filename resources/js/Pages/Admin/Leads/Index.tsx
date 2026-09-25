@@ -1,13 +1,40 @@
+import AdminIndexFilters from '@/Components/AdminIndexFilters';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { Head, Link, router } from '@inertiajs/react';
+import { useMemo } from 'react';
 
 type Lead = { id: number; name: string; email: string; phone?: string | null; created_at: string };
-type Paginated<T> = { data: T[] };
+type Paginated<T> = { data: T[]; total?: number };
 
-export default function Index({ leads, can }: { leads: Paginated<Lead>; can: { delete: boolean } }) {
+export default function Index({
+    leads,
+    filters = { search: '' },
+    can,
+}: {
+    leads: Paginated<Lead>;
+    filters?: { search: string };
+    can: { delete: boolean };
+}) {
+    const filterFields = useMemo(
+        () => [{ key: 'search', type: 'search' as const, placeholder: 'Search by name, email, phone…' }],
+        [],
+    );
+
+    const hasFilters = (filters.search ?? '').trim() !== '';
+
     return (
         <AdminLayout header={<h2 className="text-xl font-semibold text-slate-800">Leads</h2>}>
             <Head title="Leads" />
+            <div className="mb-4">
+                <p className="text-sm text-slate-500">
+                    {typeof leads.total === 'number'
+                        ? `${leads.total} lead${leads.total === 1 ? '' : 's'}`
+                        : null}
+                </p>
+            </div>
+
+            <AdminIndexFilters url="/admin/leads" filters={filters} fields={filterFields} />
+
             <div className="overflow-hidden rounded-lg border bg-white">
                 <table className="min-w-full divide-y text-sm">
                     <thead className="bg-slate-50">
@@ -19,21 +46,38 @@ export default function Index({ leads, can }: { leads: Paginated<Lead>; can: { d
                         </tr>
                     </thead>
                     <tbody className="divide-y">
-                        {leads.data.map((lead) => (
-                            <tr key={lead.id}>
-                                <td className="px-4 py-3">{lead.name}</td>
-                                <td className="px-4 py-3">{lead.email}</td>
-                                <td className="px-4 py-3">{lead.phone || '—'}</td>
-                                <td className="space-x-3 px-4 py-3 text-right">
-                                    <Link href={`/admin/leads/${lead.id}`} className="text-indigo-600">View</Link>
-                                    {can.delete && (
-                                        <button type="button" className="text-rose-600" onClick={() => confirm('Delete?') && router.delete(`/admin/leads/${lead.id}`)}>
-                                            Delete
-                                        </button>
-                                    )}
+                        {leads.data.length === 0 ? (
+                            <tr>
+                                <td colSpan={4} className="px-4 py-10 text-center text-slate-500">
+                                    {hasFilters ? 'No leads match these filters.' : 'No leads yet.'}
                                 </td>
                             </tr>
-                        ))}
+                        ) : (
+                            leads.data.map((lead) => (
+                                <tr key={lead.id}>
+                                    <td className="px-4 py-3">{lead.name}</td>
+                                    <td className="px-4 py-3">{lead.email}</td>
+                                    <td className="px-4 py-3">{lead.phone || '—'}</td>
+                                    <td className="space-x-3 px-4 py-3 text-right">
+                                        <Link href={`/admin/leads/${lead.id}`} className="text-indigo-600">
+                                            View
+                                        </Link>
+                                        {can.delete && (
+                                            <button
+                                                type="button"
+                                                className="text-rose-600"
+                                                onClick={() =>
+                                                    confirm('Delete?') &&
+                                                    router.delete(`/admin/leads/${lead.id}`)
+                                                }
+                                            >
+                                                Delete
+                                            </button>
+                                        )}
+                                    </td>
+                                </tr>
+                            ))
+                        )}
                     </tbody>
                 </table>
             </div>

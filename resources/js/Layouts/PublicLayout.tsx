@@ -1,58 +1,38 @@
-import BrandLogo from '@/Components/BrandLogo';
-import { Link } from '@inertiajs/react';
-import { PropsWithChildren, ReactNode } from 'react';
+import Reveals from '@/Components/Public/Reveals';
+import SiteFooter from '@/Components/Public/SiteFooter';
+import SiteHeader from '@/Components/Public/SiteHeader';
+import WaFloat from '@/Components/Public/WaFloat';
 import { useFlashNotifications } from '@/hooks/useFlashNotifications';
+import { Head } from '@inertiajs/react';
+import { PropsWithChildren } from 'react';
 import { Toaster } from 'sonner';
 
-const links = [
-    { href: '/', label: 'Home' },
-    { href: '/works', label: 'Works' },
-    { href: '/services', label: 'Services' },
-    { href: '/media', label: 'Media' },
-    { href: '/collection', label: 'Collection' },
-    { href: '/about', label: 'About' },
-    { href: '/residential', label: 'Residential' },
-    { href: '/contact', label: 'Contact' },
-];
+type Props = PropsWithChildren<{
+    title?: string;
+    description?: string;
+    /** When true, skip default header/footer chrome (rare). */
+    bare?: boolean;
+}>;
 
-export default function PublicLayout({
-    children,
-    title,
-}: PropsWithChildren<{ title?: ReactNode }>) {
+export default function PublicLayout({ children, title, description, bare = false }: Props) {
     useFlashNotifications();
 
     return (
-        <div className="min-h-screen bg-stone-50 text-stone-900">
-            <Toaster richColors position="top-right" />
-            <header className="border-b border-stone-200 bg-white">
-                <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-4">
-                    <Link href="/" className="flex items-center gap-3">
-                        <BrandLogo size={40} />
-                        <span className="text-lg font-semibold tracking-tight">Smart Renovation</span>
-                    </Link>
-                    <nav className="flex flex-wrap gap-4 text-sm text-stone-600">
-                        {links.map((link) => (
-                            <Link key={link.href} href={link.href} className="hover:text-stone-900">
-                                {link.label}
-                            </Link>
-                        ))}
-                    </nav>
-                </div>
-            </header>
-            {title && (
-                <div className="border-b border-stone-200 bg-white">
-                    <div className="mx-auto max-w-6xl px-4 py-10">
-                        <h1 className="text-3xl font-semibold tracking-tight">{title}</h1>
-                    </div>
-                </div>
+        <>
+            {(title || description) && (
+                <Head>
+                    {title ? <title>{title}</title> : null}
+                    {description ? <meta head-key="description" name="description" content={description} /> : null}
+                </Head>
             )}
-            <main className="mx-auto max-w-6xl px-4 py-10">{children}</main>
-            <footer className="border-t border-stone-200 bg-white">
-                <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-8 text-sm text-stone-500">
-                    <BrandLogo size={24} />
-                    <span>© {new Date().getFullYear()} Smart Renovation</span>
-                </div>
-            </footer>
-        </div>
+            <Toaster richColors position="top-right" />
+            <div className="smart-site">
+                {!bare && <SiteHeader />}
+                {children}
+                {!bare && <SiteFooter />}
+                {!bare && <WaFloat />}
+                {!bare && <Reveals />}
+            </div>
+        </>
     );
 }

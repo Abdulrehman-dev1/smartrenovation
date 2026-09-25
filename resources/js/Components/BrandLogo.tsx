@@ -16,7 +16,8 @@ export default function BrandLogo({
             width={size}
             height={size}
             alt={alt}
-            className={`rounded-full object-contain ${className}`}
+            className={`shrink-0 rounded-full object-contain ${className}`}
+            style={{ width: size, height: size, maxWidth: size, maxHeight: size, objectFit: 'contain' }}
             {...props}
         />
     );

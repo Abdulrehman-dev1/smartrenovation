@@ -1,10 +1,16 @@
 import PendingImagePicker, { PendingImage, pendingToFiles, pendingToRooms } from '@/Components/PendingImagePicker';
+import ProjectCollectionPicker, {
+    CollectionAssignment,
+    CollectionCandidate,
+    defaultCollectionAssignments,
+} from '@/Components/ProjectCollectionPicker';
 import ProjectFormTabs, { useProjectFormTab } from '@/Components/ProjectFormTabs';
+import ProjectRoomsPicker, { type RoomAssignment, type RoomCandidate } from '@/Components/ProjectRoomsPicker';
 import RichTextEditor from '@/Components/RichTextEditor';
 import TaxonomySelect, { type CategoryOption, type LocationOption } from '@/Components/TaxonomySelect';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { Head, useForm } from '@inertiajs/react';
-import { FormEvent, useRef, useState, type ReactNode } from 'react';
+import { FormEvent, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 
 function Field({
     label,
@@ -39,22 +45,37 @@ function slugify(value: string) {
         .replace(/^-+|-+$/g, '');
 }
 
+function assignmentsToEntries(assignments: CollectionAssignment) {
+    return Object.entries(assignments).map(([key, style]) => ({ key, style }));
+}
+
 export default function Create({
     categories: initialCategories,
     locations: initialLocations,
     image_rooms: imageRooms = ['Living', 'Kitchen', 'Dining', 'Bedroom', 'Bathroom', 'Outdoor', 'Other'],
+    collection_styles: collectionStyles = [
+        'Mediterranean',
+        'Italian Heritage',
+        'Oriental',
+        'Modern Minimalist',
+        'Glam Eclectic',
+    ],
 }: {
     categories: CategoryOption[];
     locations: LocationOption[];
     rooms?: string[];
     image_rooms?: string[];
+    collection_styles?: string[];
 }) {
     const slugTouched = useRef(false);
+    const collectionDefaulted = useRef(false);
     const [coverPending, setCoverPending] = useState<PendingImage[]>([]);
     const [galleryPending, setGalleryPending] = useState<PendingImage[]>([]);
     const [hiddenPending, setHiddenPending] = useState<PendingImage[]>([]);
     const [categories, setCategories] = useState(initialCategories);
     const [locations, setLocations] = useState(initialLocations);
+    const [assignments, setAssignments] = useState<CollectionAssignment>({});
+    const [roomAssignments, setRoomAssignments] = useState<RoomAssignment>({});
 
     const { data, setData, post, processing, errors } = useForm({
         slug: '',
@@ -75,9 +96,137 @@ export default function Create({
         gallery_rooms: [] as string[],
         gallery_hidden_files: [] as File[],
         gallery_hidden_rooms: [] as string[],
+        collection_entries: [] as { key: string; style: string }[],
     });
 
-    const { tab, setTab, errorFlags } = useProjectFormTab(errors);
+    const collectionCandidates: CollectionCandidate[] = useMemo(() => {
+        const out: CollectionCandidate[] = [];
+        coverPending.forEach((img) => {
+            out.push({ key: 'cover', label: 'Cover', previewUrl: img.preview });
+        });
+        galleryPending.forEach((img, index) => {
+            out.push({
+                key: `gallery:${index}`,
+                label: `Gallery ${index + 1}`,
+                previewUrl: img.preview,
+            });
+        });
+        return out;
+    }, [coverPending, galleryPending]);
+
+    const roomCandidates: RoomCandidate[] = useMemo(() => {
+        const out: RoomCandidate[] = [];
+        galleryPending.forEach((img, index) => {
+            out.push({
+                key: `gallery:${index}`,
+                label: `Gallery ${index + 1}`,
+                previewUrl: img.preview,
+            });
+        });
+        hiddenPending.forEach((img, index) => {
+            out.push({
+                key: `hidden:${index}`,
+                label: `Hidden ${index + 1}`,
+                previewUrl: img.preview,
+            });
+        });
+        return out;
+    }, [galleryPending, hiddenPending]);
+
+    const collectionEnabled = collectionCandidates.length > 0;
+    const roomsEnabled = roomCandidates.length > 0;
+    const { tab, setTab, errorFlags } = useProjectFormTab(errors, { collectionEnabled, roomsEnabled });
+
+    const syncAssignments = (next: CollectionAssignment) => {
+        setAssignments(next);
+        setData('collection_entries', assignmentsToEntries(next));
+    };
+
+    const applyRoomAssignments = (next: RoomAssignment, gallery = galleryPending, hidden = hiddenPending) => {
+        const pruned: RoomAssignment = {};
+        Object.entries(next).forEach(([key, room]) => {
+            if (room && room !== 'Other') pruned[key] = room;
+        });
+        setRoomAssignments(pruned);
+
+        const nextGallery = gallery.map((img, index) => ({
+            ...img,
+            room: pruned[`gallery:${index}`] ?? 'Other',
+        }));
+        const nextHidden = hidden.map((img, index) => ({
+            ...img,
+            room: pruned[`hidden:${index}`] ?? 'Other',
+        }));
+        setGalleryPending(nextGallery);
+        setHiddenPending(nextHidden);
+        setData({
+            ...data,
+            gallery: pendingToFiles(nextGallery, true) as File[],
+            gallery_rooms: pendingToRooms(nextGallery),
+            gallery_hidden_files: pendingToFiles(nextHidden, true) as File[],
+            gallery_hidden_rooms: pendingToRooms(nextHidden),
+            cover: pendingToFiles(coverPending, false) as File | null,
+            collection_entries: assignmentsToEntries(assignments),
+        });
+    };
+
+    useEffect(() => {
+        const valid = new Set(collectionCandidates.map((c) => c.key));
+        const pruned: CollectionAssignment = {};
+        Object.entries(assignments).forEach(([key, style]) => {
+            if (valid.has(key)) pruned[key] = style;
+        });
+
+        if (!collectionEnabled) {
+            if (Object.keys(assignments).length > 0) {
+                syncAssignments({});
+            }
+            collectionDefaulted.current = false;
+            return;
+        }
+
+        if (!collectionDefaulted.current) {
+            collectionDefaulted.current = true;
+            syncAssignments(defaultCollectionAssignments(collectionCandidates, collectionStyles));
+            return;
+        }
+
+        if (Object.keys(pruned).length !== Object.keys(assignments).length) {
+            syncAssignments(pruned);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [collectionCandidates, collectionEnabled]);
+
+    useEffect(() => {
+        const valid = new Set(roomCandidates.map((c) => c.key));
+        const pruned: RoomAssignment = {};
+        Object.entries(roomAssignments).forEach(([key, room]) => {
+            if (valid.has(key) && room && room !== 'Other') pruned[key] = room;
+        });
+        if (Object.keys(pruned).length !== Object.keys(roomAssignments).length) {
+            setRoomAssignments(pruned);
+            const nextGallery = galleryPending.map((img, index) => ({
+                ...img,
+                room: pruned[`gallery:${index}`] ?? 'Other',
+            }));
+            const nextHidden = hiddenPending.map((img, index) => ({
+                ...img,
+                room: pruned[`hidden:${index}`] ?? 'Other',
+            }));
+            setGalleryPending(nextGallery);
+            setHiddenPending(nextHidden);
+            setData({
+                ...data,
+                gallery: pendingToFiles(nextGallery, true) as File[],
+                gallery_rooms: pendingToRooms(nextGallery),
+                gallery_hidden_files: pendingToFiles(nextHidden, true) as File[],
+                gallery_hidden_rooms: pendingToRooms(nextHidden),
+                cover: pendingToFiles(coverPending, false) as File | null,
+                collection_entries: assignmentsToEntries(assignments),
+            });
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [roomCandidates]);
 
     const syncCover = (next: PendingImage[]) => {
         setCoverPending(next);
@@ -85,26 +234,36 @@ export default function Create({
     };
 
     const syncGallery = (next: PendingImage[]) => {
-        setGalleryPending(next);
+        const withRooms = next.map((img, index) => ({
+            ...img,
+            room: roomAssignments[`gallery:${index}`] ?? img.room ?? 'Other',
+        }));
+        setGalleryPending(withRooms);
         setData({
             ...data,
-            gallery: pendingToFiles(next, true) as File[],
-            gallery_rooms: pendingToRooms(next),
+            gallery: pendingToFiles(withRooms, true) as File[],
+            gallery_rooms: pendingToRooms(withRooms),
             gallery_hidden_files: pendingToFiles(hiddenPending, true) as File[],
             gallery_hidden_rooms: pendingToRooms(hiddenPending),
             cover: pendingToFiles(coverPending, false) as File | null,
+            collection_entries: assignmentsToEntries(assignments),
         });
     };
 
     const syncHidden = (next: PendingImage[]) => {
-        setHiddenPending(next);
+        const withRooms = next.map((img, index) => ({
+            ...img,
+            room: roomAssignments[`hidden:${index}`] ?? img.room ?? 'Other',
+        }));
+        setHiddenPending(withRooms);
         setData({
             ...data,
             gallery: pendingToFiles(galleryPending, true) as File[],
             gallery_rooms: pendingToRooms(galleryPending),
-            gallery_hidden_files: pendingToFiles(next, true) as File[],
-            gallery_hidden_rooms: pendingToRooms(next),
+            gallery_hidden_files: pendingToFiles(withRooms, true) as File[],
+            gallery_hidden_rooms: pendingToRooms(withRooms),
             cover: pendingToFiles(coverPending, false) as File | null,
+            collection_entries: assignmentsToEntries(assignments),
         });
     };
 
@@ -114,6 +273,15 @@ export default function Create({
         const nextHidden = [...hiddenPending, ...selected];
         setGalleryPending(nextGallery);
         setHiddenPending(nextHidden);
+        // Rebuild room keys after transfer
+        const nextRooms: RoomAssignment = {};
+        nextGallery.forEach((img, index) => {
+            if (img.room && img.room !== 'Other') nextRooms[`gallery:${index}`] = img.room;
+        });
+        nextHidden.forEach((img, index) => {
+            if (img.room && img.room !== 'Other') nextRooms[`hidden:${index}`] = img.room;
+        });
+        setRoomAssignments(nextRooms);
         setData({
             ...data,
             gallery: pendingToFiles(nextGallery, true) as File[],
@@ -121,6 +289,7 @@ export default function Create({
             gallery_hidden_files: pendingToFiles(nextHidden, true) as File[],
             gallery_hidden_rooms: pendingToRooms(nextHidden),
             cover: pendingToFiles(coverPending, false) as File | null,
+            collection_entries: assignmentsToEntries(assignments),
         });
     };
 
@@ -130,6 +299,14 @@ export default function Create({
         const nextGallery = [...galleryPending, ...selected];
         setGalleryPending(nextGallery);
         setHiddenPending(nextHidden);
+        const nextRooms: RoomAssignment = {};
+        nextGallery.forEach((img, index) => {
+            if (img.room && img.room !== 'Other') nextRooms[`gallery:${index}`] = img.room;
+        });
+        nextHidden.forEach((img, index) => {
+            if (img.room && img.room !== 'Other') nextRooms[`hidden:${index}`] = img.room;
+        });
+        setRoomAssignments(nextRooms);
         setData({
             ...data,
             gallery: pendingToFiles(nextGallery, true) as File[],
@@ -137,6 +314,7 @@ export default function Create({
             gallery_hidden_files: pendingToFiles(nextHidden, true) as File[],
             gallery_hidden_rooms: pendingToRooms(nextHidden),
             cover: pendingToFiles(coverPending, false) as File | null,
+            collection_entries: assignmentsToEntries(assignments),
         });
     };
 
@@ -161,7 +339,13 @@ export default function Create({
         <AdminLayout header={<h2 className="text-xl font-semibold text-slate-800">Create project</h2>}>
             <Head title="Create project" />
             <form onSubmit={submit} className="w-full space-y-4">
-                <ProjectFormTabs tab={tab} onChange={setTab} errorFlags={errorFlags}>
+                <ProjectFormTabs
+                    tab={tab}
+                    onChange={setTab}
+                    errorFlags={errorFlags}
+                    collectionEnabled={collectionEnabled}
+                    roomsEnabled={roomsEnabled}
+                >
                     {(active) => (
                         <>
                             <div className={active === 'details' ? 'space-y-4' : 'hidden'}>
@@ -242,7 +426,7 @@ export default function Create({
 
                             <div className={active === 'images' ? 'space-y-4' : 'hidden'}>
                                 <p className="text-xs text-slate-500">
-                                    Works room filters use gallery image tags. Select images, then assign a room.
+                                    Upload cover and gallery images here. Assign rooms in the Rooms tab.
                                 </p>
                                 <PendingImagePicker
                                     label="Cover image"
@@ -258,7 +442,6 @@ export default function Create({
                                     error={errors.gallery}
                                     transferLabel="Move to hidden"
                                     onTransferSelected={moveGalleryToHidden}
-                                    imageRooms={imageRooms}
                                 />
                                 <PendingImagePicker
                                     label="Hidden gallery"
@@ -267,7 +450,26 @@ export default function Create({
                                     error={errors.gallery_hidden_files}
                                     transferLabel="Move to gallery"
                                     onTransferSelected={moveHiddenToGallery}
-                                    imageRooms={imageRooms}
+                                />
+                            </div>
+
+                            <div className={active === 'rooms' ? 'space-y-4' : 'hidden'}>
+                                <ProjectRoomsPicker
+                                    rooms={imageRooms}
+                                    candidates={roomCandidates}
+                                    assignments={roomAssignments}
+                                    onAssignmentsChange={(next) => applyRoomAssignments(next)}
+                                    imageError={errors.gallery_rooms ?? errors.gallery_hidden_rooms}
+                                />
+                            </div>
+
+                            <div className={active === 'collection' ? 'space-y-4' : 'hidden'}>
+                                <ProjectCollectionPicker
+                                    styles={collectionStyles}
+                                    candidates={collectionCandidates}
+                                    assignments={assignments}
+                                    onAssignmentsChange={syncAssignments}
+                                    imageError={errors.collection_entries}
                                 />
                             </div>
 

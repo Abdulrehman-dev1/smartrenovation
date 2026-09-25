@@ -95,6 +95,24 @@ class ProjectTaxonomy
 
     public const OTHER_ROOM = 'Other';
 
+    public const DEFAULT_COLLECTION_AR = 1.33;
+
+    /**
+     * Collection board style labels (smart Collection page).
+     *
+     * @return list<string>
+     */
+    public static function collectionStyles(): array
+    {
+        return [
+            'Mediterranean',
+            'Italian Heritage',
+            'Oriental',
+            'Modern Minimalist',
+            'Glam Eclectic',
+        ];
+    }
+
     /**
      * Filter pills / derived project rooms (excludes Other).
      *
@@ -279,7 +297,13 @@ class ProjectTaxonomy
     /**
      * Props for Inertia create/edit forms (from DB).
      *
-     * @return array{categories: list<array{id: int, value: string, label: string}>, locations: list<array{id: int, name: string}>, rooms: list<string>, image_rooms: list<string>}
+     * @return array{
+     *     categories: list<array{id: int, value: string, label: string, type_label?: string|null}>,
+     *     locations: list<array{id: int, name: string}>,
+     *     rooms: list<string>,
+     *     image_rooms: list<string>,
+     *     collection_styles: list<string>
+     * }
      */
     public static function formOptions(): array
     {
@@ -306,6 +330,7 @@ class ProjectTaxonomy
                 ->all(),
             'rooms' => self::rooms(),
             'image_rooms' => self::imageRooms(),
+            'collection_styles' => self::collectionStyles(),
         ];
     }
 

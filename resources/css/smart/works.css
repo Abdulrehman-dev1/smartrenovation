@@ -1,0 +1,104 @@
+/* =========================================================
+   WORKS — light, photo-led grid with style + location filters
+   (relies on style.css for tokens, header, buttons, footer)
+   ========================================================= */
+.works{padding-top:clamp(110px,16vh,150px);}
+
+/* ---------- INTRO ---------- */
+.works-intro{text-align:center;padding:clamp(20px,5vh,50px) clamp(20px,4vw,48px) clamp(30px,5vh,50px);max-width:980px;}
+.works-intro__title{font-size:clamp(40px,7vw,96px);font-weight:200;margin:16px 0 22px;}
+.works-intro__title em{font-style:italic;font-weight:200;}
+.works-intro__lead{max-width:600px;margin:0 auto;font-size:clamp(15px,1.3vw,18px);font-weight:300;color:var(--text);}
+
+/* ---------- FILTERS ---------- */
+.filters{
+  position:sticky;top:76px;z-index:60;
+  max-width:var(--maxw);margin:0 auto clamp(30px,5vh,54px);
+  padding:18px clamp(20px,4vw,48px);
+  background:var(--bg);
+  border-top:1px solid var(--line-soft);border-bottom:1px solid var(--line-soft);
+  display:flex;flex-direction:column;gap:14px;
+}
+/* label sits in a fixed left column; pills fill the rest and wrap — so both
+   rows start their pills at the same x and the labels stay aligned */
+.filters__row{display:flex;align-items:flex-start;gap:18px;}
+.filters__label{
+  font-family:var(--font-ui);font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--muted);
+  width:92px;flex-shrink:0;padding-top:9px;line-height:1;
+}
+.filters__pills{flex:1;min-width:0;display:flex;flex-wrap:wrap;gap:8px;}
+.pill{
+  font-family:var(--font-ui);font-size:12px;font-weight:500;letter-spacing:.04em;color:var(--text);
+  padding:8px 16px;border:1px solid var(--line);border-radius:40px;
+  transition:color .3s var(--ease),background .3s var(--ease),border-color .3s var(--ease);
+}
+.pill:hover{border-color:var(--ink);color:var(--ink);}
+.pill.is-active{background:var(--ink);color:#fff;border-color:var(--ink);}
+
+.filters__reset{display:flex;justify-content:flex-end;padding-top:4px;}
+.filters__reset-btn{
+  font-family:var(--font-ui);font-size:12px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--ink);border-bottom:1px solid var(--ink);padding:2px 0;
+  transition:opacity .3s;
+}
+.filters__reset-btn:hover{opacity:.55;}
+
+/* ---------- PROJECT CARD GRID ---------- */
+.grid{
+  padding:0 clamp(20px,4vw,48px) clamp(30px,5vh,60px);
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:clamp(24px,3vw,44px) clamp(18px,2vw,30px);
+}
+.work{display:flex;flex-direction:column;}
+.work__media{overflow:hidden;aspect-ratio:4/5;background:var(--bg-tint);}
+.work__media img{width:100%;height:100%;object-fit:cover;transition:transform 1.2s var(--ease);}
+.work:hover .work__media img{transform:scale(1.05);}
+.work__info{display:flex;flex-direction:column;padding-top:16px;}
+.work__no{font-family:var(--font-ui);font-size:11px;letter-spacing:.2em;color:var(--muted);margin-bottom:8px;}
+.work__title{font-size:clamp(17px,1.5vw,22px);font-weight:300;color:var(--ink);margin-bottom:7px;line-height:1.15;letter-spacing:-.01em;overflow-wrap:break-word;}
+.work__meta{font-family:var(--font-ui);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);overflow-wrap:break-word;}
+
+.work.is-hidden{display:none;}
+.grid__empty{
+  display:none;
+  grid-column:1 / -1;
+  text-align:center;
+  color:var(--ink);
+  padding:clamp(36px,6vh,64px) clamp(18px,4vw,32px);
+  margin:8px 0 24px;
+  background:var(--bg-soft);
+  border:1px solid var(--line);
+}
+.grid__empty.show{display:block;}
+.board .grid__empty{width:100%;break-inside:avoid;}
+.grid__empty-title{
+  font-family:var(--font-display);
+  font-size:clamp(22px,3.2vw,34px);
+  font-weight:300;
+  line-height:1.2;
+  margin:0 0 14px;
+  color:var(--ink);
+}
+.grid__empty-copy{
+  max-width:34em;
+  margin:0 auto 22px;
+  font-size:clamp(15px,1.4vw,18px);
+  font-weight:300;
+  line-height:1.45;
+  color:var(--text);
+}
+.grid__empty-actions{
+  display:flex;flex-wrap:wrap;justify-content:center;gap:10px;
+}
+
+/* ---------- CTA BAND: shared styles in style.css ---------- */
+.works .cta-band{margin-top:clamp(60px,10vh,120px);}
+
+/* ---------- RESPONSIVE ---------- */
+@media (max-width:980px){ .grid{grid-template-columns:repeat(2,minmax(0,1fr));} }
+@media (max-width:860px){
+  .filters{top:64px;}
+  .filters__row{flex-direction:column;gap:10px;}
+  .filters__label{width:100%;padding-top:0;}
+}
+@media (max-width:520px){ .grid{grid-template-columns:1fr;} }

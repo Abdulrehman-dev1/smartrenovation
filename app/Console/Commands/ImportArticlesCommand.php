@@ -3,7 +3,9 @@
 namespace App\Console\Commands;
 
 use App\Models\Article;
+use App\Support\ArticleImageStorage;
 use Illuminate\Console\Command;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 
@@ -30,6 +32,7 @@ class ImportArticlesCommand extends Command
         }
 
         $imgRoot = base_path('../smart/public');
+        $images = app(ArticleImageStorage::class);
         $imported = 0;
 
         foreach ($payload as $item) {
@@ -42,25 +45,35 @@ class ImportArticlesCommand extends Command
                 continue;
             }
 
+            $title = $item['title'] ?? $slug;
+            $subtitle = $item['excerpt'] ?? null;
+            $publishedAt = null;
+            if (! empty($item['date'])) {
+                try {
+                    $publishedAt = \Carbon\Carbon::parse($item['date']);
+                } catch (\Throwable) {
+                    $publishedAt = now();
+                }
+            }
+
             $article = Article::query()->updateOrCreate(
                 ['slug' => $slug],
                 [
-                    'title' => $item['title'] ?? $slug,
-                    'published_on' => $item['date'] ?? null,
-                    'excerpt' => $item['excerpt'] ?? null,
-                    'body' => $item['html'] ?? '',
+                    'title' => $title,
+                    'subtitle' => $subtitle,
+                    'description' => $item['html'] ?? '',
                     'status' => 'published',
-                    'published_at' => now(),
-                    'meta_title' => $item['title'] ?? null,
-                    'meta_description' => Str::limit(strip_tags((string) ($item['excerpt'] ?? '')), 155),
+                    'published_at' => $publishedAt ?? now(),
+                    'meta_title' => $title,
+                    'meta_description' => Str::limit(strip_tags((string) ($subtitle ?? '')), 155),
                 ]
             );
 
-            if ($this->option('with-images') && ! empty($item['cover'])) {
+            if ($this->option('with-images') && ! empty($item['cover']) && is_string($item['cover'])) {
                 $absolute = $imgRoot.str_replace('/', DIRECTORY_SEPARATOR, $item['cover']);
                 if (File::exists($absolute)) {
-                    $article->clearMediaCollection('cover');
-                    $article->addMedia($absolute)->preservingOriginal()->toMediaCollection('cover');
+                    $file = new UploadedFile($absolute, basename($absolute), null, null, true);
+                    $images->storeCover($article, $file);
                 }
             }
 

@@ -1,16 +1,18 @@
-import PublicLayout from '@/Layouts/PublicLayout';
 import { Head, Link, router } from '@inertiajs/react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import PublicLayout from '../../Layouts/PublicLayout';
+import { WaIcon, WA_LINK, WA_TRACK_CLASS } from '../../Components/Public/WaFloat';
 
-type Media = { card?: string | null; large?: string | null; original: string };
-type Project = {
+type ProjectCard = {
     id: number;
     slug: string;
     name: string;
-    location?: string | null;
     studio?: string | null;
+    location?: string | null;
+    type?: string | null;
     category?: string | null;
-    rooms?: string[] | null;
-    cover?: Media | null;
+    subtitle?: string | null;
+    cover?: { original?: string; card?: string } | null;
 };
 
 type RoomPhoto = {
@@ -20,171 +22,253 @@ type RoomPhoto = {
     name: string;
     category?: string | null;
     location?: string | null;
+    ar?: number;
 };
 
-type CategoryOption = { id: number; value: string; label: string };
-type LocationOption = { id: number; name: string };
+type TaxCategory = { value: string; label: string };
+type TaxLocation = { id: number; name: string };
 
 type Props = {
-    projects: Project[];
-    roomPhotos?: RoomPhoto[];
+    projects: ProjectCard[];
+    roomPhotos: RoomPhoto[];
     filters: { category: string; location: string; room: string };
     taxonomy: {
-        categories: CategoryOption[];
-        locations: LocationOption[];
+        categories: TaxCategory[];
+        locations: TaxLocation[];
         rooms: string[];
     };
 };
 
-function Pill({
-    active,
-    label,
-    onClick,
-}: {
-    active: boolean;
-    label: string;
-    onClick: () => void;
-}) {
-    return (
-        <button
-            type="button"
-            onClick={onClick}
-            className={`rounded-full border px-3 py-1 text-sm transition ${
-                active
-                    ? 'border-stone-900 bg-stone-900 text-white'
-                    : 'border-stone-300 bg-white text-stone-700 hover:border-stone-500'
-            }`}
-        >
-            {label}
-        </button>
-    );
+function buildHref(cat: string, loc: string, room: string): string {
+    const sp = new URLSearchParams();
+    if (cat && cat !== 'all') sp.set('category', cat);
+    if (loc && loc !== 'all') sp.set('location', loc);
+    if (room && room !== 'all') sp.set('room', room);
+    const q = sp.toString();
+    return q ? `/works?${q}` : '/works';
 }
 
-export default function Works({ projects, roomPhotos = [], filters, taxonomy }: Props) {
-    const apply = (patch: Partial<typeof filters>) => {
-        const next = { ...filters, ...patch };
-        const params: Record<string, string> = {};
-        if (next.category !== 'all') params.category = next.category;
-        if (next.location !== 'all') params.location = next.location;
-        if (next.room !== 'all') params.room = next.room;
-        router.get('/works', params, { preserveState: true, replace: true });
+export default function Works({ projects, roomPhotos, filters, taxonomy }: Props) {
+    const gridRef = useRef<HTMLElement | null>(null);
+    const scrolledFor = useRef('');
+
+    const [cat, setCat] = useState(filters.category || 'all');
+    const [loc, setLoc] = useState(filters.location || 'all');
+    const [room, setRoom] = useState(filters.room || 'all');
+
+    useEffect(() => {
+        setCat(filters.category || 'all');
+        setLoc(filters.location || 'all');
+        setRoom(filters.room || 'all');
+        const key = `${filters.category}|${filters.location}|${filters.room}`;
+        if (key !== 'all|all|all' && scrolledFor.current !== key) {
+            scrolledFor.current = key;
+            setTimeout(() => gridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 350);
+        }
+    }, [filters.category, filters.location, filters.room]);
+
+    const categories = useMemo<[string, string][]>(
+        () => [['all', 'All'], ...taxonomy.categories.map((c) => [c.value, c.label] as [string, string])],
+        [taxonomy.categories],
+    );
+    const locations = useMemo<[string, string][]>(
+        () => [['all', 'All'], ...taxonomy.locations.map((l) => [l.name, l.name] as [string, string])],
+        [taxonomy.locations],
+    );
+    const rooms = useMemo<[string, string][]>(
+        () => [['all', 'All'], ...taxonomy.rooms.map((r) => [r, r] as [string, string])],
+        [taxonomy.rooms],
+    );
+
+    const scrollToGrid = () => gridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    const syncUrl = useCallback((next: { cat: string; loc: string; room: string }) => {
+        router.get(buildHref(next.cat, next.loc, next.room), {}, { preserveScroll: true, preserveState: true, replace: true });
+    }, []);
+
+    const apply = (patch: Partial<{ cat: string; loc: string; room: string }>) => {
+        const next = {
+            cat: patch.cat ?? cat,
+            loc: patch.loc ?? loc,
+            room: patch.room ?? room,
+        };
+        if (patch.cat !== undefined) setCat(patch.cat);
+        if (patch.loc !== undefined) setLoc(patch.loc);
+        if (patch.room !== undefined) setRoom(patch.room);
+        syncUrl(next);
+        scrollToGrid();
     };
 
-    const reset = () => apply({ category: 'all', location: 'all', room: 'all' });
-    const active = filters.category !== 'all' || filters.location !== 'all' || filters.room !== 'all';
-    const roomView = filters.room !== 'all';
+    const resetFilters = () => {
+        setCat('all');
+        setLoc('all');
+        setRoom('all');
+        syncUrl({ cat: 'all', loc: 'all', room: 'all' });
+        scrollToGrid();
+    };
+
+    const filtersActive = cat !== 'all' || loc !== 'all' || room !== 'all';
+    const roomView = room !== 'all';
     const isEmpty = roomView ? roomPhotos.length === 0 : projects.length === 0;
 
-    return (
-        <PublicLayout title="Works">
-            <Head title="Works" />
+    const Pills = ({
+        label,
+        list,
+        value,
+        onPick,
+    }: {
+        label: string;
+        list: [string, string][];
+        value: string;
+        onPick: (v: string) => void;
+    }) => (
+        <div className="filters__row">
+            <span className="filters__label">{label}</span>
+            <div className="filters__pills">
+                {list.map(([v, lab]) => (
+                    <button
+                        key={v}
+                        type="button"
+                        className={`pill${value === v ? ' is-active' : ''}`}
+                        onClick={() => onPick(v)}
+                    >
+                        {lab}
+                    </button>
+                ))}
+            </div>
+        </div>
+    );
 
-            <div className="mb-8 space-y-5">
-                <div>
-                    <p className="mb-2 text-xs font-medium uppercase tracking-widest text-stone-500">Category</p>
-                    <div className="flex flex-wrap gap-2">
-                        <Pill active={filters.category === 'all'} label="All" onClick={() => apply({ category: 'all' })} />
-                        {taxonomy.categories.map((c) => (
-                            <Pill
-                                key={c.value}
-                                active={filters.category === c.value}
-                                label={c.label}
-                                onClick={() => apply({ category: c.value })}
-                            />
-                        ))}
-                    </div>
-                </div>
-                <div>
-                    <p className="mb-2 text-xs font-medium uppercase tracking-widest text-stone-500">Location</p>
-                    <div className="flex flex-wrap gap-2">
-                        <Pill active={filters.location === 'all'} label="All" onClick={() => apply({ location: 'all' })} />
-                        {taxonomy.locations.map((loc) => (
-                            <Pill
-                                key={loc.id}
-                                active={filters.location === loc.name}
-                                label={loc.name}
-                                onClick={() => apply({ location: loc.name })}
-                            />
-                        ))}
-                    </div>
-                </div>
-                <div>
-                    <p className="mb-2 text-xs font-medium uppercase tracking-widest text-stone-500">Room</p>
-                    <div className="flex flex-wrap gap-2">
-                        <Pill active={filters.room === 'all'} label="All" onClick={() => apply({ room: 'all' })} />
-                        {taxonomy.rooms.map((room) => (
-                            <Pill
-                                key={room}
-                                active={filters.room === room}
-                                label={room}
-                                onClick={() => apply({ room })}
-                            />
-                        ))}
-                    </div>
-                </div>
-                {active && (
-                    <button type="button" onClick={reset} className="text-sm text-stone-600 underline">
-                        Reset filters
+    const EmptyState = () => (
+        <div className="grid__empty show" role="status">
+            <p className="grid__empty-title">
+                {roomView
+                    ? `No ${room.toLowerCase()} photos match these filters.`
+                    : 'No projects match these filters.'}
+            </p>
+            <p className="grid__empty-copy">
+                More projects are coming. In the meantime, try broadening your search by category, location, or room.
+            </p>
+            <div className="grid__empty-actions">
+                {cat !== 'all' && (
+                    <button type="button" className="pill" onClick={() => apply({ cat: 'all' })}>
+                        All categories
                     </button>
                 )}
-            </div>
-
-            {isEmpty ? (
-                <div className="rounded-lg border border-stone-200 bg-white p-8 text-center">
-                    <p className="text-lg font-medium text-stone-800">
-                        {roomView
-                            ? `No ${filters.room.toLowerCase()} photos match these filters.`
-                            : 'No projects match these filters.'}
-                    </p>
-                    <p className="mt-2 text-sm text-stone-500">
-                        Try broadening your search by category, location, or room.
-                    </p>
-                    <button
-                        type="button"
-                        onClick={reset}
-                        className="mt-4 rounded-md bg-stone-900 px-4 py-2 text-sm text-white"
-                    >
-                        Reset filters
+                {loc !== 'all' && (
+                    <button type="button" className="pill" onClick={() => apply({ loc: 'all' })}>
+                        All locations
                     </button>
+                )}
+                {room !== 'all' && (
+                    <button type="button" className="pill" onClick={() => apply({ room: 'all' })}>
+                        All rooms
+                    </button>
+                )}
+                <button type="button" className="pill is-active" onClick={resetFilters}>
+                    Reset filters
+                </button>
+            </div>
+        </div>
+    );
+
+    return (
+        <PublicLayout>
+            <Head title="Works — Smart Renovation" />
+            <main className="works">
+                <section className="works-intro container">
+                    <span className="eyebrow reveal">Selected work</span>
+                    <h1 className="works-intro__title reveal" data-delay="1">
+                        Our Work, <em>Across Dubai.</em>
+                    </h1>
+                    <p className="works-intro__lead reveal" data-delay="2">
+                        Turnkey renovation and fit-out across the city&apos;s most established communities — held by one
+                        studio from design to handover.
+                    </p>
+                </section>
+
+                <div className="filters">
+                    <Pills label="Category" list={categories} value={cat} onPick={(v) => apply({ cat: v })} />
+                    <Pills label="Location" list={locations} value={loc} onPick={(v) => apply({ loc: v })} />
+                    <Pills label="Room" list={rooms} value={room} onPick={(v) => apply({ room: v })} />
+                    {filtersActive && (
+                        <div className="filters__reset">
+                            <button type="button" className="filters__reset-btn" onClick={resetFilters}>
+                                Reset filters
+                            </button>
+                        </div>
+                    )}
                 </div>
-            ) : roomView ? (
-                <div className="columns-1 gap-4 sm:columns-2 lg:columns-3">
-                    {roomPhotos.map((photo, index) => (
-                        <Link
-                            key={`${photo.slug}-${photo.url}-${index}`}
-                            href={`/projects/${photo.slug}`}
-                            className="mb-4 block break-inside-avoid overflow-hidden bg-stone-200"
-                        >
-                            <img src={photo.url} alt="" className="w-full object-cover" loading="lazy" />
-                            <div className="bg-white px-3 py-2 text-sm text-stone-600">
-                                <span className="font-medium text-stone-800">{photo.room}</span>
-                                {' · '}
-                                {photo.name}
-                            </div>
-                        </Link>
-                    ))}
-                </div>
-            ) : (
-                <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-                    {projects.map((project) => (
-                        <Link key={project.id} href={`/projects/${project.slug}`} className="group block">
-                            <div className="aspect-[4/3] overflow-hidden bg-stone-200">
-                                {(project.cover?.card || project.cover?.large || project.cover?.original) && (
-                                    <img
-                                        src={project.cover.card || project.cover.large || project.cover.original}
-                                        alt={project.name}
-                                        className="h-full w-full object-cover transition group-hover:scale-[1.02]"
-                                    />
-                                )}
-                            </div>
-                            <h2 className="mt-3 text-lg font-medium">{project.name}</h2>
-                            <p className="text-sm text-stone-500">
-                                {[project.location, project.studio].filter(Boolean).join(' · ')}
-                            </p>
-                        </Link>
-                    ))}
-                </div>
-            )}
+
+                {roomView ? (
+                    isEmpty ? (
+                        <section className="container" ref={gridRef as React.RefObject<HTMLElement>}>
+                            <EmptyState />
+                        </section>
+                    ) : (
+                        <section className="board" ref={gridRef as React.RefObject<HTMLElement>}>
+                            {roomPhotos.map((im, i) => (
+                                <article className="pin" key={im.url + i}>
+                                    <Link
+                                        className="pin__media"
+                                        href={`/projects/${im.slug}`}
+                                        style={{ aspectRatio: String(im.ar || 1.33) }}
+                                    >
+                                        <img src={im.url} alt="" loading="lazy" />
+                                        <span className="pin__tag">
+                                            {im.room} · {im.name}
+                                        </span>
+                                    </Link>
+                                </article>
+                            ))}
+                        </section>
+                    )
+                ) : (
+                    <section className="grid container" ref={gridRef as React.RefObject<HTMLElement>}>
+                        {projects.map((p, i) => {
+                            const title = (p.name || '').split('|')[0].trim();
+                            const where = p.location;
+                            return (
+                                <Link key={p.slug} className="work reveal in" href={`/projects/${p.slug}`}>
+                                    <div className="work__media reveal-img in">
+                                        {p.cover?.card || p.cover?.original ? (
+                                            <img src={p.cover.card || p.cover.original} alt="" loading="lazy" />
+                                        ) : null}
+                                    </div>
+                                    <div className="work__info">
+                                        <span className="work__no">{String(i + 1).padStart(2, '0')}</span>
+                                        <h2 className="work__title">{title}</h2>
+                                        <span className="work__meta">
+                                            {[p.type, where].filter(Boolean).join(' · ')}
+                                        </span>
+                                    </div>
+                                </Link>
+                            );
+                        })}
+                        {isEmpty && <EmptyState />}
+                    </section>
+                )}
+
+                <section className="cta-band" id="contact">
+                    <div className="container">
+                        <span className="eyebrow reveal">Let&apos;s talk</span>
+                        <h2 className="cta-band__title reveal" data-delay="1">
+                            Start Your Project.
+                        </h2>
+                        <p className="cta-band__sub reveal" data-delay="2">
+                            Tell us about your space and timeline — we reply fast with a clear plan.
+                        </p>
+                        <div className="cta-band__actions reveal" data-delay="3">
+                            <a className={`btn btn--wa ${WA_TRACK_CLASS}`} href={WA_LINK} target="_blank" rel="noopener">
+                                <WaIcon /> WhatsApp Us
+                            </a>
+                            <a className="btn btn--solid" href="mailto:info@smartrenovation.ae">
+                                Email The Studio
+                            </a>
+                        </div>
+                    </div>
+                </section>
+            </main>
         </PublicLayout>
     );
 }

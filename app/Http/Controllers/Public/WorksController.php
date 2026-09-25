@@ -15,7 +15,9 @@ class WorksController extends Controller
 {
     public function __invoke(Request $request): Response
     {
-        $category = $request->string('category')->toString() ?: 'all';
+        $category = $request->string('category')->toString()
+            ?: $request->string('style')->toString()
+            ?: 'all';
         $location = $request->string('location')->toString() ?: 'all';
         $room = $request->string('room')->toString() ?: 'all';
 
@@ -44,7 +46,8 @@ class WorksController extends Controller
         $query = Project::query()
             ->published()
             ->with(['category', 'location'])
-            ->latest('published_at');
+            ->orderBy('sort_order')
+            ->orderBy('id');
 
         if ($categoryModel) {
             $query->where('category_id', $categoryModel->id);

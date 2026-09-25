@@ -6,21 +6,56 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreArticleRequest;
 use App\Http\Requests\Admin\UpdateArticleRequest;
 use App\Models\Article;
-use App\Support\MediaPresenter;
+use App\Support\ArticleImageStorage;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Str;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class ArticleController extends Controller
 {
-    public function index(): Response
+    public function __construct(private ArticleImageStorage $images) {}
+
+    public function index(Request $request): Response
     {
         $this->authorize('viewAny', Article::class);
 
+        $filters = [
+            'search' => trim((string) $request->string('search')),
+            'status' => trim((string) $request->string('status')),
+        ];
+
+        $query = Article::query()->latest();
+
+        if ($filters['search'] !== '') {
+            $search = $filters['search'];
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                    ->orWhere('slug', 'like', "%{$search}%")
+                    ->orWhere('subtitle', 'like', "%{$search}%");
+            });
+        }
+
+        if (in_array($filters['status'], ['draft', 'published'], true)) {
+            $query->where('status', $filters['status']);
+        }
+
         return Inertia::render('Admin/Articles/Index', [
-            'articles' => Article::query()->latest()->paginate(20),
+            'articles' => $query
+                ->paginate(12)
+                ->withQueryString()
+                ->through(fn (Article $article) => [
+                    'id' => $article->id,
+                    'title' => $article->title,
+                    'subtitle' => $article->subtitle,
+                    'slug' => $article->slug,
+                    'status' => $article->status,
+                    'published_at' => $article->published_at?->toIso8601String(),
+                    'cover_url' => $article->coverUrl(),
+                ]),
+            'filters' => $filters,
             'can' => [
+                'view' => request()->user()->can('articles.view'),
                 'create' => request()->user()->can('articles.create'),
                 'edit' => request()->user()->can('articles.edit'),
                 'delete' => request()->user()->can('articles.delete'),
@@ -28,52 +63,73 @@ class ArticleController extends Controller
         ]);
     }
 
-    public function create(): RedirectResponse
+    public function create(): Response
     {
         $this->authorize('create', Article::class);
 
-        $article = Article::query()->create([
-            'title' => 'Untitled article',
-            'slug' => 'draft-'.Str::lower((string) Str::ulid()),
-            'status' => 'draft',
-        ]);
-
-        return redirect()
-            ->route('admin.articles.edit', $article)
-            ->with('success', 'Draft ready — add details and cover image below, then save.');
+        return Inertia::render('Admin/Articles/Create');
     }
 
     public function store(StoreArticleRequest $request): RedirectResponse
     {
-        $article = Article::query()->create($request->validated());
+        $data = collect($request->validated())->except(['cover'])->all();
+
+        if (($data['status'] ?? '') === 'published') {
+            $data['published_at'] = now();
+        }
+
+        $article = Article::query()->create($data);
+
+        if ($request->file('cover')) {
+            $this->images->storeCover($article, $request->file('cover'));
+        }
 
         return redirect()
-            ->route('admin.articles.edit', $article)
+            ->route('admin.articles.index')
             ->with('success', 'Article was successfully created.');
+    }
+
+    public function show(Article $article): Response
+    {
+        $this->authorize('view', $article);
+
+        return Inertia::render('Admin/Articles/Show', [
+            'article' => array_merge($this->present($article), [
+                'published_at' => $article->published_at?->toIso8601String(),
+            ]),
+            'can' => [
+                'edit' => request()->user()->can('articles.edit'),
+                'delete' => request()->user()->can('articles.delete'),
+            ],
+            'publicUrl' => url('/media/'.$article->slug),
+        ]);
     }
 
     public function edit(Article $article): Response
     {
         $this->authorize('update', $article);
 
-        $article->load('media');
-
         return Inertia::render('Admin/Articles/Edit', [
-            'isNew' => str_starts_with($article->slug, 'draft-') || $article->title === 'Untitled article',
-            'article' => array_merge($article->toArray(), [
-                'cover' => $article->getFirstMedia('cover')
-                    ? MediaPresenter::toArray($article->getFirstMedia('cover'))
-                    : null,
-            ]),
+            'article' => $this->present($article),
         ]);
     }
 
     public function update(UpdateArticleRequest $request, Article $article): RedirectResponse
     {
-        $article->update($request->validated());
+        $data = collect($request->validated())->except(['cover'])->all();
+
+        if (($data['status'] ?? '') === 'published' && ! $article->published_at) {
+            $data['published_at'] = now();
+        }
+
+        $article->update($data);
+
+        if ($request->file('cover')) {
+            $this->images->storeCover($article, $request->file('cover'));
+        }
 
         return redirect()
-            ->route('admin.articles.edit', $article)
+            ->route('admin.articles.index')
             ->with('success', 'Article was successfully updated.');
     }
 
@@ -86,5 +142,24 @@ class ArticleController extends Controller
         return redirect()
             ->route('admin.articles.index')
             ->with('success', 'Article was successfully deleted.');
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function present(Article $article): array
+    {
+        return array_merge($article->toArray(), [
+            'cover' => $article->cover_image
+                ? [
+                    'path' => $article->cover_image,
+                    'url' => $article->coverUrl(),
+                    'name' => basename($article->cover_image),
+                ]
+                : null,
+            'created_at' => $article->created_at?->toIso8601String(),
+            'updated_at' => $article->updated_at?->toIso8601String(),
+            'published_at' => $article->published_at?->toIso8601String(),
+        ]);
     }
 }

@@ -17,6 +17,7 @@ class ProjectImageStorage
 
         $path = $this->storeFile($project, $file, 'cover');
         $project->forceFill(['cover_image' => $path])->save();
+        $project->pruneCollectionImages();
 
         return $path;
     }
@@ -68,6 +69,7 @@ class ProjectImageStorage
         $project->forceFill([$field => $items])->save();
         if ($field === 'gallery_images') {
             $project->syncRoomsFromGallery();
+            $project->pruneCollectionImages();
         }
     }
 
@@ -77,6 +79,7 @@ class ProjectImageStorage
             $this->deletePath($project->cover_image);
         }
         $project->forceFill(['cover_image' => null])->save();
+        $project->pruneCollectionImages();
     }
 
     /**
@@ -141,6 +144,7 @@ class ProjectImageStorage
         ])->save();
 
         $project->syncRoomsFromGallery();
+        $project->pruneCollectionImages();
     }
 
     /**

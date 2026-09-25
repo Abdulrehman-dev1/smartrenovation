@@ -7,6 +7,7 @@ use App\Models\Award;
 use App\Models\CollectionItem;
 use App\Models\Lead;
 use App\Models\Page;
+use App\Models\PressItem;
 use App\Models\Project;
 use App\Models\Redirect;
 use App\Models\Service;
@@ -17,6 +18,7 @@ use App\Policies\AwardPolicy;
 use App\Policies\CollectionItemPolicy;
 use App\Policies\LeadPolicy;
 use App\Policies\PagePolicy;
+use App\Policies\PressItemPolicy;
 use App\Policies\ProjectPolicy;
 use App\Policies\RedirectPolicy;
 use App\Policies\ServicePolicy;
@@ -34,6 +36,7 @@ class AppServiceProvider extends ServiceProvider
         Project::class => ProjectPolicy::class,
         Service::class => ServicePolicy::class,
         Article::class => ArticlePolicy::class,
+        PressItem::class => PressItemPolicy::class,
         CollectionItem::class => CollectionItemPolicy::class,
         Award::class => AwardPolicy::class,
         Page::class => PagePolicy::class,

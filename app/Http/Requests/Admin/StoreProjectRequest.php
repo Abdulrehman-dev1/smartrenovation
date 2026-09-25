@@ -32,6 +32,10 @@ class StoreProjectRequest extends FormRequest
             $trimmed = trim($this->input('schema_json'));
             $this->merge(['schema_json' => $trimmed === '' ? null : $trimmed]);
         }
+
+        if (! $this->has('collection_entries') || ! is_array($this->input('collection_entries'))) {
+            $this->merge(['collection_entries' => []]);
+        }
     }
 
     public function rules(): array
@@ -45,6 +49,7 @@ class StoreProjectRequest extends FormRequest
             'subtitle' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'status' => ['required', Rule::in(['draft', 'published'])],
+            'sort_order' => ['nullable', 'integer', 'min:0', 'max:999999'],
             'published_at' => ['nullable', 'date'],
             'meta_title' => ['nullable', 'string', 'max:255'],
             'meta_description' => ['nullable', 'string'],
@@ -67,6 +72,41 @@ class StoreProjectRequest extends FormRequest
             'gallery_hidden_files.*' => ['file', 'mimes:jpeg,jpg,png,webp', 'max:51200'],
             'gallery_hidden_rooms' => ['nullable', 'array'],
             'gallery_hidden_rooms.*' => ['string', Rule::in(ProjectTaxonomy::imageRooms())],
+            'collection_entries' => ['nullable', 'array'],
+            'collection_entries.*.key' => ['required', 'string', 'regex:/^(cover|gallery:\d+)$/'],
+            'collection_entries.*.style' => ['required', 'string', Rule::in(ProjectTaxonomy::collectionStyles())],
         ];
+    }
+
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
+            $entries = $this->input('collection_entries', []);
+            if (! is_array($entries)) {
+                return;
+            }
+
+            $galleryCount = is_array($this->file('gallery')) ? count($this->file('gallery')) : 0;
+            $hasCover = (bool) $this->file('cover');
+
+            foreach ($entries as $index => $entry) {
+                if (! is_array($entry)) {
+                    continue;
+                }
+                $key = $entry['key'] ?? null;
+                if (! is_string($key)) {
+                    continue;
+                }
+                if ($key === 'cover' && ! $hasCover) {
+                    $validator->errors()->add("collection_entries.{$index}.key", 'Cover is not available.');
+                }
+                if (preg_match('/^gallery:(\d+)$/', $key, $m)) {
+                    $i = (int) $m[1];
+                    if ($i < 0 || $i >= $galleryCount) {
+                        $validator->errors()->add("collection_entries.{$index}.key", 'Gallery image is not available.');
+                    }
+                }
+            }
+        });
     }
 }
