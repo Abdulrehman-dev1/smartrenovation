@@ -18,7 +18,7 @@ class DatabaseSeeder extends Seeder
             ['email' => 'admin@smartrenovation.ae'],
             [
                 'name' => 'Admin',
-                'password' => Hash::make('password'),
+                'password' => Hash::make('smartadmin!@#'),
                 'email_verified_at' => now(),
             ]
         );
