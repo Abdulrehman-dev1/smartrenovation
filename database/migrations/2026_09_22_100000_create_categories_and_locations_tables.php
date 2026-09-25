@@ -11,6 +11,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // Allow re-run after a partial failure (tables created, seed insert failed).
+        Schema::dropIfExists('locations');
+        Schema::dropIfExists('categories');
+
         Schema::create('categories', function (Blueprint $table) {
             $table->id();
             $table->string('slug')->unique();
@@ -36,9 +40,20 @@ return new class extends Migration
                 'updated_at' => $now,
             ]);
         }
+
+        $usedSlugs = [];
         foreach (ProjectTaxonomy::locations() as $name) {
+            $base = Str::slug($name) ?: 'location';
+            $slug = $base;
+            $i = 2;
+            while (isset($usedSlugs[$slug])) {
+                $slug = $base.'-'.$i;
+                $i++;
+            }
+            $usedSlugs[$slug] = true;
+
             DB::table('locations')->insert([
-                'slug' => Str::slug($name),
+                'slug' => $slug,
                 'name' => $name,
                 'created_at' => $now,
                 'updated_at' => $now,

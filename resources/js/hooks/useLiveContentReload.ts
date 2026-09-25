@@ -26,7 +26,6 @@ export function useLiveContentReload(intervalMs = 45000) {
             if (!canReload()) return;
             busy.current = true;
             router.reload({
-                preserveScroll: true,
                 onFinish: () => {
                     busy.current = false;
                 },
