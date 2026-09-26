@@ -10,7 +10,7 @@ import {
 export default function SiteFooter() {
     return (
         <footer className="site-footer">
-            <div className="container site-footer__top">
+            <div className="site-footer__top">
                 <div className="site-footer__brand">
                     <Link className="brand" href="/">
                         <img className="brand__icon" src="/assets/img/brand/favicon.png" alt="" />
@@ -49,7 +49,7 @@ export default function SiteFooter() {
                 </div>
             </div>
 
-            <div className="container site-footer__bottom">
+            <div className="site-footer__bottom">
                 <span>© 2026 Smart Renovation</span>
                 <span className="site-footer__muted">Design &amp; Build · Dubai, UAE</span>
             </div>

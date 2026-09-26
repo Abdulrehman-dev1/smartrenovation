@@ -124,7 +124,7 @@ export default function Residential() {
                 </section>
 
                 <section className="cta-band cta-band--contact" id="contact">
-                    <div className="container cta-band__grid">
+                    <div className="cta-band__grid">
                         <div className="cta-band__intro">
                             <span className="eyebrow reveal">Let&apos;s talk</span>
                             <h2 className="cta-band__title reveal" data-delay="1">
@@ -186,7 +186,7 @@ export default function Residential() {
                 </section>
 
                 <section className="rl-intro">
-                    <div className="container rl-intro__inner">
+                    <div className="rl-intro__inner">
                         <h2 className="rl-intro__title reveal in">
                             Smart Renovation Dubai: Your Complete Home Transformation Partner
                         </h2>
@@ -227,7 +227,7 @@ export default function Residential() {
                 <ReviewsSection />
 
                 <section className="rl-about">
-                    <div className="container rl-about__grid">
+                    <div className="rl-about__grid">
                         <figure className="rl-about__media reveal-img">
                             <img src={`${IMG}/about.jpg`} alt="Marco and Cinzia of Smart Renovation" />
                         </figure>

@@ -37,7 +37,7 @@ export default function ServiceShow({ service, seoJsonLd }: Props) {
                     ← All services
                 </Link>
 
-                <section className="service-hero container">
+                <section className="service-hero">
                     <span className="service-hero__kicker">{service.nav_label}</span>
                     <h1 className="service-hero__title">{service.hero_title}</h1>
                     {service.meta_description && (
@@ -66,7 +66,7 @@ export default function ServiceShow({ service, seoJsonLd }: Props) {
 
                 {service.description && (
                     <article
-                        className="service-body container"
+                        className="service-body"
                         dangerouslySetInnerHTML={{ __html: service.description }}
                     />
                 )}

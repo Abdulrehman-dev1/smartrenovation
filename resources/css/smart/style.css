@@ -41,8 +41,14 @@
 /* :where() keeps 0 specificity so module titles (.about-intro__title, etc.) can override */
 .smart-site :where(h1,h2,h3,h4){font-weight:300;letter-spacing:-.02em;color:var(--ink);line-height:1.05;}
 
-.smart-site .container{max-width:var(--maxw);margin:0 auto;padding:0 clamp(20px,4vw,48px);}
-.smart-site .eyebrow{font-family:var(--font-ui);font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:var(--muted);font-weight:500;}
+/* Horizontal gutter only — never zero vertical padding from page modules */
+.smart-site :where(.container){
+  max-width:var(--maxw);
+  margin-left:auto;margin-right:auto;
+  padding-left:clamp(20px,4vw,48px);
+  padding-right:clamp(20px,4vw,48px);
+}
+.smart-site :where(.eyebrow){font-family:var(--font-ui);font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:var(--muted);font-weight:500;}
 
 /* =========================================================
    CENTERED STICKY LOGO HEADER
@@ -147,7 +153,7 @@
 
 /* ---- Contact variant: intro + contact form, two columns ---- */
 .cta-band--contact{text-align:left;}
-.cta-band__grid{display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(36px,5vw,80px);align-items:center;}
+.cta-band__grid{display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(36px,5vw,80px);align-items:center;max-width:var(--maxw);margin-left:auto;margin-right:auto;padding-left:clamp(20px,4vw,48px);padding-right:clamp(20px,4vw,48px);}
 .cta-band--contact .cta-band__title{font-size:clamp(34px,4.2vw,58px);margin:14px 0 18px;}
 .cta-band--contact .cta-band__sub{margin:0 0 28px;max-width:460px;}
 .cta-band--contact .cta-band__actions{justify-content:flex-start;margin-bottom:26px;}
@@ -187,7 +193,9 @@
 .site-footer{background:var(--bg-soft);border-top:1px solid var(--line);padding:clamp(48px,8vh,80px) 0 0;}
 .site-footer__top{
   display:grid;grid-template-columns:1.6fr 1fr 1.2fr;gap:clamp(28px,4vw,56px);
-  align-items:start;padding-bottom:clamp(36px,6vh,56px);
+  align-items:start;
+  max-width:var(--maxw);margin-left:auto;margin-right:auto;
+  padding:0 clamp(20px,4vw,48px) clamp(36px,6vh,56px);
 }
 .site-footer .brand{justify-self:start;margin:0 0 16px;}
 .site-footer__tagline{max-width:340px;font-size:14px;font-weight:300;line-height:1.55;color:var(--text);}
@@ -202,7 +210,8 @@
 .site-footer__col--contact .site-footer__muted{font-size:12.5px;line-height:1.6;margin-bottom:2px;}
 .site-footer__bottom{
   display:flex;justify-content:center;align-items:center;gap:8px 18px;flex-wrap:wrap;
-  border-top:1px solid var(--line);padding:18px 0 20px;
+  max-width:var(--maxw);margin-left:auto;margin-right:auto;
+  border-top:1px solid var(--line);padding:18px clamp(20px,4vw,48px) 20px;
   font-family:var(--font-ui);font-size:11px;letter-spacing:.14em;color:var(--muted);
 }
 .site-footer__bottom span:first-child::after{content:"·";margin-left:18px;color:var(--line);}
@@ -216,7 +225,10 @@
   .site-footer__tagline{max-width:420px;margin:0 auto;}
   .site-footer__col{align-items:flex-start;text-align:left;}
   .site-footer__col a,.site-footer__col span{overflow-wrap:anywhere;}
-  .site-footer__bottom{flex-direction:column;justify-content:center;gap:8px;padding-bottom:42px;}
+  .site-footer__bottom{
+    flex-direction:column;justify-content:center;gap:8px;
+    padding:18px clamp(20px,4vw,48px) 42px;
+  }
   .site-footer__bottom span:first-child::after{display:none;}
 }
 

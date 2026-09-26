@@ -182,7 +182,7 @@ export default function Slider({ children, className = '' }: Props) {
                     {children}
                 </div>
             </div>
-            <div className="container slider__controls">
+            <div className="slider__controls">
                 <div className="slider__dots">
                     {Array.from({ length: maxIndex + 1 }, (_, i) => (
                         <button

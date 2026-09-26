@@ -5,7 +5,7 @@
 .works{padding-top:clamp(110px,16vh,150px);}
 
 /* ---------- INTRO ---------- */
-.works-intro{text-align:center;padding:clamp(20px,5vh,50px) clamp(20px,4vw,48px) clamp(30px,5vh,50px);max-width:980px;}
+.works-intro{text-align:center;padding:clamp(20px,5vh,50px) clamp(20px,4vw,48px) clamp(30px,5vh,50px);max-width:980px;margin-left:auto;margin-right:auto;}
 .works-intro__title{font-size:clamp(40px,7vw,96px);font-weight:200;margin:16px 0 22px;}
 .works-intro__title em{font-style:italic;font-weight:200;}
 .works-intro__lead{max-width:600px;margin:0 auto;font-size:clamp(15px,1.3vw,18px);font-weight:300;color:var(--text);}
@@ -45,6 +45,7 @@
 
 /* ---------- PROJECT CARD GRID (not Tailwind .grid) ---------- */
 .works-grid{
+  max-width:var(--maxw);margin-left:auto;margin-right:auto;
   padding:0 clamp(20px,4vw,48px) clamp(30px,5vh,60px);
   display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
   gap:clamp(24px,3vw,44px) clamp(18px,2vw,30px);

@@ -176,7 +176,7 @@ export default function Works({ projects, roomPhotos, filters, taxonomy }: Props
         <PublicLayout>
             <Head title="Works — Smart Renovation" />
             <main className="works">
-                <section className="works-intro container">
+                <section className="works-intro">
                     <span className="eyebrow reveal">Selected work</span>
                     <h1 className="works-intro__title reveal" data-delay="1">
                         Our Work, <em>Across Dubai.</em>
@@ -224,7 +224,7 @@ export default function Works({ projects, roomPhotos, filters, taxonomy }: Props
                         </section>
                     )
                 ) : (
-                    <section className="works-grid container" ref={gridRef as React.RefObject<HTMLElement>}>
+                    <section className="works-grid" ref={gridRef as React.RefObject<HTMLElement>}>
                         {projects.map((p, i) => {
                             const title = (p.name || '').split('|')[0].trim();
                             const where = p.location;

@@ -24,13 +24,13 @@ export default function About({ about, team }: Props) {
         <PublicLayout>
             <Head title="About — Smart Renovation" />
             <main className="about">
-                <section className="about-intro container">
+                <section className="about-intro">
                     <span className="eyebrow">About Us</span>
                     <h1 className="about-intro__title">{about.heading}</h1>
                 </section>
 
                 {about.images && about.images.length > 0 && (
-                    <section className="about-founders container">
+                    <section className="about-founders">
                         {about.images.map((src, i) => (
                             <figure key={i} className="about-founders__img">
                                 <img src={src} alt="" />
@@ -39,16 +39,16 @@ export default function About({ about, team }: Props) {
                     </section>
                 )}
 
-                <article className="about-body container" dangerouslySetInnerHTML={{ __html: about.html }} />
+                <article className="about-body" dangerouslySetInnerHTML={{ __html: about.html }} />
 
                 <section className="team" id="team">
-                    <div className="container team__head">
+                    <div className="team__head">
                         <span className="eyebrow">The Team</span>
                         <h2 className="team__title">{team.heading}</h2>
                         {team.intro && <p className="team__intro">{team.intro}</p>}
                     </div>
 
-                    <div className="container team__grid">
+                    <div className="team__grid">
                         {team.members.map((m, i) => (
                             <figure key={m.name + i} className="team-card">
                                 <div className="team-card__media">

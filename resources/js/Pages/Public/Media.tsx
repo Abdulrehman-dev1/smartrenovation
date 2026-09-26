@@ -70,7 +70,7 @@ export default function Media({ articles, press, awards, tab: initialTab = 'arti
         <PublicLayout>
             <Head title="Media — Smart Renovation" />
             <main className="media">
-                <section className="media-intro container">
+                <section className="media-intro">
                     <span className="eyebrow reveal">Media Coverage</span>
                     <h1 className="media-intro__title reveal" data-delay="1">
                         In The <em>Spotlight.</em>
@@ -94,7 +94,7 @@ export default function Media({ articles, press, awards, tab: initialTab = 'arti
                     ))}
                 </nav>
 
-                <div className="media-panel container" ref={panelRef} key={tab}>
+                <div className="media-panel" ref={panelRef} key={tab}>
                     {tab === 'articles' && (
                         <div className="media-grid">
                             {articles.map((a) => (

@@ -71,7 +71,7 @@ export default function Home({
                     <div className="hero__media reveal-img in">
                         <HeroVideo />
                     </div>
-                    <div className="hero__content container">
+                    <div className="hero__content">
                         <span className="hero__eyebrow reveal in" data-delay="1">
                             Italian Craftsmanship · Dubai
                         </span>
@@ -96,7 +96,7 @@ export default function Home({
                     </div>
                 </section>
 
-                <section className="portfolio container" id="portfolio">
+                <section className="portfolio" id="portfolio">
                     <div className="portfolio__head">
                         <h2 className="reveal">
                             Selected <em>Work</em>
@@ -156,7 +156,7 @@ export default function Home({
                     <div className="feature__media reveal-img">
                         <img src="/assets/img/site/feature.jpg" alt="" />
                     </div>
-                    <div className="feature__overlay container">
+                    <div className="feature__overlay">
                         <span className="eyebrow reveal">Crafted in the Italian tradition</span>
                         <h2 className="reveal" data-delay="1">
                             Elegance, engineered.
@@ -169,7 +169,7 @@ export default function Home({
 
                 {awards.length > 0 && (
                     <section className="awards" id="press">
-                        <div className="container awards__head">
+                        <div className="awards__head">
                             <span className="eyebrow reveal">Recognitions</span>
                             <h2 className="reveal" data-delay="1">
                                 Recognitions &amp; Awards.
@@ -203,7 +203,7 @@ export default function Home({
                 <ReviewsSection />
 
                 <section className="cta-band cta-band--contact" id="contact">
-                    <div className="container cta-band__grid">
+                    <div className="cta-band__grid">
                         <div className="cta-band__intro">
                             <span className="eyebrow reveal">Let&apos;s talk</span>
                             <h2 className="cta-band__title reveal" data-delay="1">

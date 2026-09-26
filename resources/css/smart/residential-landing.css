@@ -79,6 +79,8 @@
 .rl-intro__inner{
   max-width:820px;
   margin:0 auto;
+  padding-left:clamp(20px,4vw,48px);
+  padding-right:clamp(20px,4vw,48px);
 }
 .rl-intro__sub{
   font-family:var(--font-ui);
@@ -236,6 +238,10 @@
   grid-template-columns:1.1fr 1fr;
   gap:clamp(28px,4vw,64px);
   align-items:center;
+  max-width:var(--maxw);
+  margin-left:auto;margin-right:auto;
+  padding-left:clamp(20px,4vw,48px);
+  padding-right:clamp(20px,4vw,48px);
 }
 .rl-about__media{
   margin:0;aspect-ratio:4/5;overflow:hidden;background:var(--line);

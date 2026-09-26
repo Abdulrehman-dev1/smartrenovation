@@ -23,7 +23,7 @@ export default function Contact({ contact }: Props) {
             <Head title="Contact — Smart Renovation" />
             <main className="contact">
                 <section className="cta-band cta-band--contact" id="contact">
-                    <div className="container cta-band__grid">
+                    <div className="cta-band__grid">
                         <div className="cta-band__intro">
                             <span className="eyebrow reveal">Let&apos;s talk</span>
                             <h1 className="cta-band__title reveal" data-delay="1">

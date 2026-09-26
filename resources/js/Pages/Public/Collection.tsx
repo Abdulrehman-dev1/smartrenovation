@@ -46,7 +46,7 @@ export default function Collection({ items, styles }: Props) {
         <PublicLayout>
             <Head title="Collection — Smart Renovation" />
             <main className="collection">
-                <section className="collection-intro container">
+                <section className="collection-intro">
                     <span className="eyebrow reveal in">Collection</span>
                     <h1 className="collection-intro__title reveal in" data-delay="1">
                         Spaces, Materials &amp; <em>Mood.</em>

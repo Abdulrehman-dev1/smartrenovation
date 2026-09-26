@@ -20,7 +20,7 @@ export default function Services({ services }: Props) {
         <PublicLayout>
             <Head title="Services — Smart Renovation" />
             <main className="services-index">
-                <section className="works-intro container">
+                <section className="works-intro">
                     <span className="eyebrow reveal in">What We Do</span>
                     <h1 className="works-intro__title reveal in" data-delay="1">
                         Our <em>Services</em>.
@@ -30,7 +30,7 @@ export default function Services({ services }: Props) {
                     </p>
                 </section>
 
-                <section className="svc-grid container">
+                <section className="svc-grid">
                     {services.map((s, i) => (
                         <Link key={s.slug} className="svc-card reveal in" href={s.url}>
                             <div className="svc-card__media reveal-img in">

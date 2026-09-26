@@ -47,7 +47,7 @@ export default function ProjectShow({ project, next, previewDraft, seo }: Props)
                     ← All projects
                 </Link>
 
-                <section className="project-hero container">
+                <section className="project-hero">
                     <h1 className="project-hero__title">{titleMain}</h1>
                     <div className="project-meta">
                         {project.location && (
@@ -98,7 +98,7 @@ export default function ProjectShow({ project, next, previewDraft, seo }: Props)
                 )}
 
                 {(project.subtitle || project.description || project.description_html) && (
-                    <section className="project-copy container">
+                    <section className="project-copy">
                         {project.subtitle && <h2 className="project-copy__title">{project.subtitle}</h2>}
                         {project.description_html ? (
                             <div
@@ -117,7 +117,7 @@ export default function ProjectShow({ project, next, previewDraft, seo }: Props)
 
                 {next && (
                     <Link className="next-project" href={`/projects/${next.slug}`}>
-                        <div className="next-project__inner container">
+                        <div className="next-project__inner">
                             <span className="next-project__label">Next project</span>
                             <h2 className="next-project__title">{(next.name || '').split('|')[0].trim()}</h2>
                             <span className="next-project__meta">{next.location}</span>

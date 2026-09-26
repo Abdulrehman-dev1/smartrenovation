@@ -49,7 +49,7 @@ export default function ArticleShow({ article, next, seoJsonLd }: Props) {
                 ) : null}
             </Head>
             <main className="article">
-                <div className="container article__head">
+                <div className="article__head">
                     <Link className="back-link" href="/media">
                         ← Media Coverage
                     </Link>
@@ -66,14 +66,14 @@ export default function ArticleShow({ article, next, seoJsonLd }: Props) {
 
                 {article.description && (
                     <article
-                        className="article-body container"
+                        className="article-body"
                         dangerouslySetInnerHTML={{ __html: article.description }}
                     />
                 )}
 
                 {next && (
                     <Link className="next-project" href={`/articles/${next.slug}`}>
-                        <div className="next-project__inner container">
+                        <div className="next-project__inner">
                             <span className="next-project__label">Next article</span>
                             <h2 className="next-project__title">{next.title}</h2>
                         </div>
