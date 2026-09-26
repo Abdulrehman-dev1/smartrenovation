@@ -38,7 +38,8 @@
 }
 .smart-site button{font-family:inherit;background:none;border:none;color:inherit;cursor:pointer;}
 .smart-site ::selection{background:var(--ink);color:#fff;}
-.smart-site h1,.smart-site h2,.smart-site h3,.smart-site h4{font-weight:300;letter-spacing:-.02em;color:var(--ink);line-height:1.05;}
+/* :where() keeps 0 specificity so module titles (.about-intro__title, etc.) can override */
+.smart-site :where(h1,h2,h3,h4){font-weight:300;letter-spacing:-.02em;color:var(--ink);line-height:1.05;}
 
 .smart-site .container{max-width:var(--maxw);margin:0 auto;padding:0 clamp(20px,4vw,48px);}
 .smart-site .eyebrow{font-family:var(--font-ui);font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:var(--muted);font-weight:500;}
