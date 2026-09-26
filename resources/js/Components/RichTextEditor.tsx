@@ -202,7 +202,9 @@ export default function RichTextEditor({
                         }}
                     />
                 </div>
-                <EditorContent editor={editor} />
+                <div className="max-h-[420px] overflow-y-auto overscroll-contain">
+                    <EditorContent editor={editor} />
+                </div>
             </div>
             {error && <p className="mt-1 text-xs font-medium text-rose-600">{error}</p>}
         </div>
