@@ -2,6 +2,7 @@ import RichTextEditor from '@/Components/RichTextEditor';
 import ServiceFormTabs, { useServiceFormTab } from '@/Components/ServiceFormTabs';
 import ServiceImageUploader from '@/Components/ServiceImageUploader';
 import AdminLayout from '@/Layouts/AdminLayout';
+import { useAutoSlug } from '@/lib/useAutoSlug';
 import { Head, useForm } from '@inertiajs/react';
 import { FormEvent, type ReactNode } from 'react';
 
@@ -68,6 +69,11 @@ export default function Edit({ service }: { service: Service }) {
         schema_json: service.schema_json ?? '',
     });
 
+    const { onTitleChange, onSlugChange } = useAutoSlug(setData, {
+        titleKey: 'title',
+        initialTitle: service.title ?? '',
+        initialSlug: service.slug ?? '',
+    });
     const { tab, setTab, errorFlags } = useServiceFormTab(errors);
 
     const submit = (e: FormEvent) => {
@@ -87,14 +93,14 @@ export default function Edit({ service }: { service: Service }) {
                                     <input
                                         className={inputClass(errors.title)}
                                         value={data.title}
-                                        onChange={(e) => setData('title', e.target.value)}
+                                        onChange={(e) => onTitleChange(e.target.value)}
                                     />
                                 </Field>
                                 <Field label="Slug" error={errors.slug}>
                                     <input
                                         className={inputClass(errors.slug)}
                                         value={data.slug}
-                                        onChange={(e) => setData('slug', e.target.value)}
+                                        onChange={(e) => onSlugChange(e.target.value)}
                                     />
                                 </Field>
                                 <Field label="Subtitle" error={errors.subtitle}>

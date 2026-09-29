@@ -2,8 +2,9 @@ import PendingImagePicker, { PendingImage, pendingToFiles } from '@/Components/P
 import RichTextEditor from '@/Components/RichTextEditor';
 import ServiceFormTabs, { useServiceFormTab } from '@/Components/ServiceFormTabs';
 import AdminLayout from '@/Layouts/AdminLayout';
+import { useAutoSlug } from '@/lib/useAutoSlug';
 import { Head, useForm } from '@inertiajs/react';
-import { FormEvent, useRef, useState, type ReactNode } from 'react';
+import { FormEvent, useState, type ReactNode } from 'react';
 
 function Field({
     label,
@@ -30,16 +31,7 @@ const inputClass = (hasError?: string) =>
             : 'border-slate-300 focus:border-indigo-500 focus:ring-indigo-500'
     }`;
 
-function slugify(value: string) {
-    return value
-        .toLowerCase()
-        .trim()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '');
-}
-
 export default function Create() {
-    const slugTouched = useRef(false);
     const [coverPending, setCoverPending] = useState<PendingImage[]>([]);
 
     const { data, setData, post, processing, errors } = useForm({
@@ -55,23 +47,12 @@ export default function Create() {
         cover: null as File | null,
     });
 
+    const { onTitleChange, onSlugChange } = useAutoSlug(setData, 'title');
     const { tab, setTab, errorFlags } = useServiceFormTab(errors);
 
     const syncCover = (next: PendingImage[]) => {
         setCoverPending(next);
         setData('cover', pendingToFiles(next, false) as File | null);
-    };
-
-    const onTitleChange = (title: string) => {
-        if (slugTouched.current) {
-            setData('title', title);
-            return;
-        }
-        setData({
-            ...data,
-            title,
-            slug: slugify(title),
-        });
     };
 
     const submit = (e: FormEvent) => {
@@ -98,10 +79,7 @@ export default function Create() {
                                     <input
                                         className={inputClass(errors.slug)}
                                         value={data.slug}
-                                        onChange={(e) => {
-                                            slugTouched.current = true;
-                                            setData('slug', e.target.value);
-                                        }}
+                                        onChange={(e) => onSlugChange(e.target.value)}
                                     />
                                 </Field>
                                 <Field label="Subtitle" error={errors.subtitle}>

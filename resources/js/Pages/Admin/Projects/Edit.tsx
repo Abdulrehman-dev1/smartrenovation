@@ -9,6 +9,7 @@ import ProjectRoomsPicker, { type RoomAssignment, type RoomCandidate } from '@/C
 import RichTextEditor from '@/Components/RichTextEditor';
 import TaxonomySelect, { type CategoryOption, type LocationOption } from '@/Components/TaxonomySelect';
 import AdminLayout from '@/Layouts/AdminLayout';
+import { useAutoSlug } from '@/lib/useAutoSlug';
 import { Head, router, useForm } from '@inertiajs/react';
 import { FormEvent, useEffect, useMemo, useState, type ReactNode } from 'react';
 
@@ -221,6 +222,12 @@ export default function Edit({
         })) as CollectionImage[],
     });
 
+    const { onTitleChange: onNameChange, onSlugChange } = useAutoSlug(setData, {
+        titleKey: 'name',
+        initialTitle: project.name ?? '',
+        initialSlug: project.slug ?? '',
+    });
+
     const { tab, setTab, errorFlags } = useProjectFormTab(errors, { collectionEnabled, roomsEnabled });
 
     const buildCollectionImages = (next: CollectionAssignment): CollectionImage[] => {
@@ -334,14 +341,14 @@ export default function Edit({
                                     <input
                                         className={inputClass(errors.name)}
                                         value={data.name}
-                                        onChange={(e) => setData('name', e.target.value)}
+                                        onChange={(e) => onNameChange(e.target.value)}
                                     />
                                 </Field>
                                 <Field label="Slug" error={errors.slug}>
                                     <input
                                         className={inputClass(errors.slug)}
                                         value={data.slug}
-                                        onChange={(e) => setData('slug', e.target.value)}
+                                        onChange={(e) => onSlugChange(e.target.value)}
                                     />
                                 </Field>
                                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

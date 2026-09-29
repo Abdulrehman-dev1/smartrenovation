@@ -1,4 +1,5 @@
 import Modal from '@/Components/Modal';
+import { slugify } from '@/lib/slugify';
 import {
     useEffect,
     useMemo,
@@ -156,13 +157,7 @@ export default function TaxonomySelect({
     const onNameInput = (next: string) => {
         setName(next);
         if (kind === 'category' && !slugTouched) {
-            setSlug(
-                next
-                    .toLowerCase()
-                    .trim()
-                    .replace(/[^a-z0-9]+/g, '-')
-                    .replace(/^-+|-+$/g, '')
-            );
+            setSlug(slugify(next));
         }
     };
 

@@ -9,6 +9,7 @@ import ProjectRoomsPicker, { type RoomAssignment, type RoomCandidate } from '@/C
 import RichTextEditor from '@/Components/RichTextEditor';
 import TaxonomySelect, { type CategoryOption, type LocationOption } from '@/Components/TaxonomySelect';
 import AdminLayout from '@/Layouts/AdminLayout';
+import { useAutoSlug } from '@/lib/useAutoSlug';
 import { Head, useForm } from '@inertiajs/react';
 import { FormEvent, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 
@@ -37,14 +38,6 @@ const inputClass = (hasError?: string) =>
             : 'border-slate-300 focus:border-indigo-500 focus:ring-indigo-500'
     }`;
 
-function slugify(value: string) {
-    return value
-        .toLowerCase()
-        .trim()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '');
-}
-
 function assignmentsToEntries(assignments: CollectionAssignment) {
     return Object.entries(assignments).map(([key, style]) => ({ key, style }));
 }
@@ -67,7 +60,6 @@ export default function Create({
     image_rooms?: string[];
     collection_styles?: string[];
 }) {
-    const slugTouched = useRef(false);
     const collectionDefaulted = useRef(false);
     const [coverPending, setCoverPending] = useState<PendingImage[]>([]);
     const [galleryPending, setGalleryPending] = useState<PendingImage[]>([]);
@@ -98,6 +90,8 @@ export default function Create({
         gallery_hidden_rooms: [] as string[],
         collection_entries: [] as { key: string; style: string }[],
     });
+
+    const { onTitleChange: onNameChange, onSlugChange } = useAutoSlug(setData, 'name');
 
     const collectionCandidates: CollectionCandidate[] = useMemo(() => {
         const out: CollectionCandidate[] = [];
@@ -318,18 +312,6 @@ export default function Create({
         });
     };
 
-    const onNameChange = (name: string) => {
-        if (slugTouched.current) {
-            setData('name', name);
-            return;
-        }
-        setData({
-            ...data,
-            name,
-            slug: slugify(name),
-        });
-    };
-
     const submit = (e: FormEvent) => {
         e.preventDefault();
         post('/admin/projects', { forceFormData: true, preserveScroll: true });
@@ -360,10 +342,7 @@ export default function Create({
                                     <input
                                         className={inputClass(errors.slug)}
                                         value={data.slug}
-                                        onChange={(e) => {
-                                            slugTouched.current = true;
-                                            setData('slug', e.target.value);
-                                        }}
+                                        onChange={(e) => onSlugChange(e.target.value)}
                                     />
                                 </Field>
 
