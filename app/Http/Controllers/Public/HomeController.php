@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Award;
 use App\Models\Project;
 use App\Services\SeoBuilder;
+use App\Support\ReviewsContent;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -46,6 +47,8 @@ class HomeController extends Controller
         return Inertia::render('Public/Home', [
             'featuredProjects' => $featuredProjects,
             'awards' => $awards,
+            'reviews' => ReviewsContent::publishedCards(),
+            'reviewsMeta' => ReviewsContent::meta(),
             'seoJsonLd' => $seo->toJson($seo->organization()),
         ]);
     }

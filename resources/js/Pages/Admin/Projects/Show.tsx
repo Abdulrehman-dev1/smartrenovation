@@ -24,7 +24,6 @@ type Project = {
     id: number;
     slug: string;
     name: string;
-    studio?: string | null;
     rooms?: string[] | null;
     subtitle?: string | null;
     description?: string | null;
@@ -247,7 +246,6 @@ export default function Show({
                         <Row label="Category">{project.category_name}</Row>
                         <Row label="Type">{project.type_label}</Row>
                         <Row label="Location">{project.location_name}</Row>
-                        <Row label="Studio">{project.studio}</Row>
                         <Row label="Rooms">
                             {(project.rooms ?? []).length ? (project.rooms ?? []).join(', ') : null}
                         </Row>

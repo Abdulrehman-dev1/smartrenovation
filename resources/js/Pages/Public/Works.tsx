@@ -7,7 +7,6 @@ type ProjectCard = {
     id: number;
     slug: string;
     name: string;
-    studio?: string | null;
     location?: string | null;
     type?: string | null;
     category?: string | null;
@@ -31,7 +30,7 @@ type TaxLocation = { id: number; name: string };
 type Props = {
     projects: ProjectCard[];
     roomPhotos: RoomPhoto[];
-    filters: { category: string; location: string; room: string };
+    filters: { category: string; location: string; room: string; search?: string };
     taxonomy: {
         categories: TaxCategory[];
         locations: TaxLocation[];
@@ -39,33 +38,50 @@ type Props = {
     };
 };
 
-function buildHref(cat: string, loc: string, room: string): string {
+function buildHref(cat: string, loc: string, room: string, search: string): string {
     const sp = new URLSearchParams();
     if (cat && cat !== 'all') sp.set('category', cat);
     if (loc && loc !== 'all') sp.set('location', loc);
     if (room && room !== 'all') sp.set('room', room);
-    const q = sp.toString();
-    return q ? `/works?${q}` : '/works';
+    const q = search.trim();
+    if (q) sp.set('search', q);
+    const qs = sp.toString();
+    return qs ? `/works?${qs}` : '/works';
 }
 
 export default function Works({ projects, roomPhotos, filters, taxonomy }: Props) {
     const gridRef = useRef<HTMLElement | null>(null);
-    const scrolledFor = useRef('');
+    const filterKey = `${filters.category || 'all'}|${filters.location || 'all'}|${filters.room || 'all'}|${filters.search || ''}`;
+    const prevFilterKey = useRef<string | null>(null);
 
     const [cat, setCat] = useState(filters.category || 'all');
     const [loc, setLoc] = useState(filters.location || 'all');
     const [room, setRoom] = useState(filters.room || 'all');
+    const [search, setSearch] = useState(filters.search || '');
+    const [searchInput, setSearchInput] = useState(filters.search || '');
 
     useEffect(() => {
         setCat(filters.category || 'all');
         setLoc(filters.location || 'all');
         setRoom(filters.room || 'all');
-        const key = `${filters.category}|${filters.location}|${filters.room}`;
-        if (key !== 'all|all|all' && scrolledFor.current !== key) {
-            scrolledFor.current = key;
-            setTimeout(() => gridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 350);
+        setSearch(filters.search || '');
+        setSearchInput(filters.search || '');
+    }, [filters.category, filters.location, filters.room, filters.search]);
+
+    // Scroll once after filters actually change (skip first mount).
+    useEffect(() => {
+        if (prevFilterKey.current === null) {
+            prevFilterKey.current = filterKey;
+            return;
         }
-    }, [filters.category, filters.location, filters.room]);
+        if (prevFilterKey.current === filterKey) return;
+        prevFilterKey.current = filterKey;
+
+        const id = window.requestAnimationFrame(() => {
+            gridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+        return () => window.cancelAnimationFrame(id);
+    }, [filterKey]);
 
     const categories = useMemo<[string, string][]>(
         () => [['all', 'All'], ...taxonomy.categories.map((c) => [c.value, c.label] as [string, string])],
@@ -80,34 +96,54 @@ export default function Works({ projects, roomPhotos, filters, taxonomy }: Props
         [taxonomy.rooms],
     );
 
-    const scrollToGrid = () => gridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-    const syncUrl = useCallback((next: { cat: string; loc: string; room: string }) => {
-        router.get(buildHref(next.cat, next.loc, next.room), {}, { preserveScroll: true, preserveState: true, replace: true });
+    const syncUrl = useCallback((next: { cat: string; loc: string; room: string; search: string }) => {
+        router.get(buildHref(next.cat, next.loc, next.room, next.search), {}, {
+            preserveScroll: true,
+            preserveState: true,
+            replace: true,
+        });
     }, []);
 
-    const apply = (patch: Partial<{ cat: string; loc: string; room: string }>) => {
+    const apply = (patch: Partial<{ cat: string; loc: string; room: string; search: string }>) => {
         const next = {
             cat: patch.cat ?? cat,
             loc: patch.loc ?? loc,
             room: patch.room ?? room,
+            search: patch.search ?? search,
         };
         if (patch.cat !== undefined) setCat(patch.cat);
         if (patch.loc !== undefined) setLoc(patch.loc);
         if (patch.room !== undefined) setRoom(patch.room);
+        if (patch.search !== undefined) {
+            setSearch(patch.search);
+            setSearchInput(patch.search);
+        }
         syncUrl(next);
-        scrollToGrid();
+    };
+
+    const submitSearch = (event?: React.FormEvent) => {
+        event?.preventDefault();
+        const nextSearch = searchInput.trim();
+        setSearch(nextSearch);
+        setSearchInput(nextSearch);
+        syncUrl({ cat, loc, room, search: nextSearch });
+    };
+
+    const clearSearch = () => {
+        setSearchInput('');
+        apply({ search: '' });
     };
 
     const resetFilters = () => {
         setCat('all');
         setLoc('all');
         setRoom('all');
-        syncUrl({ cat: 'all', loc: 'all', room: 'all' });
-        scrollToGrid();
+        setSearch('');
+        setSearchInput('');
+        syncUrl({ cat: 'all', loc: 'all', room: 'all', search: '' });
     };
 
-    const filtersActive = cat !== 'all' || loc !== 'all' || room !== 'all';
+    const filtersActive = cat !== 'all' || loc !== 'all' || room !== 'all' || search.trim() !== '';
     const roomView = room !== 'all';
     const isEmpty = roomView ? roomPhotos.length === 0 : projects.length === 0;
 
@@ -142,14 +178,22 @@ export default function Works({ projects, roomPhotos, filters, taxonomy }: Props
     const EmptyState = () => (
         <div className="grid__empty show" role="status">
             <p className="grid__empty-title">
-                {roomView
-                    ? `No ${room.toLowerCase()} photos match these filters.`
-                    : 'No projects match these filters.'}
+                {search.trim()
+                    ? `No projects match “${search.trim()}”.`
+                    : roomView
+                      ? `No ${room.toLowerCase()} photos match these filters.`
+                      : 'No projects match these filters.'}
             </p>
             <p className="grid__empty-copy">
-                More projects are coming. In the meantime, try broadening your search by category, location, or room.
+                More projects are coming. In the meantime, try broadening your search by title, category, location, or
+                room.
             </p>
             <div className="grid__empty-actions">
+                {search.trim() !== '' && (
+                    <button type="button" className="pill" onClick={clearSearch}>
+                        Clear search
+                    </button>
+                )}
                 {cat !== 'all' && (
                     <button type="button" className="pill" onClick={() => apply({ cat: 'all' })}>
                         All categories
@@ -188,6 +232,31 @@ export default function Works({ projects, roomPhotos, filters, taxonomy }: Props
                 </section>
 
                 <div className="filters">
+                    <form className="filters__search-row" onSubmit={submitSearch}>
+                        <div className="filters__search">
+                            <input
+                                type="search"
+                                className="filters__search-input"
+                                placeholder="Search by project title"
+                                value={searchInput}
+                                onChange={(e) => setSearchInput(e.target.value)}
+                                aria-label="Search by project title"
+                            />
+                            {searchInput.trim() !== '' && (
+                                <button
+                                    type="button"
+                                    className="filters__search-clear"
+                                    onClick={clearSearch}
+                                    aria-label="Clear search"
+                                >
+                                    ×
+                                </button>
+                            )}
+                        </div>
+                        <button type="submit" className="filters__search-btn">
+                            Search
+                        </button>
+                    </form>
                     <Pills label="Category" list={categories} value={cat} onPick={(v) => apply({ cat: v })} />
                     <Pills label="Location" list={locations} value={loc} onPick={(v) => apply({ loc: v })} />
                     <Pills label="Room" list={rooms} value={room} onPick={(v) => apply({ room: v })} />

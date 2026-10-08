@@ -128,16 +128,17 @@
 @keyframes waPulse{0%{transform:scale(1);opacity:.6;}100%{transform:scale(1.6);opacity:0;}}
 
 /* Call button — sits above the WhatsApp float, mobile web only */
-.call-float{
+/* .smart-site a beats plain .call-float for color — keep selector stronger */
+.smart-site a.call-float,.call-float{
   display:none;position:fixed;right:clamp(18px,2vw,28px);
   bottom:calc(clamp(18px,2vw,28px) + 70px);z-index:120;
   width:54px;height:54px;border-radius:50%;background:var(--ink);color:#fff;
   align-items:center;justify-content:center;
   box-shadow:0 12px 30px rgba(16,16,16,.32);transition:transform .4s var(--ease);
 }
-.call-float svg{width:26px;height:26px;}
-.call-float:hover{transform:scale(1.08);}
-@media (max-width:760px){ .call-float{display:flex;} }
+.smart-site a.call-float svg,.call-float svg{width:26px;height:26px;fill:currentColor;color:#fff;}
+.smart-site a.call-float:hover,.call-float:hover{transform:scale(1.08);color:#fff;}
+@media (max-width:760px){ .smart-site a.call-float,.call-float{display:flex;} }
 
 /* =========================================================
    CTA BAND (shared across pages)

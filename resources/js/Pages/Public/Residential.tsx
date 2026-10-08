@@ -1,5 +1,5 @@
 import ContactForm from '@/Components/Public/ContactForm';
-import ReviewsSection from '@/Components/Public/ReviewsSection';
+import ReviewsSection, { type ReviewItem, type ReviewsMeta } from '@/Components/Public/ReviewsSection';
 import {
     CALL_DISPLAY,
     CALL_LINK,
@@ -75,7 +75,13 @@ const GALLERY = [
     },
 ];
 
-export default function Residential() {
+export default function Residential({
+    reviews = [],
+    reviewsMeta,
+}: {
+    reviews?: ReviewItem[];
+    reviewsMeta?: ReviewsMeta;
+}) {
     return (
         <PublicLayout>
             <Head title="Residential Fit-Out — Smart Renovation" />
@@ -224,7 +230,13 @@ export default function Residential() {
                     </div>
                 </section>
 
-                <ReviewsSection />
+                <ReviewsSection
+                    reviews={reviews}
+                    heading={reviewsMeta?.heading}
+                    rating={reviewsMeta?.rating}
+                    googleLabel={reviewsMeta?.googleLabel}
+                    googleUrl={reviewsMeta?.googleUrl}
+                />
 
                 <section className="rl-about">
                     <div className="rl-about__grid">

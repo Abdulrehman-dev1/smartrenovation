@@ -74,7 +74,6 @@ export default function Create({
         name: '',
         category_id: '' as string | number,
         location_id: '' as string | number,
-        studio: '',
         subtitle: '',
         description: '',
         status: 'draft',
@@ -365,13 +364,6 @@ export default function Create({
                                             options={locations}
                                             onOptionsChange={(next) => setLocations(next as LocationOption[])}
                                             error={errors.location_id}
-                                        />
-                                    </Field>
-                                    <Field label="Studio" error={errors.studio}>
-                                        <input
-                                            className={inputClass(errors.studio)}
-                                            value={data.studio}
-                                            onChange={(e) => setData('studio', e.target.value)}
                                         />
                                     </Field>
                                 </div>

@@ -95,7 +95,138 @@ class ProjectTaxonomy
 
     public const OTHER_ROOM = 'Other';
 
+    public const OTHER_COMMUNITIES = 'Other Communities';
+
     public const DEFAULT_COLLECTION_AR = 1.33;
+
+    /**
+     * Public /works location filter pills (smart WorksClient LOCATIONS order).
+     *
+     * @return list<string>
+     */
+    public static function worksFilterLocations(): array
+    {
+        return [
+            'Palm Jumeirah',
+            'Dubai Marina & JBR',
+            'Arabian Ranches',
+            'Emirates Living',
+            'Victory Heights',
+            'Jumeirah & Umm Suqeim',
+            'Downtown & Bay',
+            'MBR City',
+            'Motor City',
+            'The Villa',
+            'Mira',
+            'Al Furjan',
+            'Sicily, Italy',
+            self::OTHER_COMMUNITIES,
+        ];
+    }
+
+    /**
+     * Named communities shown in the works filter (excludes Other Communities).
+     *
+     * @return list<string>
+     */
+    public static function worksNamedCommunities(): array
+    {
+        return array_values(array_filter(
+            self::worksFilterLocations(),
+            fn (string $name) => $name !== self::OTHER_COMMUNITIES
+        ));
+    }
+
+    /**
+     * Map a DB location / project title to a works filter community.
+     * Returns null when the project belongs under Other Communities.
+     */
+    public static function resolveWorksCommunity(?string $locationName, ?string $slug = null, ?string $title = null): ?string
+    {
+        $named = array_flip(self::worksNamedCommunities());
+
+        $rawLocation = is_string($locationName) ? trim($locationName) : '';
+        if ($rawLocation !== '' && isset($named[$rawLocation])) {
+            return $rawLocation;
+        }
+
+        $slugAreas = [
+            'viaggio-in-italia' => 'Arabian Ranches',
+            'casa-bellissima' => 'Arabian Ranches',
+            'la-maison-oriental' => 'Al Furjan',
+        ];
+        if (is_string($slug) && isset($slugAreas[$slug])) {
+            return $slugAreas[$slug];
+        }
+
+        $haystack = strtolower(trim(implode(' ', array_filter([
+            $rawLocation,
+            is_string($slug) ? str_replace('-', ' ', $slug) : null,
+            is_string($title) ? $title : null,
+        ]))));
+
+        if ($haystack === '') {
+            return null;
+        }
+
+        foreach (self::worksAreaRules() as $community => $keywords) {
+            foreach ($keywords as $keyword) {
+                if (str_contains($haystack, $keyword)) {
+                    return $community;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Location IDs that belong to a works filter community (or Other Communities).
+     *
+     * @return list<int>
+     */
+    public static function locationIdsForWorksFilter(string $filter): array
+    {
+        $locations = Location::query()->get(['id', 'name']);
+        $ids = [];
+
+        foreach ($locations as $location) {
+            $community = self::resolveWorksCommunity($location->name);
+            $matches = $filter === self::OTHER_COMMUNITIES
+                ? $community === null
+                : $community === $filter;
+
+            if ($matches) {
+                $ids[] = (int) $location->id;
+            }
+        }
+
+        return $ids;
+    }
+
+    /**
+     * Smart lib/projects.js AREA_RULES for works filter communities.
+     *
+     * @return array<string, list<string>>
+     */
+    public static function worksAreaRules(): array
+    {
+        return [
+            'Palm Jumeirah' => ['palm jumeirah', 'palm shoreline', 'shoreline', 'the palm', 'palm frond', 'frond p', 'marina residence', 'marina residences', 'palma residence', 'oceana', 'tiara', 'fairmont palm', 'trident'],
+            'Dubai Marina & JBR' => ['dubai marina', 'marina heights', 'marina quays', 'marina park', 'park island', 'ocean heights', 'cayan', 'botanica', 'stella maris', 'giardino verticale', 'jbr', 'rimal'],
+            'Arabian Ranches' => ['arabian ranches', 'saheel', 'alvorada', 'al maha', 'mirador', 'la colleccion'],
+            'Emirates Living' => ['emirates hills', 'meadows', 'springs', 'the lakes', 'hattan'],
+            'Victory Heights' => ['victory heights', 'victory', 'marabella', 'silk road'],
+            'Jumeirah & Umm Suqeim' => ['jumeirah park', 'jumeirah islands', 'jumeirah villa', 'jumeirah 1', 'jumeirah golf', 'al saffee', 'umm suqeim', 'umm suqueim'],
+            'Downtown & Bay' => ['downtown', 'business bay', 'difc', 'city walk', 'canal', 'central park', 'new york apartment'],
+            'MBR City' => ['mbr', 'district 1'],
+            'Motor City' => ['motor city', 'freddy mercury', 'sanctuary of emerald'],
+            'The Villa' => ['the villa'],
+            'Mira' => ['mira villa'],
+            'Al Furjan' => ['al furjan', 'furjan', 'grandhuer'],
+            'Sicily, Italy' => ['sicily'],
+        ];
+    }
 
     /**
      * Collection board style labels (smart Collection page).

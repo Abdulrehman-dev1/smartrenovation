@@ -45,7 +45,6 @@ class StoreProjectRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'category_id' => ['nullable', 'integer', 'exists:categories,id'],
             'location_id' => ['nullable', 'integer', 'exists:locations,id'],
-            'studio' => ['nullable', 'string', 'max:255'],
             'subtitle' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'status' => ['required', Rule::in(['draft', 'published'])],

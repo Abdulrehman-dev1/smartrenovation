@@ -20,6 +20,7 @@ class RoleAndPermissionSeeder extends Seeder
             'press',
             'collection_items',
             'awards',
+            'reviews',
             'pages',
             'leads',
             'redirects',

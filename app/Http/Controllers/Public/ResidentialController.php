@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
 use App\Models\Page;
+use App\Support\ReviewsContent;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -15,6 +16,8 @@ class ResidentialController extends Controller
 
         return Inertia::render('Public/Residential', [
             'page' => $page,
+            'reviews' => ReviewsContent::publishedCards(),
+            'reviewsMeta' => ReviewsContent::meta(),
         ]);
     }
 }

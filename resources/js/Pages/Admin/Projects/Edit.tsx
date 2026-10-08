@@ -39,7 +39,6 @@ type Project = {
     name: string;
     category_id?: number | null;
     location_id?: number | null;
-    studio?: string | null;
     rooms?: string[] | null;
     subtitle?: string | null;
     description?: string | null;
@@ -205,7 +204,6 @@ export default function Edit({
         name: project.name ?? '',
         category_id: project.category_id ?? ('' as string | number),
         location_id: project.location_id ?? ('' as string | number),
-        studio: project.studio ?? '',
         subtitle: project.subtitle ?? '',
         description: project.description ?? '',
         status: project.status ?? 'draft',
@@ -370,13 +368,6 @@ export default function Edit({
                                             options={locations}
                                             onOptionsChange={(next) => setLocations(next as LocationOption[])}
                                             error={errors.location_id}
-                                        />
-                                    </Field>
-                                    <Field label="Studio" error={errors.studio}>
-                                        <input
-                                            className={inputClass(errors.studio)}
-                                            value={data.studio}
-                                            onChange={(e) => setData('studio', e.target.value)}
                                         />
                                     </Field>
                                 </div>

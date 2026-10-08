@@ -1,12 +1,12 @@
 import { Head, Link } from '@inertiajs/react';
 import PublicLayout from '../../Layouts/PublicLayout';
+import ProjectGallery from '../../Components/Public/ProjectGallery';
 import { WaIcon, WA_LINK, WA_TRACK_CLASS } from '../../Components/Public/WaFloat';
 
 type Props = {
     project: {
         slug: string;
         name: string;
-        studio?: string | null;
         subtitle?: string | null;
         description?: string | null;
         description_html?: string | null;
@@ -68,34 +68,15 @@ export default function ProjectShow({ project, next, previewDraft, seo }: Props)
                                 <span>{project.year}</span>
                             </div>
                         )}
-                        <div className="project-meta__col">
-                            <span className="project-meta__label">Studio</span>
-                            <span>{project.studio || 'Smart Renovation'}</span>
-                        </div>
                     </div>
                 </section>
 
-                {(project.cover || project.gallery?.length > 0) && (
-                    <div className="project-photos">
-                        {project.cover && (
-                            <figure
-                                className="project-cover"
-                                style={{ aspectRatio: String(Math.max(project.cover_ar || 1.5, 0.66)) }}
-                            >
-                                <img src={project.cover} alt={titleMain} />
-                            </figure>
-                        )}
-                        {project.gallery?.length > 0 && (
-                            <section className="project-gallery" aria-label="Project gallery">
-                                {project.gallery.map((g, i) => (
-                                    <figure key={g + i}>
-                                        <img src={g} alt="" loading="lazy" />
-                                    </figure>
-                                ))}
-                            </section>
-                        )}
-                    </div>
-                )}
+                <ProjectGallery
+                    cover={project.cover}
+                    coverAr={project.cover_ar}
+                    gallery={project.gallery || []}
+                    title={titleMain}
+                />
 
                 {(project.subtitle || project.description || project.description_html) && (
                     <section className="project-copy">

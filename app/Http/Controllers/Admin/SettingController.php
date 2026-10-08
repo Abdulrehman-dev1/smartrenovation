@@ -28,6 +28,10 @@ class SettingController extends Controller
             'social_linkedin',
             'seo_default_title',
             'seo_default_description',
+            'reviews_heading',
+            'reviews_rating',
+            'reviews_google_label',
+            'reviews_google_url',
         ];
 
         $settings = [];

@@ -12,6 +12,7 @@ const navItems = [
     { href: '/admin/articles', label: 'Articles' },
     { href: '/admin/press', label: 'Press' },
     { href: '/admin/awards', label: 'Awards' },
+    { href: '/admin/reviews', label: 'Reviews' },
     { href: '/admin/leads', label: 'Leads' },
     { href: '/admin/settings', label: 'Settings' },
 ];

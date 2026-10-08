@@ -50,30 +50,36 @@ export type ReviewItem = {
     rating: number;
 };
 
-type Props = {
-    reviews?: ReviewItem[];
+export type ReviewsMeta = {
+    heading?: string | null;
     rating?: number | null;
-    count?: number | null;
+    googleLabel?: string | null;
     googleUrl?: string | null;
 };
 
+type Props = {
+    reviews?: ReviewItem[];
+} & ReviewsMeta;
+
 export default function ReviewsSection({
     reviews,
+    heading,
     rating,
-    count,
+    googleLabel,
     googleUrl,
 }: Props) {
     const list = reviews?.length ? reviews : FALLBACK_REVIEWS;
-    const ratingLabel = rating ? `${rating.toFixed(1)} / 5` : '4.8 / 5';
-    const countLabel = count
-        ? `${count.toLocaleString()} Google Reviews`
-        : 'Verified Google Reviews';
-    const url = googleUrl || GOOGLE_FALLBACK_URL;
+    const title = heading?.trim() || 'What Clients Say.';
+    const score = typeof rating === 'number' && !Number.isNaN(rating) ? rating : 4.8;
+    const ratingLabel = `${score.toFixed(1)} / 5`;
+    const countLabel = googleLabel?.trim() || 'Verified Google Reviews';
+    const url = googleUrl?.trim() || GOOGLE_FALLBACK_URL;
+    const badgeStars = star(Math.round(score));
 
     return (
         <section className="reviews" id="reviews">
             <div className="container">
-                <h2 className="reviews__title reveal in">What Clients Say.</h2>
+                <h2 className="reviews__title reveal in">{title}</h2>
                 <a
                     className="reviews__badge reveal in"
                     data-delay="1"
@@ -81,7 +87,7 @@ export default function ReviewsSection({
                     target="_blank"
                     rel="noopener noreferrer"
                 >
-                    <div className="reviews__stars">★★★★★</div>
+                    <div className="reviews__stars">{badgeStars}</div>
                     <div className="reviews__score">
                         {ratingLabel} · {countLabel}
                     </div>

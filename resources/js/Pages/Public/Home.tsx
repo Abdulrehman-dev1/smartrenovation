@@ -1,6 +1,6 @@
 import ContactForm from '@/Components/Public/ContactForm';
 import HeroVideo from '@/Components/Public/HeroVideo';
-import ReviewsSection from '@/Components/Public/ReviewsSection';
+import ReviewsSection, { type ReviewItem, type ReviewsMeta } from '@/Components/Public/ReviewsSection';
 import Slider from '@/Components/Public/Slider';
 import {
     CALL_DISPLAY,
@@ -47,10 +47,14 @@ const PROCESS = [
 export default function Home({
     featuredProjects = [],
     awards = [],
+    reviews = [],
+    reviewsMeta,
     seoJsonLd,
 }: {
     featuredProjects?: FeaturedProject[];
     awards?: AwardSlide[];
+    reviews?: ReviewItem[];
+    reviewsMeta?: ReviewsMeta;
     seoJsonLd?: string;
 }) {
     return (
@@ -200,7 +204,13 @@ export default function Home({
                     </section>
                 )}
 
-                <ReviewsSection />
+                <ReviewsSection
+                    reviews={reviews}
+                    heading={reviewsMeta?.heading}
+                    rating={reviewsMeta?.rating}
+                    googleLabel={reviewsMeta?.googleLabel}
+                    googleUrl={reviewsMeta?.googleUrl}
+                />
 
                 <section className="cta-band cta-band--contact" id="contact">
                     <div className="cta-band__grid">

@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\PressImageController;
 use App\Http\Controllers\Admin\PressPdfController;
 use App\Http\Controllers\Admin\ProjectController;
 use App\Http\Controllers\Admin\RedirectController;
+use App\Http\Controllers\Admin\ReviewController;
 use App\Http\Controllers\Admin\ServiceController;
 use App\Http\Controllers\Admin\ServiceImageController;
 use App\Http\Controllers\Admin\SettingController;
@@ -75,6 +76,7 @@ Route::middleware(['auth', 'verified'])
                 ->name('awards.images.store');
             Route::delete('awards/{award}/images', [AwardImageController::class, 'destroy'])
                 ->name('awards.images.destroy');
+            Route::resource('reviews', ReviewController::class);
             Route::resource('pages', PageController::class)->except(['show']);
             Route::resource('redirects', RedirectController::class)->except(['show']);
 

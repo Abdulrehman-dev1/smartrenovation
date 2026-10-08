@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
-use App\Models\Location;
 use App\Models\Project;
 use App\Support\ProjectTaxonomy;
 use Illuminate\Http\Request;
@@ -20,23 +19,21 @@ class WorksController extends Controller
             ?: 'all';
         $location = $request->string('location')->toString() ?: 'all';
         $room = $request->string('room')->toString() ?: 'all';
+        $search = trim($request->string('search')->toString());
+        if (mb_strlen($search) > 120) {
+            $search = mb_substr($search, 0, 120);
+        }
 
         $allowedRooms = ProjectTaxonomy::rooms();
+        $allowedLocations = ProjectTaxonomy::worksFilterLocations();
         $categoryModel = $category !== 'all'
             ? Category::query()->where('slug', $category)->first()
-            : null;
-        $locationModel = $location !== 'all'
-            ? Location::query()
-                ->where(function ($q) use ($location) {
-                    $q->where('name', $location)->orWhere('slug', $location);
-                })
-                ->first()
             : null;
 
         if ($category !== 'all' && ! $categoryModel) {
             $category = 'all';
         }
-        if ($location !== 'all' && ! $locationModel) {
+        if ($location !== 'all' && ! in_array($location, $allowedLocations, true)) {
             $location = 'all';
         }
         if ($room !== 'all' && ! in_array($room, $allowedRooms, true)) {
@@ -49,11 +46,30 @@ class WorksController extends Controller
             ->orderBy('sort_order')
             ->orderBy('id');
 
+        if ($search !== '') {
+            $like = '%'.str_replace(['%', '_'], ['\\%', '\\_'], $search).'%';
+            $query->where('name', 'like', $like);
+        }
+
         if ($categoryModel) {
             $query->where('category_id', $categoryModel->id);
         }
-        if ($locationModel) {
-            $query->where('location_id', $locationModel->id);
+
+        if ($location !== 'all') {
+            $locationIds = ProjectTaxonomy::locationIdsForWorksFilter($location);
+
+            if ($location === ProjectTaxonomy::OTHER_COMMUNITIES) {
+                $query->where(function ($q) use ($locationIds) {
+                    $q->whereNull('location_id');
+                    if ($locationIds !== []) {
+                        $q->orWhereIn('location_id', $locationIds);
+                    }
+                });
+            } elseif ($locationIds !== []) {
+                $query->whereIn('location_id', $locationIds);
+            } else {
+                $query->whereRaw('1 = 0');
+            }
         }
 
         $projectsQuery = clone $query;
@@ -82,7 +98,6 @@ class WorksController extends Controller
                 'id' => $project->id,
                 'slug' => $project->slug,
                 'name' => $project->name,
-                'studio' => $project->studio,
                 'location' => $project->location?->name,
                 'type' => $project->category?->type_label,
                 'category' => $project->category?->slug,
@@ -94,15 +109,22 @@ class WorksController extends Controller
             ]);
         }
 
+        $taxonomy = ProjectTaxonomy::formOptions();
+        $taxonomy['locations'] = collect(ProjectTaxonomy::worksFilterLocations())
+            ->map(fn (string $name) => ['id' => 0, 'name' => $name])
+            ->values()
+            ->all();
+
         return Inertia::render('Public/Works', [
             'projects' => $projects,
             'roomPhotos' => $roomPhotos,
             'filters' => [
                 'category' => $category,
-                'location' => $locationModel?->name ?? $location,
+                'location' => $location,
                 'room' => $room,
+                'search' => $search,
             ],
-            'taxonomy' => ProjectTaxonomy::formOptions(),
+            'taxonomy' => $taxonomy,
         ]);
     }
 }

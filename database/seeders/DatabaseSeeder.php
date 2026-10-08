@@ -38,6 +38,10 @@ class DatabaseSeeder extends Seeder
             'social_linkedin' => '',
             'seo_default_title' => 'Smart Renovation',
             'seo_default_description' => 'Smart Renovation — design, build & automation in Dubai.',
+            'reviews_heading' => 'What Clients Say.',
+            'reviews_rating' => '4.8',
+            'reviews_google_label' => 'Verified Google Reviews',
+            'reviews_google_url' => 'https://www.google.com/maps/search/Smart+Renovation+Dubai',
         ];
 
         foreach ($defaults as $key => $value) {
@@ -49,5 +53,6 @@ class DatabaseSeeder extends Seeder
         $this->call(SmartArticlesSeeder::class);
         $this->call(SmartPressSeeder::class);
         $this->call(SmartAwardsSeeder::class);
+        $this->call(ReviewSeeder::class);
     }
 }

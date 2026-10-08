@@ -48,7 +48,6 @@ class ProjectCrudTest extends TestCase
             'name' => 'Marina Residence',
             'category_id' => $category->id,
             'location_id' => $location->id,
-            'studio' => 'Smart Studio',
             'subtitle' => 'A waterfront renovation',
             'description' => '<p>Full interior renovation.</p>',
             'status' => 'published',
@@ -67,7 +66,6 @@ class ProjectCrudTest extends TestCase
             'name' => 'Marina Residence',
             'category_id' => $category->id,
             'location_id' => $location->id,
-            'studio' => 'Smart Studio',
             'canonical_url' => 'https://example.com/works/marina-residence',
         ]);
 

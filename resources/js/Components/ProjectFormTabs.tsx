@@ -15,7 +15,6 @@ const DETAIL_KEYS = [
     'slug',
     'category_id',
     'location_id',
-    'studio',
     'subtitle',
     'description',
     'status',

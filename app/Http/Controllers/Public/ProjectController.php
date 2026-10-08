@@ -59,7 +59,6 @@ class ProjectController extends Controller
             'project' => [
                 'slug' => $project->slug,
                 'name' => $project->name,
-                'studio' => $project->studio ?: 'Smart Renovation',
                 'subtitle' => $project->subtitle,
                 'description' => $descriptionText,
                 'description_html' => $descriptionHtml,

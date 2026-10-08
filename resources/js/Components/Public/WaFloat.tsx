@@ -27,7 +27,7 @@ export function PhoneIcon() {
 export default function WaFloat() {
     return (
         <>
-            <a className="call-float" href={CALL_LINK} aria-label="Call us">
+            <a className="call-float" href={CALL_LINK} aria-label="Call us" style={{ color: '#fff' }}>
                 <PhoneIcon />
             </a>
             <a

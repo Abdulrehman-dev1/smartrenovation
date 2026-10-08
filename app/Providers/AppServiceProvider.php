@@ -10,6 +10,7 @@ use App\Models\Page;
 use App\Models\PressItem;
 use App\Models\Project;
 use App\Models\Redirect;
+use App\Models\Review;
 use App\Models\Service;
 use App\Models\Setting;
 use App\Models\User;
@@ -21,6 +22,7 @@ use App\Policies\PagePolicy;
 use App\Policies\PressItemPolicy;
 use App\Policies\ProjectPolicy;
 use App\Policies\RedirectPolicy;
+use App\Policies\ReviewPolicy;
 use App\Policies\ServicePolicy;
 use App\Policies\SettingPolicy;
 use Illuminate\Support\Facades\Gate;
@@ -39,6 +41,7 @@ class AppServiceProvider extends ServiceProvider
         PressItem::class => PressItemPolicy::class,
         CollectionItem::class => CollectionItemPolicy::class,
         Award::class => AwardPolicy::class,
+        Review::class => ReviewPolicy::class,
         Page::class => PagePolicy::class,
         Lead::class => LeadPolicy::class,
         Redirect::class => RedirectPolicy::class,
