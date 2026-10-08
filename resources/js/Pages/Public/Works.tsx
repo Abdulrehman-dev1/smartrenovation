@@ -49,6 +49,79 @@ function buildHref(cat: string, loc: string, room: string, search: string): stri
     return qs ? `/works?${qs}` : '/works';
 }
 
+function FilterDropdown({
+    label,
+    list,
+    value,
+    onPick,
+    open,
+    onToggle,
+}: {
+    label: string;
+    list: [string, string][];
+    value: string;
+    onPick: (v: string) => void;
+    open: boolean;
+    onToggle: () => void;
+}) {
+    const rootRef = useRef<HTMLDivElement | null>(null);
+    const selected = list.find(([v]) => v === value)?.[1] ?? 'All';
+    const isActive = value !== 'all';
+
+    useEffect(() => {
+        if (!open) return;
+        const onPointer = (event: MouseEvent) => {
+            if (!rootRef.current?.contains(event.target as Node)) onToggle();
+        };
+        const onKey = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') onToggle();
+        };
+        document.addEventListener('mousedown', onPointer);
+        document.addEventListener('keydown', onKey);
+        return () => {
+            document.removeEventListener('mousedown', onPointer);
+            document.removeEventListener('keydown', onKey);
+        };
+    }, [open, onToggle]);
+
+    return (
+        <div className={`filters__dropdown${open ? ' is-open' : ''}${isActive ? ' is-active' : ''}`} ref={rootRef}>
+            <button
+                type="button"
+                className="filters__dropdown-trigger"
+                aria-haspopup="listbox"
+                aria-expanded={open}
+                onClick={onToggle}
+            >
+                <span className="filters__dropdown-meta">
+                    <span className="filters__dropdown-label">{label}</span>
+                    <span className="filters__dropdown-value">{selected}</span>
+                </span>
+                <span className="filters__dropdown-chevron" aria-hidden>
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8">
+                        <path d="M5 7.5L10 12.5L15 7.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                </span>
+            </button>
+            {open && (
+                <ul className="filters__dropdown-menu" role="listbox" aria-label={label}>
+                    {list.map(([v, lab]) => (
+                        <li key={v} role="option" aria-selected={value === v}>
+                            <button
+                                type="button"
+                                className={`filters__dropdown-option${value === v ? ' is-selected' : ''}`}
+                                onClick={() => onPick(v)}
+                            >
+                                {lab}
+                            </button>
+                        </li>
+                    ))}
+                </ul>
+            )}
+        </div>
+    );
+}
+
 export default function Works({ projects, roomPhotos, filters, taxonomy }: Props) {
     const gridRef = useRef<HTMLElement | null>(null);
     const filterKey = `${filters.category || 'all'}|${filters.location || 'all'}|${filters.room || 'all'}|${filters.search || ''}`;
@@ -59,6 +132,7 @@ export default function Works({ projects, roomPhotos, filters, taxonomy }: Props
     const [room, setRoom] = useState(filters.room || 'all');
     const [search, setSearch] = useState(filters.search || '');
     const [searchInput, setSearchInput] = useState(filters.search || '');
+    const [openDropdown, setOpenDropdown] = useState<'category' | 'location' | 'room' | null>(null);
 
     useEffect(() => {
         setCat(filters.category || 'all');
@@ -84,15 +158,15 @@ export default function Works({ projects, roomPhotos, filters, taxonomy }: Props
     }, [filterKey]);
 
     const categories = useMemo<[string, string][]>(
-        () => [['all', 'All'], ...taxonomy.categories.map((c) => [c.value, c.label] as [string, string])],
+        () => [['all', 'All categories'], ...taxonomy.categories.map((c) => [c.value, c.label] as [string, string])],
         [taxonomy.categories],
     );
     const locations = useMemo<[string, string][]>(
-        () => [['all', 'All'], ...taxonomy.locations.map((l) => [l.name, l.name] as [string, string])],
+        () => [['all', 'All locations'], ...taxonomy.locations.map((l) => [l.name, l.name] as [string, string])],
         [taxonomy.locations],
     );
     const rooms = useMemo<[string, string][]>(
-        () => [['all', 'All'], ...taxonomy.rooms.map((r) => [r, r] as [string, string])],
+        () => [['all', 'All rooms'], ...taxonomy.rooms.map((r) => [r, r] as [string, string])],
         [taxonomy.rooms],
     );
 
@@ -118,6 +192,7 @@ export default function Works({ projects, roomPhotos, filters, taxonomy }: Props
             setSearch(patch.search);
             setSearchInput(patch.search);
         }
+        setOpenDropdown(null);
         syncUrl(next);
     };
 
@@ -126,6 +201,7 @@ export default function Works({ projects, roomPhotos, filters, taxonomy }: Props
         const nextSearch = searchInput.trim();
         setSearch(nextSearch);
         setSearchInput(nextSearch);
+        setOpenDropdown(null);
         syncUrl({ cat, loc, room, search: nextSearch });
     };
 
@@ -140,40 +216,17 @@ export default function Works({ projects, roomPhotos, filters, taxonomy }: Props
         setRoom('all');
         setSearch('');
         setSearchInput('');
+        setOpenDropdown(null);
         syncUrl({ cat: 'all', loc: 'all', room: 'all', search: '' });
     };
+
+    const toggleDropdown = useCallback((key: 'category' | 'location' | 'room') => {
+        setOpenDropdown((current) => (current === key ? null : key));
+    }, []);
 
     const filtersActive = cat !== 'all' || loc !== 'all' || room !== 'all' || search.trim() !== '';
     const roomView = room !== 'all';
     const isEmpty = roomView ? roomPhotos.length === 0 : projects.length === 0;
-
-    const Pills = ({
-        label,
-        list,
-        value,
-        onPick,
-    }: {
-        label: string;
-        list: [string, string][];
-        value: string;
-        onPick: (v: string) => void;
-    }) => (
-        <div className="filters__row">
-            <span className="filters__label">{label}</span>
-            <div className="filters__pills">
-                {list.map(([v, lab]) => (
-                    <button
-                        key={v}
-                        type="button"
-                        className={`pill${value === v ? ' is-active' : ''}`}
-                        onClick={() => onPick(v)}
-                    >
-                        {lab}
-                    </button>
-                ))}
-            </div>
-        </div>
-    );
 
     const EmptyState = () => (
         <div className="grid__empty show" role="status">
@@ -237,10 +290,10 @@ export default function Works({ projects, roomPhotos, filters, taxonomy }: Props
                             <input
                                 type="search"
                                 className="filters__search-input"
-                                placeholder="Search by project title"
+                                placeholder="Search projects…"
                                 value={searchInput}
                                 onChange={(e) => setSearchInput(e.target.value)}
-                                aria-label="Search by project title"
+                                aria-label="Search projects by title, category, location, or room"
                             />
                             {searchInput.trim() !== '' && (
                                 <button
@@ -257,9 +310,34 @@ export default function Works({ projects, roomPhotos, filters, taxonomy }: Props
                             Search
                         </button>
                     </form>
-                    <Pills label="Category" list={categories} value={cat} onPick={(v) => apply({ cat: v })} />
-                    <Pills label="Location" list={locations} value={loc} onPick={(v) => apply({ loc: v })} />
-                    <Pills label="Room" list={rooms} value={room} onPick={(v) => apply({ room: v })} />
+
+                    <div className="filters__dropdowns">
+                        <FilterDropdown
+                            label="Category"
+                            list={categories}
+                            value={cat}
+                            open={openDropdown === 'category'}
+                            onToggle={() => toggleDropdown('category')}
+                            onPick={(v) => apply({ cat: v })}
+                        />
+                        <FilterDropdown
+                            label="Location"
+                            list={locations}
+                            value={loc}
+                            open={openDropdown === 'location'}
+                            onToggle={() => toggleDropdown('location')}
+                            onPick={(v) => apply({ loc: v })}
+                        />
+                        <FilterDropdown
+                            label="Room"
+                            list={rooms}
+                            value={room}
+                            open={openDropdown === 'room'}
+                            onToggle={() => toggleDropdown('room')}
+                            onPick={(v) => apply({ room: v })}
+                        />
+                    </div>
+
                     {filtersActive && (
                         <div className="filters__reset">
                             <button type="button" className="filters__reset-btn" onClick={resetFilters}>

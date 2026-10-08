@@ -19,14 +19,7 @@
   border-top:1px solid var(--line-soft);border-bottom:1px solid var(--line-soft);
   display:flex;flex-direction:column;gap:14px;
 }
-/* label sits in a fixed left column; pills fill the rest and wrap — so both
-   rows start their pills at the same x and the labels stay aligned */
-.filters__row{display:flex;align-items:flex-start;gap:18px;}
-.filters__label{
-  font-family:var(--font-ui);font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--muted);
-  width:92px;flex-shrink:0;padding-top:9px;line-height:1;
-}
-.filters__pills{flex:1;min-width:0;display:flex;flex-wrap:wrap;gap:8px;}
+
 /* button.pill beats .smart-site button{border:none} from style.css */
 .smart-site button.pill,.filters .pill{
   font-family:var(--font-ui);font-size:12px;font-weight:500;letter-spacing:.04em;color:var(--text);
@@ -74,6 +67,75 @@
   transition:opacity .3s var(--ease),background .3s var(--ease),color .3s var(--ease);
 }
 .smart-site button.filters__search-btn:hover,.filters__search-btn:hover{opacity:.82;}
+
+/* ---------- DROPDOWNS ---------- */
+.filters__dropdowns{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+}
+.filters__dropdown{position:relative;min-width:0;}
+.smart-site button.filters__dropdown-trigger,.filters__dropdown-trigger{
+  width:100%;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:12px 16px;
+  border:1px solid var(--line);border-radius:16px;
+  background:rgba(255,255,255,.28);
+  color:var(--ink);cursor:pointer;text-align:left;
+  transition:border-color .25s var(--ease),background .25s var(--ease),box-shadow .25s var(--ease);
+}
+.filters__dropdown.is-open .filters__dropdown-trigger,
+.filters__dropdown.is-active .filters__dropdown-trigger{
+  border-color:var(--ink);
+  background:rgba(255,255,255,.45);
+}
+.filters__dropdown.is-open .filters__dropdown-trigger{
+  box-shadow:0 8px 24px rgba(0,0,0,.06);
+}
+.filters__dropdown-meta{display:flex;flex-direction:column;gap:4px;min-width:0;}
+.filters__dropdown-label{
+  font-family:var(--font-ui);font-size:10px;font-weight:500;
+  letter-spacing:.2em;text-transform:uppercase;color:var(--muted);line-height:1;
+}
+.filters__dropdown-value{
+  font-family:var(--font-ui);font-size:13px;font-weight:500;color:var(--ink);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2;
+}
+.filters__dropdown-chevron{
+  flex-shrink:0;width:18px;height:18px;color:var(--muted);
+  display:inline-flex;align-items:center;justify-content:center;
+  transition:transform .25s var(--ease),color .25s var(--ease);
+}
+.filters__dropdown-chevron svg{width:100%;height:100%;display:block;}
+.filters__dropdown.is-open .filters__dropdown-chevron{transform:rotate(180deg);color:var(--ink);}
+.filters__dropdown-menu{
+  position:absolute;top:calc(100% + 8px);left:0;right:0;z-index:80;
+  margin:0;padding:8px;
+  list-style:none;
+  max-height:280px;overflow-y:auto;
+  background:var(--bg-card);
+  border:1px solid var(--line);
+  border-radius:16px;
+  box-shadow:0 18px 40px rgba(0,0,0,.12);
+  animation:filters-dropdown-in .18s var(--ease);
+}
+@keyframes filters-dropdown-in{
+  from{opacity:0;transform:translateY(-6px);}
+  to{opacity:1;transform:translateY(0);}
+}
+.smart-site button.filters__dropdown-option,.filters__dropdown-option{
+  width:100%;
+  display:block;text-align:left;
+  padding:10px 12px;border:none;border-radius:10px;background:transparent;
+  font-family:var(--font-ui);font-size:13px;font-weight:500;color:var(--text);
+  cursor:pointer;transition:background .2s,color .2s;
+}
+.smart-site button.filters__dropdown-option:hover,.filters__dropdown-option:hover{
+  background:rgba(0,0,0,.05);color:var(--ink);
+}
+.smart-site button.filters__dropdown-option.is-selected,.filters__dropdown-option.is-selected{
+  background:var(--ink);color:#fff;
+}
 
 .filters__reset{display:flex;justify-content:flex-end;padding-top:4px;}
 .filters__reset-btn{
@@ -139,7 +201,6 @@
 @media (max-width:980px){ .works-grid{grid-template-columns:repeat(2,minmax(0,1fr));} }
 @media (max-width:860px){
   .filters{top:64px;}
-  .filters__row{flex-direction:column;gap:10px;}
-  .filters__label{width:100%;padding-top:0;}
+  .filters__dropdowns{grid-template-columns:1fr;}
 }
 @media (max-width:520px){ .works-grid{grid-template-columns:1fr;} }

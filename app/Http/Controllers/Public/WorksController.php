@@ -47,8 +47,36 @@ class WorksController extends Controller
             ->orderBy('id');
 
         if ($search !== '') {
-            $like = '%'.str_replace(['%', '_'], ['\\%', '\\_'], $search).'%';
-            $query->where('name', 'like', $like);
+            $escaped = str_replace(['%', '_'], ['\\%', '\\_'], $search);
+            $like = '%'.$escaped.'%';
+            $searchLower = mb_strtolower($search);
+
+            $matchingLocationIds = collect(ProjectTaxonomy::worksNamedCommunities())
+                ->filter(fn (string $name) => str_contains(mb_strtolower($name), $searchLower))
+                ->flatMap(fn (string $community) => ProjectTaxonomy::locationIdsForWorksFilter($community))
+                ->unique()
+                ->values()
+                ->all();
+
+            $query->where(function ($q) use ($like, $matchingLocationIds) {
+                $q->where('name', 'like', $like)
+                    ->orWhere('subtitle', 'like', $like)
+                    ->orWhere('slug', 'like', $like)
+                    ->orWhere('rooms', 'like', $like)
+                    ->orWhereHas('category', function ($categoryQuery) use ($like) {
+                        $categoryQuery->where('name', 'like', $like)
+                            ->orWhere('slug', 'like', $like)
+                            ->orWhere('type_label', 'like', $like);
+                    })
+                    ->orWhereHas('location', function ($locationQuery) use ($like) {
+                        $locationQuery->where('name', 'like', $like)
+                            ->orWhere('slug', 'like', $like);
+                    });
+
+                if ($matchingLocationIds !== []) {
+                    $q->orWhereIn('location_id', $matchingLocationIds);
+                }
+            });
         }
 
         if ($categoryModel) {
