@@ -51,7 +51,7 @@ export default function Create() {
         gallery: [] as File[],
     });
 
-    const { onTitleChange, onSlugChange } = useAutoSlug(setData, 'title');
+    const { onTitleChange } = useAutoSlug(setData, 'title');
     const { tab, setTab, errorFlags } = useServiceFormTab(errors);
 
     const syncCover = (next: PendingImage[]) => {
@@ -81,18 +81,11 @@ export default function Create() {
                     {(active) => (
                         <>
                             <div className={active === 'details' ? 'space-y-4' : 'hidden'}>
-                                <Field label="Title" error={errors.title}>
+                                <Field label="Title" error={errors.title || errors.slug}>
                                     <input
-                                        className={inputClass(errors.title)}
+                                        className={inputClass(errors.title || errors.slug)}
                                         value={data.title}
                                         onChange={(e) => onTitleChange(e.target.value)}
-                                    />
-                                </Field>
-                                <Field label="Slug" error={errors.slug}>
-                                    <input
-                                        className={inputClass(errors.slug)}
-                                        value={data.slug}
-                                        onChange={(e) => onSlugChange(e.target.value)}
                                     />
                                 </Field>
                                 <Field label="Subtitle" error={errors.subtitle}>

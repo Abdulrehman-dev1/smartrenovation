@@ -8,6 +8,30 @@ type Props = {
     title: string;
 };
 
+function ChevronLeftIcon() {
+    return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden>
+            <path d="M15 5L8 12L15 19" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+    );
+}
+
+function ChevronRightIcon() {
+    return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden>
+            <path d="M9 5L16 12L9 19" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+    );
+}
+
+function CloseIcon() {
+    return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden>
+            <path d="M6 6L18 18M18 6L6 18" strokeLinecap="round" />
+        </svg>
+    );
+}
+
 export default function ProjectGallery({ cover, coverAr, gallery, title }: Props) {
     const images = useMemo(() => {
         const list: string[] = [];
@@ -37,6 +61,16 @@ export default function ProjectGallery({ cover, coverAr, gallery, title }: Props
         },
         [images.length],
     );
+
+    useEffect(() => {
+        if (lightboxIndex === null) return;
+        setActiveIndex(lightboxIndex);
+        const track = trackRef.current;
+        const slide = track?.children[lightboxIndex] as HTMLElement | undefined;
+        if (track && slide) {
+            track.scrollTo({ left: slide.offsetLeft, behavior: 'auto' });
+        }
+    }, [lightboxIndex]);
 
     const setActiveIndex = (index: number) => {
         if (activeRef.current === index) return;
@@ -183,7 +217,7 @@ export default function ProjectGallery({ cover, coverAr, gallery, title }: Props
                                 onClick={() => scrollCarouselTo((active - 1 + images.length) % images.length)}
                                 aria-label="Previous photo"
                             >
-                                ‹
+                                <ChevronLeftIcon />
                             </button>
                             <button
                                 type="button"
@@ -191,7 +225,7 @@ export default function ProjectGallery({ cover, coverAr, gallery, title }: Props
                                 onClick={() => scrollCarouselTo((active + 1) % images.length)}
                                 aria-label="Next photo"
                             >
-                                ›
+                                <ChevronRightIcon />
                             </button>
                             {images.length <= 12 && (
                                 <div className="project-carousel__dots" role="tablist" aria-label="Photo slides">
@@ -246,7 +280,7 @@ export default function ProjectGallery({ cover, coverAr, gallery, title }: Props
                             onClick={closeLightbox}
                             aria-label="Close"
                         >
-                            ×
+                            <CloseIcon />
                         </button>
 
                         {images.length > 1 && (
@@ -260,7 +294,7 @@ export default function ProjectGallery({ cover, coverAr, gallery, title }: Props
                                     }}
                                     aria-label="Previous photo"
                                 >
-                                    ‹
+                                    <ChevronLeftIcon />
                                 </button>
                                 <button
                                     type="button"
@@ -271,15 +305,18 @@ export default function ProjectGallery({ cover, coverAr, gallery, title }: Props
                                     }}
                                     aria-label="Next photo"
                                 >
-                                    ›
+                                    <ChevronRightIcon />
                                 </button>
                             </>
                         )}
 
                         <figure className="project-lightbox__figure" onClick={(e) => e.stopPropagation()}>
                             <img src={lightboxSrc} alt={title} />
-                            <figcaption className="project-lightbox__count">
-                                {lightboxIndex! + 1} / {images.length}
+                            <figcaption className="project-lightbox__count" aria-live="polite">
+                                <span key={lightboxIndex} className="project-lightbox__count-num">
+                                    {lightboxIndex! + 1}
+                                </span>
+                                <span> / {images.length}</span>
                             </figcaption>
                         </figure>
                     </div>,

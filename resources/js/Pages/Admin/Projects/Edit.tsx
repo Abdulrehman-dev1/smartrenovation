@@ -218,7 +218,7 @@ export default function Edit({
         })) as CollectionImage[],
     });
 
-    const { onTitleChange: onNameChange, onSlugChange } = useAutoSlug(setData, {
+    const { onTitleChange: onNameChange } = useAutoSlug(setData, {
         titleKey: 'name',
         initialTitle: project.name ?? '',
         initialSlug: project.slug ?? '',
@@ -333,18 +333,11 @@ export default function Edit({
                     {(active) => (
                         <>
                             <div className={active === 'details' ? 'space-y-4' : 'hidden'}>
-                                <Field label="Name" error={errors.name}>
+                                <Field label="Name" error={errors.name || errors.slug}>
                                     <input
-                                        className={inputClass(errors.name)}
+                                        className={inputClass(errors.name || errors.slug)}
                                         value={data.name}
                                         onChange={(e) => onNameChange(e.target.value)}
-                                    />
-                                </Field>
-                                <Field label="Slug" error={errors.slug}>
-                                    <input
-                                        className={inputClass(errors.slug)}
-                                        value={data.slug}
-                                        onChange={(e) => onSlugChange(e.target.value)}
                                     />
                                 </Field>
                                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

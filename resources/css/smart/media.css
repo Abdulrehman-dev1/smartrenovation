@@ -43,9 +43,11 @@
 .media-card__media img{width:100%;height:100%;object-fit:cover;transition:transform 1.3s var(--ease);}
 .media-card:hover .media-card__media img{transform:scale(1.05);}
 
-/* press clippings: show the whole image (magazine logo/title not cropped) */
-.media-grid--press .media-card__media{aspect-ratio:3/4;background:var(--bg-tint);}
-.media-grid--press .media-card__media img{object-fit:contain;padding:10px;}
+/* press clippings: natural image height, no letterbox padding */
+.media-grid--press .media-card__media{aspect-ratio:auto;background:transparent;}
+.media-grid--press .media-card__media img{
+  width:100%;height:auto;object-fit:contain;padding:0;display:block;
+}
 .media-grid--press .media-card:hover .media-card__media img{transform:scale(1.03);}
 .media-card__outlet{
   font-family:var(--font-ui);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);
