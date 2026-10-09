@@ -29,7 +29,7 @@ type Props = {
 };
 
 export default function ProjectShow({ project, next, previewDraft, seo }: Props) {
-    const { whatsappLink, email } = useSiteContact();
+    const { whatsappLink, callLink, email } = useSiteContact();
     const titleMain = (project.name || '').split('|')[0].trim();
     const pageTitle = seo?.title || `${titleMain} — Smart Renovation`;
 
@@ -122,10 +122,13 @@ export default function ProjectShow({ project, next, previewDraft, seo }: Props)
                         </p>
                         <div className="cta-band__actions">
                             <a className={`btn btn--wa ${WA_TRACK_CLASS}`} href={whatsappLink} target="_blank" rel="noopener">
-                                <WaIcon /> WhatsApp Us
+                                <WaIcon /> WhatsApp
                             </a>
-                            <a className="btn btn--solid" href={`mailto:${email}`}>
-                                Email The Studio
+                            <a className="btn btn--solid" href={callLink}>
+                                Call Us
+                            </a>
+                            <a className="btn btn--light" href={`mailto:${email}`}>
+                                Email
                             </a>
                         </div>
                     </div>

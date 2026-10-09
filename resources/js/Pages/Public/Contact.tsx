@@ -28,7 +28,7 @@ export default function Contact() {
                                     target="_blank"
                                     rel="noopener"
                                 >
-                                    <WaIcon /> WhatsApp Us
+                                    <WaIcon /> WhatsApp
                                 </a>
                                 <a className="btn btn--solid" href={callLink}>
                                     Call Us

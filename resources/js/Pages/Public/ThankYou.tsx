@@ -24,7 +24,7 @@ export default function ThankYou() {
                         </p>
                         <div className="cta-band__actions" style={{ justifyContent: 'center', marginTop: 28 }}>
                             <a className={`btn btn--wa ${WA_TRACK_CLASS}`} href={whatsappLink} target="_blank" rel="noopener">
-                                <WaIcon /> WhatsApp Us
+                                <WaIcon /> WhatsApp
                             </a>
                             <Link className="btn btn--solid" href="/works">
                                 View Our Work

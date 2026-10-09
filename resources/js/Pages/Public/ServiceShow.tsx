@@ -79,7 +79,7 @@ export default function ServiceShow({ service, seoJsonLd }: Props) {
                         <h2 className="cta-band__title">Discuss Your {cta}.</h2>
                         <div className="cta-band__actions">
                             <a className={`btn btn--wa ${WA_TRACK_CLASS}`} href={whatsappLink} target="_blank" rel="noopener">
-                                <WaIcon /> WhatsApp Us
+                                <WaIcon /> WhatsApp
                             </a>
                             <a className="btn btn--solid" href={callLink}>
                                 Call Us

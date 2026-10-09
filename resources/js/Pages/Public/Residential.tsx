@@ -120,7 +120,7 @@ export default function Residential({
                                 Book FREE Consultation
                             </a>
                             <a className={`btn btn--wa ${WA_TRACK_CLASS}`} href={whatsappLink} target="_blank" rel="noopener">
-                                <WaIcon /> WhatsApp Us
+                                <WaIcon /> WhatsApp
                             </a>
                         </div>
                     </div>
@@ -144,7 +144,7 @@ export default function Residential({
                                     target="_blank"
                                     rel="noopener"
                                 >
-                                    <WaIcon /> WhatsApp Us
+                                    <WaIcon /> WhatsApp
                                 </a>
                                 <a className="btn btn--solid" href={callLink}>
                                     Call Us
@@ -266,7 +266,7 @@ export default function Residential({
                                     target="_blank"
                                     rel="noopener"
                                 >
-                                    <WaIcon /> WhatsApp Us
+                                    <WaIcon /> WhatsApp
                                 </a>
                             </div>
                         </div>

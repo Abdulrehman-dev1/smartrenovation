@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 
 export type ProjectFormTab = 'details' | 'images' | 'rooms' | 'collection' | 'seo';
 
@@ -36,6 +36,7 @@ export function useProjectFormTab(
     const [tab, setTab] = useState<ProjectFormTab>('details');
     const collectionEnabled = options?.collectionEnabled ?? true;
     const roomsEnabled = options?.roomsEnabled ?? true;
+    const lastErrorKey = useRef('');
 
     const errorFlags = useMemo(
         () => ({
@@ -48,7 +49,27 @@ export function useProjectFormTab(
         [errors],
     );
 
+    // Jump to the first tab with errors only when the error set actually changes
+    // (e.g. after submit). Do not re-jump when images are selected and
+    // collection/rooms tabs become enabled — that was sending users back to Details.
     useEffect(() => {
+        const key = [
+            errorFlags.details ? 'details' : '',
+            errorFlags.images ? 'images' : '',
+            errorFlags.rooms && roomsEnabled ? 'rooms' : '',
+            errorFlags.collection && collectionEnabled ? 'collection' : '',
+            errorFlags.seo ? 'seo' : '',
+        ]
+            .filter(Boolean)
+            .join('|');
+
+        if (!key) {
+            lastErrorKey.current = '';
+            return;
+        }
+        if (key === lastErrorKey.current) return;
+        lastErrorKey.current = key;
+
         if (errorFlags.details) setTab('details');
         else if (errorFlags.images) setTab('images');
         else if (errorFlags.rooms && roomsEnabled) setTab('rooms');

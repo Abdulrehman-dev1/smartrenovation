@@ -36,7 +36,7 @@ function formatDate(iso?: string | null) {
 }
 
 export default function ArticleShow({ article, next, seoJsonLd }: Props) {
-    const { whatsappLink, email } = useSiteContact();
+    const { whatsappLink, callLink, email } = useSiteContact();
     const date = formatDate(article.published_at);
     const title = article.meta_title || `${article.title} — Smart Renovation`;
 
@@ -96,10 +96,13 @@ export default function ArticleShow({ article, next, seoJsonLd }: Props) {
                         </p>
                         <div className="cta-band__actions">
                             <a className={`btn btn--wa ${WA_TRACK_CLASS}`} href={whatsappLink} target="_blank" rel="noopener">
-                                <WaIcon /> WhatsApp Us
+                                <WaIcon /> WhatsApp
                             </a>
-                            <a className="btn btn--solid" href={`mailto:${email}`}>
-                                Email The Studio
+                            <a className="btn btn--solid" href={callLink}>
+                                Call Us
+                            </a>
+                            <a className="btn btn--light" href={`mailto:${email}`}>
+                                Email
                             </a>
                         </div>
                     </div>

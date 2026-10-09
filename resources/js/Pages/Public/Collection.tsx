@@ -104,7 +104,7 @@ export default function Collection({ items, styles }: Props) {
                         </p>
                         <div className="cta-band__actions reveal" data-delay="3">
                             <a className={`btn btn--wa ${WA_TRACK_CLASS}`} href={whatsappLink} target="_blank" rel="noopener">
-                                <WaIcon /> WhatsApp Us
+                                <WaIcon /> WhatsApp
                             </a>
                             <a className="btn btn--solid" href={callLink}>
                                 Call Us
