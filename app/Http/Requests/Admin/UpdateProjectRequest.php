@@ -92,7 +92,7 @@ class UpdateProjectRequest extends FormRequest
             'subtitle' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'status' => ['required', Rule::in(['draft', 'published'])],
-            'sort_order' => ['nullable', 'integer', 'min:0', 'max:999999'],
+            'sort_order' => ['nullable', 'integer', 'min:1', 'max:999999'],
             'published_at' => ['nullable', 'date'],
             'meta_title' => ['nullable', 'string', 'max:255'],
             'meta_description' => ['nullable', 'string'],

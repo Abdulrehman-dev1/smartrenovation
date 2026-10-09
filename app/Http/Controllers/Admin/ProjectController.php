@@ -9,6 +9,7 @@ use App\Models\Category;
 use App\Models\Location;
 use App\Models\Project;
 use App\Support\ProjectImageStorage;
+use App\Support\ProjectSortOrder;
 use App\Support\ProjectTaxonomy;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -63,7 +64,6 @@ class ProjectController extends Controller
                     'subtitle' => $project->subtitle,
                     'slug' => $project->slug,
                     'status' => $project->status,
-                    'sort_order' => $project->sort_order,
                     'location' => $project->location?->name,
                     'category' => $project->category?->name,
                     'cover_url' => $project->coverUrl(),
@@ -100,7 +100,11 @@ class ProjectController extends Controller
         $data = collect($request->validated())->except([
             'cover', 'gallery', 'gallery_hidden_files', 'gallery_rooms', 'gallery_hidden_rooms', 'rooms',
             'collection_entries', 'collection_keys', 'collection_style', 'collection_images',
+            'sort_order',
         ])->all();
+
+        // Park at 0, then place at first after images/collection setup.
+        $data['sort_order'] = 0;
 
         $project = Project::query()->create($data);
 
@@ -127,6 +131,9 @@ class ProjectController extends Controller
         $project->refresh();
         $project->syncRoomsFromGallery();
         $this->applyCollectionFromCreate($project, $request);
+
+        // Newest projects appear first on Works.
+        ProjectSortOrder::place($project, 1);
 
         return redirect()
             ->route('admin.projects.index')
@@ -195,6 +202,8 @@ class ProjectController extends Controller
             'collection_entries', 'collection_keys', 'collection_style', 'collection_images',
         ])->all();
 
+        unset($data['sort_order']);
+
         $project->update($data);
 
         if ($request->file('cover')) {
@@ -230,6 +239,7 @@ class ProjectController extends Controller
         $this->authorize('delete', $project);
 
         $project->delete();
+        ProjectSortOrder::renumber();
 
         return redirect()
             ->route('admin.projects.index')

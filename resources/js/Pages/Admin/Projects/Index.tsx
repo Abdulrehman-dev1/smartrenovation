@@ -12,7 +12,6 @@ type Project = {
     subtitle?: string | null;
     slug: string;
     status: string;
-    sort_order?: number | null;
     location?: string | null;
     category?: string | null;
     cover_url?: string | null;
@@ -180,7 +179,6 @@ export default function Index({
                         <thead className="bg-slate-50">
                             <tr>
                                 <th className="w-20 px-4 py-3 text-left font-medium text-slate-600">Cover</th>
-                                <th className="w-16 px-4 py-3 text-left font-medium text-slate-600">#</th>
                                 <th className="w-[22%] px-4 py-3 text-left font-medium text-slate-600">Name</th>
                                 <th className="px-4 py-3 text-left font-medium text-slate-600">Subtitle</th>
                                 <th className="w-36 px-4 py-3 text-left font-medium text-slate-600">Category</th>
@@ -192,7 +190,7 @@ export default function Index({
                         <tbody className="divide-y divide-slate-100">
                             {projects.data.length === 0 ? (
                                 <tr>
-                                    <td colSpan={8} className="px-4 py-10 text-center text-slate-500">
+                                    <td colSpan={7} className="px-4 py-10 text-center text-slate-500">
                                         {hasFilters ? 'No projects match these filters.' : 'No projects yet.'}
                                     </td>
                                 </tr>
@@ -213,9 +211,6 @@ export default function Index({
                                                     </div>
                                                 )}
                                             </div>
-                                        </td>
-                                        <td className="px-4 py-3 font-mono text-xs text-slate-500">
-                                            {project.sort_order ?? '—'}
                                         </td>
                                         <td className="px-4 py-3">
                                             <div className="min-w-0">

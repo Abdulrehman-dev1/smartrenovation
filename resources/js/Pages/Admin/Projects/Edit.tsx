@@ -43,7 +43,6 @@ type Project = {
     subtitle?: string | null;
     description?: string | null;
         status: string;
-        sort_order?: number | null;
         published_at?: string | null;
     meta_title?: string | null;
     meta_description?: string | null;
@@ -207,7 +206,6 @@ export default function Edit({
         subtitle: project.subtitle ?? '',
         description: project.description ?? '',
         status: project.status ?? 'draft',
-        sort_order: project.sort_order ?? 0,
         published_at: project.published_at ?? '',
         meta_title: project.meta_title ?? '',
         meta_description: project.meta_description ?? '',
@@ -404,18 +402,6 @@ export default function Edit({
                                         <option value="draft">Draft</option>
                                         <option value="published">Published</option>
                                     </select>
-                                </Field>
-                                <Field label="Sort order" error={errors.sort_order}>
-                                    <input
-                                        type="number"
-                                        min={0}
-                                        className={inputClass(errors.sort_order)}
-                                        value={data.sort_order}
-                                        onChange={(e) => setData('sort_order', Number(e.target.value) || 0)}
-                                    />
-                                    <p className="mt-1 text-xs text-slate-500">
-                                        Lower numbers appear first on Works (1 = Viaggio In Italia).
-                                    </p>
                                 </Field>
                             </div>
 
