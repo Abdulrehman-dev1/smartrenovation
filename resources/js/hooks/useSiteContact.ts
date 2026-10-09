@@ -1,13 +1,7 @@
 import { usePage } from '@inertiajs/react';
+import type { SiteContact } from '@/types';
 
-export type SiteContact = {
-    phone: string;
-    callLink: string;
-    whatsapp: string;
-    whatsappLink: string;
-    email: string;
-    address: string;
-};
+export type { SiteContact };
 
 const defaults: SiteContact = {
     phone: '+971 56 790 7213',
@@ -19,6 +13,6 @@ const defaults: SiteContact = {
 };
 
 export function useSiteContact(): SiteContact {
-    const page = usePage<{ siteContact?: SiteContact }>();
-    return { ...defaults, ...page.props.siteContact };
+    const { siteContact } = usePage().props;
+    return { ...defaults, ...siteContact };
 }
