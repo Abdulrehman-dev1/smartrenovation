@@ -1,8 +1,4 @@
-export const CALL_LINK = 'tel:+971567907213';
-export const CALL_DISPLAY = '+971 56 790 7213';
-
-export const WA_LINK = 'https://wa.me/971567907213';
-export const WA_DISPLAY = '+971 56 790 7213';
+import { useSiteContact } from '@/hooks/useSiteContact';
 
 /** GTM whatsapp_click expects Click Classes to contain joinchat__button */
 export const WA_TRACK_CLASS = 'joinchat__button';
@@ -25,14 +21,16 @@ export function PhoneIcon() {
 }
 
 export default function WaFloat() {
+    const { callLink, whatsappLink } = useSiteContact();
+
     return (
         <>
-            <a className="call-float" href={CALL_LINK} aria-label="Call us" style={{ color: '#fff' }}>
+            <a className="call-float" href={callLink} aria-label="Call us" style={{ color: '#fff' }}>
                 <PhoneIcon />
             </a>
             <a
                 className={`wa-float ${WA_TRACK_CLASS}`}
-                href={WA_LINK}
+                href={whatsappLink}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="WhatsApp us"

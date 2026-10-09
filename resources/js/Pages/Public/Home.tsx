@@ -2,13 +2,8 @@ import ContactForm from '@/Components/Public/ContactForm';
 import HeroVideo from '@/Components/Public/HeroVideo';
 import ReviewsSection, { type ReviewItem, type ReviewsMeta } from '@/Components/Public/ReviewsSection';
 import Slider from '@/Components/Public/Slider';
-import {
-    CALL_DISPLAY,
-    CALL_LINK,
-    WA_LINK,
-    WA_TRACK_CLASS,
-    WaIcon,
-} from '@/Components/Public/WaFloat';
+import { WA_TRACK_CLASS, WaIcon } from '@/Components/Public/WaFloat';
+import { useSiteContact } from '@/hooks/useSiteContact';
 import PublicLayout from '@/Layouts/PublicLayout';
 import { Head, Link } from '@inertiajs/react';
 
@@ -57,6 +52,8 @@ export default function Home({
     reviewsMeta?: ReviewsMeta;
     seoJsonLd?: string;
 }) {
+    const { callLink, whatsappLink, phone, email } = useSiteContact();
+
     return (
         <PublicLayout>
             <Head title="Smart Renovation — Design & Build Studio in Dubai">
@@ -87,11 +84,11 @@ export default function Home({
                         <div className="hero__cta reveal in" data-delay="3">
                             <a
                                 className={`btn btn--wa ${WA_TRACK_CLASS}`}
-                                href={WA_LINK}
+                                href={whatsappLink}
                                 target="_blank"
                                 rel="noopener noreferrer"
                             >
-                                <WaIcon /> WhatsApp Us
+                                <WaIcon /> WhatsApp
                             </a>
                             <a className="btn btn--outline" href="#contact">
                                 Discuss Your Vision
@@ -226,23 +223,23 @@ export default function Home({
                             <div className="cta-band__actions reveal" data-delay="3">
                                 <a
                                     className={`btn btn--wa ${WA_TRACK_CLASS}`}
-                                    href={WA_LINK}
+                                    href={whatsappLink}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                 >
-                                    <WaIcon /> WhatsApp Us
+                                    <WaIcon /> WhatsApp
                                 </a>
-                                <a className="btn btn--solid" href={CALL_LINK}>
+                                <a className="btn btn--solid" href={callLink}>
                                     Call Us
                                 </a>
-                                <a className="btn btn--light" href="mailto:info@smartrenovation.ae">
+                                <a className="btn btn--light" href={`mailto:${email}`}>
                                     Email
                                 </a>
                             </div>
                             <div className="cta-band__meta reveal" data-delay="4">
                                 <span>Sheikh Zayed Road, Dubai, UAE</span>
-                                <span>{CALL_DISPLAY}</span>
-                                <span>info@smartrenovation.ae</span>
+                                <span>{phone}</span>
+                                <span>{email}</span>
                             </div>
                         </div>
                         <ContactForm source="home" />

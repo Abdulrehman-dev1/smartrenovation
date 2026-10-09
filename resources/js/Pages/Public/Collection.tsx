@@ -1,7 +1,8 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import PublicLayout from '../../Layouts/PublicLayout';
-import { CALL_LINK, WA_LINK, WA_TRACK_CLASS, WaIcon } from '../../Components/Public/WaFloat';
+import { WA_TRACK_CLASS, WaIcon } from '../../Components/Public/WaFloat';
+import { useSiteContact } from '@/hooks/useSiteContact';
 
 type Pin = {
     img: string;
@@ -17,6 +18,7 @@ type Props = {
 };
 
 export default function Collection({ items, styles }: Props) {
+    const { callLink, whatsappLink, email } = useSiteContact();
     const boardRef = useRef<HTMLElement | null>(null);
     const [style, setStyle] = useState('all');
 
@@ -101,13 +103,13 @@ export default function Collection({ items, styles }: Props) {
                             Found a style you love? Let&apos;s turn it into your space.
                         </p>
                         <div className="cta-band__actions reveal" data-delay="3">
-                            <a className={`btn btn--wa ${WA_TRACK_CLASS}`} href={WA_LINK} target="_blank" rel="noopener">
+                            <a className={`btn btn--wa ${WA_TRACK_CLASS}`} href={whatsappLink} target="_blank" rel="noopener">
                                 <WaIcon /> WhatsApp Us
                             </a>
-                            <a className="btn btn--solid" href={CALL_LINK}>
+                            <a className="btn btn--solid" href={callLink}>
                                 Call Us
                             </a>
-                            <a className="btn btn--light" href="mailto:info@smartrenovation.ae">
+                            <a className="btn btn--light" href={`mailto:${email}`}>
                                 Email
                             </a>
                         </div>

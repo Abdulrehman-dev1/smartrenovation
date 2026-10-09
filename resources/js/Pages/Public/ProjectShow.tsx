@@ -1,7 +1,8 @@
 import { Head, Link } from '@inertiajs/react';
 import PublicLayout from '../../Layouts/PublicLayout';
 import ProjectGallery from '../../Components/Public/ProjectGallery';
-import { WaIcon, WA_LINK, WA_TRACK_CLASS } from '../../Components/Public/WaFloat';
+import { WaIcon, WA_TRACK_CLASS } from '../../Components/Public/WaFloat';
+import { useSiteContact } from '@/hooks/useSiteContact';
 
 type Props = {
     project: {
@@ -28,6 +29,7 @@ type Props = {
 };
 
 export default function ProjectShow({ project, next, previewDraft, seo }: Props) {
+    const { whatsappLink, email } = useSiteContact();
     const titleMain = (project.name || '').split('|')[0].trim();
     const pageTitle = seo?.title || `${titleMain} — Smart Renovation`;
 
@@ -119,10 +121,10 @@ export default function ProjectShow({ project, next, previewDraft, seo }: Props)
                             Let&apos;s discuss your space — design, build and automation, held by one studio.
                         </p>
                         <div className="cta-band__actions">
-                            <a className={`btn btn--wa ${WA_TRACK_CLASS}`} href={WA_LINK} target="_blank" rel="noopener">
+                            <a className={`btn btn--wa ${WA_TRACK_CLASS}`} href={whatsappLink} target="_blank" rel="noopener">
                                 <WaIcon /> WhatsApp Us
                             </a>
-                            <a className="btn btn--solid" href="mailto:info@smartrenovation.ae">
+                            <a className="btn btn--solid" href={`mailto:${email}`}>
                                 Email The Studio
                             </a>
                         </div>

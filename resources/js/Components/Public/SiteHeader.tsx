@@ -5,7 +5,6 @@ const NAV_LEFT = [
     { href: '/about', label: 'About' },
     { href: '/services', label: 'Services' },
     { href: '/works', label: 'Projects' },
-    { href: '/collection', label: 'Collection' },
 ];
 
 const NAV_RIGHT = [

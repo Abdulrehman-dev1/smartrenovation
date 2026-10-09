@@ -1,7 +1,8 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import PublicLayout from '../../Layouts/PublicLayout';
-import { WaIcon, WA_LINK, WA_TRACK_CLASS } from '../../Components/Public/WaFloat';
+import { WaIcon, WA_TRACK_CLASS } from '../../Components/Public/WaFloat';
+import { useSiteContact } from '@/hooks/useSiteContact';
 
 type ProjectCard = {
     id: number;
@@ -123,6 +124,7 @@ function FilterDropdown({
 }
 
 export default function Works({ projects, roomPhotos, filters, taxonomy }: Props) {
+    const { whatsappLink, callLink, email } = useSiteContact();
     const gridRef = useRef<HTMLElement | null>(null);
     const filterKey = `${filters.category || 'all'}|${filters.location || 'all'}|${filters.room || 'all'}|${filters.search || ''}`;
     const prevFilterKey = useRef<string | null>(null);
@@ -406,11 +408,14 @@ export default function Works({ projects, roomPhotos, filters, taxonomy }: Props
                             Tell us about your space and timeline — we reply fast with a clear plan.
                         </p>
                         <div className="cta-band__actions reveal" data-delay="3">
-                            <a className={`btn btn--wa ${WA_TRACK_CLASS}`} href={WA_LINK} target="_blank" rel="noopener">
-                                <WaIcon /> WhatsApp Us
+                            <a className={`btn btn--wa ${WA_TRACK_CLASS}`} href={whatsappLink} target="_blank" rel="noopener">
+                                <WaIcon /> WhatsApp
                             </a>
-                            <a className="btn btn--solid" href="mailto:info@smartrenovation.ae">
-                                Email The Studio
+                            <a className="btn btn--solid" href={callLink}>
+                                Call Us
+                            </a>
+                            <a className="btn btn--light" href={`mailto:${email}`}>
+                                Email
                             </a>
                         </div>
                     </div>

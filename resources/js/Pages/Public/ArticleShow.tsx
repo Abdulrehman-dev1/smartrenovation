@@ -1,6 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
 import PublicLayout from '../../Layouts/PublicLayout';
-import { WA_LINK, WA_TRACK_CLASS, WaIcon } from '../../Components/Public/WaFloat';
+import { WA_TRACK_CLASS, WaIcon } from '../../Components/Public/WaFloat';
+import { useSiteContact } from '@/hooks/useSiteContact';
 
 type Props = {
     article: {
@@ -35,6 +36,7 @@ function formatDate(iso?: string | null) {
 }
 
 export default function ArticleShow({ article, next, seoJsonLd }: Props) {
+    const { whatsappLink, email } = useSiteContact();
     const date = formatDate(article.published_at);
     const title = article.meta_title || `${article.title} — Smart Renovation`;
 
@@ -93,10 +95,10 @@ export default function ArticleShow({ article, next, seoJsonLd }: Props) {
                             Tell us about your space and timeline — we reply fast with a clear plan.
                         </p>
                         <div className="cta-band__actions">
-                            <a className={`btn btn--wa ${WA_TRACK_CLASS}`} href={WA_LINK} target="_blank" rel="noopener">
+                            <a className={`btn btn--wa ${WA_TRACK_CLASS}`} href={whatsappLink} target="_blank" rel="noopener">
                                 <WaIcon /> WhatsApp Us
                             </a>
-                            <a className="btn btn--solid" href="mailto:info@smartrenovation.ae">
+                            <a className="btn btn--solid" href={`mailto:${email}`}>
                                 Email The Studio
                             </a>
                         </div>

@@ -1,8 +1,10 @@
 import { Head, Link } from '@inertiajs/react';
 import PublicLayout from '../../Layouts/PublicLayout';
-import { WA_LINK, WA_TRACK_CLASS, WaIcon } from '../../Components/Public/WaFloat';
+import { WA_TRACK_CLASS, WaIcon } from '../../Components/Public/WaFloat';
+import { useSiteContact } from '@/hooks/useSiteContact';
 
 export default function ThankYou() {
+    const { whatsappLink } = useSiteContact();
     return (
         <PublicLayout>
             <Head title="Thank You — Smart Renovation" />
@@ -21,7 +23,7 @@ export default function ThankYou() {
                             message us on WhatsApp.
                         </p>
                         <div className="cta-band__actions" style={{ justifyContent: 'center', marginTop: 28 }}>
-                            <a className={`btn btn--wa ${WA_TRACK_CLASS}`} href={WA_LINK} target="_blank" rel="noopener">
+                            <a className={`btn btn--wa ${WA_TRACK_CLASS}`} href={whatsappLink} target="_blank" rel="noopener">
                                 <WaIcon /> WhatsApp Us
                             </a>
                             <Link className="btn btn--solid" href="/works">

@@ -1,13 +1,14 @@
+import { useSiteContact } from '@/hooks/useSiteContact';
 import { Link } from '@inertiajs/react';
-import {
-    CALL_DISPLAY,
-    CALL_LINK,
-    WA_DISPLAY,
-    WA_LINK,
-    WA_TRACK_CLASS,
-} from '@/Components/Public/WaFloat';
 
 export default function SiteFooter() {
+    const { phone, callLink, email, address } = useSiteContact();
+
+    const addressLines =
+        address.trim() !== ''
+            ? address.split(/\n+/).map((line) => line.trim()).filter(Boolean)
+            : ['AC01 Building, Sheikh Zayed Road,', 'Office 106–108, Mezzanine Floor,', 'Dubai, UAE'];
+
     return (
         <footer className="site-footer">
             <div className="site-footer__top">
@@ -17,8 +18,7 @@ export default function SiteFooter() {
                         <span className="brand__word">Smart Renovation</span>
                     </Link>
                     <p className="site-footer__tagline">
-                        Reinventing properties since 1970 — design, build &amp; automation, held by one
-                        studio in Dubai.
+                        Reinventing properties since 1970 — Italian creativity. Beyond simple fit out.
                     </p>
                 </div>
 
@@ -27,7 +27,6 @@ export default function SiteFooter() {
                     <Link href="/about">About</Link>
                     <Link href="/services">Services</Link>
                     <Link href="/works">Projects</Link>
-                    <Link href="/collection">Collection</Link>
                     <Link href="/media">Media</Link>
                     <a href="/#contact">Contact</a>
                 </nav>
@@ -35,17 +34,15 @@ export default function SiteFooter() {
                 <div className="site-footer__col site-footer__col--contact">
                     <span className="site-footer__h">Contact Us</span>
                     <span className="site-footer__muted">
-                        AC01 Building, Sheikh Zayed Road,
-                        <br />
-                        Office 106–108, Mezzanine Floor,
-                        <br />
-                        Dubai, UAE
+                        {addressLines.map((line, i) => (
+                            <span key={line + i}>
+                                {line}
+                                {i < addressLines.length - 1 ? <br /> : null}
+                            </span>
+                        ))}
                     </span>
-                    <a href="mailto:info@smartrenovation.ae">info@smartrenovation.ae</a>
-                    <a href={CALL_LINK}>{CALL_DISPLAY}</a>
-                    <a className={WA_TRACK_CLASS} href={WA_LINK} target="_blank" rel="noopener noreferrer">
-                        WhatsApp · {WA_DISPLAY}
-                    </a>
+                    <a href={`mailto:${email}`}>{email}</a>
+                    <a href={callLink}>{phone}</a>
                 </div>
             </div>
 

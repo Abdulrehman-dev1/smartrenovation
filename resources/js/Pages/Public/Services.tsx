@@ -1,6 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
 import PublicLayout from '../../Layouts/PublicLayout';
-import { CALL_LINK, WA_LINK, WA_TRACK_CLASS, WaIcon } from '../../Components/Public/WaFloat';
+import { WA_TRACK_CLASS, WaIcon } from '../../Components/Public/WaFloat';
+import { useSiteContact } from '@/hooks/useSiteContact';
 
 type ServiceCard = {
     id: number;
@@ -16,6 +17,7 @@ type Props = {
 };
 
 export default function Services({ services }: Props) {
+    const { callLink, whatsappLink, email } = useSiteContact();
     return (
         <PublicLayout>
             <Head title="Services — Smart Renovation" />
@@ -53,13 +55,13 @@ export default function Services({ services }: Props) {
                             Start Your Project.
                         </h2>
                         <div className="cta-band__actions reveal" data-delay="2">
-                            <a className={`btn btn--wa ${WA_TRACK_CLASS}`} href={WA_LINK} target="_blank" rel="noopener">
-                                <WaIcon /> WhatsApp Us
+                            <a className={`btn btn--wa ${WA_TRACK_CLASS}`} href={whatsappLink} target="_blank" rel="noopener">
+                                <WaIcon /> WhatsApp
                             </a>
-                            <a className="btn btn--solid" href={CALL_LINK}>
+                            <a className="btn btn--solid" href={callLink}>
                                 Call Us
                             </a>
-                            <a className="btn btn--light" href="mailto:info@smartrenovation.ae">
+                            <a className="btn btn--light" href={`mailto:${email}`}>
                                 Email
                             </a>
                         </div>

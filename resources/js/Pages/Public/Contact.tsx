@@ -1,23 +1,12 @@
 import ContactForm from '@/Components/Public/ContactForm';
-import {
-    CALL_DISPLAY,
-    CALL_LINK,
-    WA_LINK,
-    WA_TRACK_CLASS,
-    WaIcon,
-} from '@/Components/Public/WaFloat';
+import { WA_TRACK_CLASS, WaIcon } from '@/Components/Public/WaFloat';
+import { useSiteContact } from '@/hooks/useSiteContact';
 import PublicLayout from '@/Layouts/PublicLayout';
 import { Head } from '@inertiajs/react';
 
-type Props = {
-    contact?: {
-        email?: string | null;
-        phone?: string | null;
-        address?: string | null;
-    };
-};
+export default function Contact() {
+    const { callLink, whatsappLink, phone, email, address } = useSiteContact();
 
-export default function Contact({ contact }: Props) {
     return (
         <PublicLayout>
             <Head title="Contact — Smart Renovation" />
@@ -35,23 +24,23 @@ export default function Contact({ contact }: Props) {
                             <div className="cta-band__actions reveal" data-delay="3">
                                 <a
                                     className={`btn btn--wa ${WA_TRACK_CLASS}`}
-                                    href={WA_LINK}
+                                    href={whatsappLink}
                                     target="_blank"
                                     rel="noopener"
                                 >
                                     <WaIcon /> WhatsApp Us
                                 </a>
-                                <a className="btn btn--solid" href={CALL_LINK}>
+                                <a className="btn btn--solid" href={callLink}>
                                     Call Us
                                 </a>
-                                <a className="btn btn--light" href="mailto:info@smartrenovation.ae">
+                                <a className="btn btn--light" href={`mailto:${email}`}>
                                     Email
                                 </a>
                             </div>
                             <div className="cta-band__meta reveal" data-delay="4">
-                                <span>{contact?.address || 'Sheikh Zayed Road, Dubai, UAE'}</span>
-                                <span>{contact?.phone || CALL_DISPLAY}</span>
-                                <span>{contact?.email || 'info@smartrenovation.ae'}</span>
+                                <span>{address || 'Sheikh Zayed Road, Dubai, UAE'}</span>
+                                <span>{phone}</span>
+                                <span>{email}</span>
                             </div>
                         </div>
                         <ContactForm source="contact" />

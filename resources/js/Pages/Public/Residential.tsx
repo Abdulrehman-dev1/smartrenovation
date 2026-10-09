@@ -1,12 +1,7 @@
 import ContactForm from '@/Components/Public/ContactForm';
 import ReviewsSection, { type ReviewItem, type ReviewsMeta } from '@/Components/Public/ReviewsSection';
-import {
-    CALL_DISPLAY,
-    CALL_LINK,
-    WA_LINK,
-    WA_TRACK_CLASS,
-    WaIcon,
-} from '@/Components/Public/WaFloat';
+import { WA_TRACK_CLASS, WaIcon } from '@/Components/Public/WaFloat';
+import { useSiteContact } from '@/hooks/useSiteContact';
 import PublicLayout from '@/Layouts/PublicLayout';
 import { Head } from '@inertiajs/react';
 
@@ -82,6 +77,8 @@ export default function Residential({
     reviews?: ReviewItem[];
     reviewsMeta?: ReviewsMeta;
 }) {
+    const { callLink, whatsappLink, phone, email } = useSiteContact();
+
     return (
         <PublicLayout>
             <Head title="Residential Fit-Out — Smart Renovation" />
@@ -122,7 +119,7 @@ export default function Residential({
                             <a className="btn btn--solid" href="#contact">
                                 Book FREE Consultation
                             </a>
-                            <a className={`btn btn--wa ${WA_TRACK_CLASS}`} href={WA_LINK} target="_blank" rel="noopener">
+                            <a className={`btn btn--wa ${WA_TRACK_CLASS}`} href={whatsappLink} target="_blank" rel="noopener">
                                 <WaIcon /> WhatsApp Us
                             </a>
                         </div>
@@ -143,23 +140,23 @@ export default function Residential({
                             <div className="cta-band__actions reveal" data-delay="3">
                                 <a
                                     className={`btn btn--wa ${WA_TRACK_CLASS}`}
-                                    href={WA_LINK}
+                                    href={whatsappLink}
                                     target="_blank"
                                     rel="noopener"
                                 >
                                     <WaIcon /> WhatsApp Us
                                 </a>
-                                <a className="btn btn--solid" href={CALL_LINK}>
+                                <a className="btn btn--solid" href={callLink}>
                                     Call Us
                                 </a>
-                                <a className="btn btn--light" href="mailto:info@smartrenovation.ae">
+                                <a className="btn btn--light" href={`mailto:${email}`}>
                                     Email
                                 </a>
                             </div>
                             <div className="cta-band__meta reveal" data-delay="4">
                                 <span>Sheikh Zayed Road, Dubai, UAE</span>
-                                <span>{CALL_DISPLAY}</span>
-                                <span>info@smartrenovation.ae</span>
+                                <span>{phone}</span>
+                                <span>{email}</span>
                             </div>
                         </div>
                         <ContactForm source="residential" />
@@ -265,7 +262,7 @@ export default function Residential({
                                 </a>
                                 <a
                                     className={`btn btn--wa ${WA_TRACK_CLASS}`}
-                                    href={WA_LINK}
+                                    href={whatsappLink}
                                     target="_blank"
                                     rel="noopener"
                                 >

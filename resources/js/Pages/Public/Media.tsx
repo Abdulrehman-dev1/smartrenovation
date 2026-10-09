@@ -1,7 +1,8 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 import PublicLayout from '../../Layouts/PublicLayout';
-import { WA_LINK, WA_TRACK_CLASS, WaIcon } from '../../Components/Public/WaFloat';
+import { WA_TRACK_CLASS, WaIcon } from '../../Components/Public/WaFloat';
+import { useSiteContact } from '@/hooks/useSiteContact';
 
 const TABS: [string, string][] = [
     ['articles', 'Articles'],
@@ -27,6 +28,7 @@ type Props = {
 };
 
 export default function Media({ articles, press, awards, tab: initialTab = 'articles' }: Props) {
+    const { whatsappLink, callLink, email } = useSiteContact();
     const [tab, setTab] = useState(
         TABS.some(([id]) => id === initialTab) ? initialTab : 'articles',
     );
@@ -155,11 +157,14 @@ export default function Media({ articles, press, awards, tab: initialTab = 'arti
                             Tell us about your space and timeline — we reply fast with a clear plan.
                         </p>
                         <div className="cta-band__actions reveal" data-delay="3">
-                            <a className={`btn btn--wa ${WA_TRACK_CLASS}`} href={WA_LINK} target="_blank" rel="noopener">
-                                <WaIcon /> WhatsApp Us
+                            <a className={`btn btn--wa ${WA_TRACK_CLASS}`} href={whatsappLink} target="_blank" rel="noopener">
+                                <WaIcon /> WhatsApp
                             </a>
-                            <a className="btn btn--solid" href="mailto:info@smartrenovation.ae">
-                                Email The Studio
+                            <a className="btn btn--solid" href={callLink}>
+                                Call Us
+                            </a>
+                            <a className="btn btn--light" href={`mailto:${email}`}>
+                                Email
                             </a>
                         </div>
                     </div>

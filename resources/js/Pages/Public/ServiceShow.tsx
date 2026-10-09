@@ -1,6 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
 import PublicLayout from '../../Layouts/PublicLayout';
-import { CALL_LINK, WA_LINK, WA_TRACK_CLASS, WaIcon } from '../../Components/Public/WaFloat';
+import { WA_TRACK_CLASS, WaIcon } from '../../Components/Public/WaFloat';
+import { useSiteContact } from '@/hooks/useSiteContact';
 
 type Props = {
     service: {
@@ -18,6 +19,7 @@ type Props = {
 };
 
 export default function ServiceShow({ service, seoJsonLd }: Props) {
+    const { callLink, whatsappLink, email } = useSiteContact();
     const pageTitle = service.meta_title || `${service.nav_label} — Smart Renovation`;
     const gallery = service.gallery || [];
     const cta = service.cta_label || service.nav_label;
@@ -76,13 +78,13 @@ export default function ServiceShow({ service, seoJsonLd }: Props) {
                         <span className="eyebrow">Let&apos;s talk</span>
                         <h2 className="cta-band__title">Discuss Your {cta}.</h2>
                         <div className="cta-band__actions">
-                            <a className={`btn btn--wa ${WA_TRACK_CLASS}`} href={WA_LINK} target="_blank" rel="noopener">
+                            <a className={`btn btn--wa ${WA_TRACK_CLASS}`} href={whatsappLink} target="_blank" rel="noopener">
                                 <WaIcon /> WhatsApp Us
                             </a>
-                            <a className="btn btn--solid" href={CALL_LINK}>
+                            <a className="btn btn--solid" href={callLink}>
                                 Call Us
                             </a>
-                            <a className="btn btn--light" href="mailto:info@smartrenovation.ae">
+                            <a className="btn btn--light" href={`mailto:${email}`}>
                                 Email
                             </a>
                         </div>
