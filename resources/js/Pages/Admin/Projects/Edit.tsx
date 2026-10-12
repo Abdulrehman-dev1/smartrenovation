@@ -1,4 +1,4 @@
-import ProjectCollectionPicker, {
+import {
     CollectionAssignment,
     CollectionCandidate,
 } from '@/Components/ProjectCollectionPicker';
@@ -100,7 +100,7 @@ export default function Edit({
     categories: initialCategories,
     locations: initialLocations,
     image_rooms: imageRooms = ['Living', 'Kitchen', 'Dining', 'Bedroom', 'Bathroom', 'Outdoor', 'Other'],
-    collection_styles: collectionStyles = [
+    collection_styles: _collectionStyles = [
         'Mediterranean',
         'Italian Heritage',
         'Oriental',
@@ -190,7 +190,7 @@ export default function Edit({
         return out;
     }, [project.gallery, project.gallery_hidden]);
 
-    const collectionEnabled = collectionCandidates.length > 0;
+    const collectionEnabled = false;
     const roomsEnabled = roomCandidates.length > 0;
 
     const galleryPathSet = useMemo(
@@ -433,16 +433,6 @@ export default function Edit({
                                     assignments={roomAssignments}
                                     onAssignmentsChange={syncRoomAssignments}
                                     busy={roomsBusy}
-                                />
-                            </div>
-
-                            <div className={active === 'collection' ? 'space-y-4' : 'hidden'}>
-                                <ProjectCollectionPicker
-                                    styles={collectionStyles}
-                                    candidates={collectionCandidates}
-                                    assignments={assignments}
-                                    onAssignmentsChange={syncAssignments}
-                                    imageError={errors.collection_images}
                                 />
                             </div>
 

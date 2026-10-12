@@ -1,5 +1,5 @@
 import PendingImagePicker, { PendingImage, pendingToFiles, pendingToRooms } from '@/Components/PendingImagePicker';
-import ProjectCollectionPicker, {
+import {
     CollectionAssignment,
     CollectionCandidate,
     defaultCollectionAssignments,
@@ -126,7 +126,7 @@ export default function Create({
         return out;
     }, [galleryPending, hiddenPending]);
 
-    const collectionEnabled = collectionCandidates.length > 0;
+    const collectionEnabled = false;
     const roomsEnabled = roomCandidates.length > 0;
     const { tab, setTab, errorFlags } = useProjectFormTab(errors, { collectionEnabled, roomsEnabled });
 
@@ -424,16 +424,6 @@ export default function Create({
                                     assignments={roomAssignments}
                                     onAssignmentsChange={(next) => applyRoomAssignments(next)}
                                     imageError={errors.gallery_rooms ?? errors.gallery_hidden_rooms}
-                                />
-                            </div>
-
-                            <div className={active === 'collection' ? 'space-y-4' : 'hidden'}>
-                                <ProjectCollectionPicker
-                                    styles={collectionStyles}
-                                    candidates={collectionCandidates}
-                                    assignments={assignments}
-                                    onAssignmentsChange={syncAssignments}
-                                    imageError={errors.collection_entries}
                                 />
                             </div>
 
