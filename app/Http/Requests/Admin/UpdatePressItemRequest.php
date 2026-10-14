@@ -20,7 +20,7 @@ class UpdatePressItemRequest extends FormRequest
             'outlet' => ['required', 'string', 'max:255'],
             'href' => ['nullable', 'string', 'max:2048'],
             'status' => ['required', Rule::in(['draft', 'published'])],
-            'cover' => ['nullable', 'file', 'mimes:jpeg,jpg,png,webp', 'max:51200'],
+            'cover' => ['nullable', 'file', 'mimes:jpeg,jpg,png,webp', 'mimetypes:image/jpeg,image/pjpeg,image/png,image/webp', 'max:51200'],
             'pdf' => ['nullable', 'file', 'mimes:pdf', 'max:51200'],
         ];
     }

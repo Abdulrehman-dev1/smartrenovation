@@ -132,7 +132,7 @@ export default function RichTextEditor({
             body: form,
         });
         if (!res.ok) {
-            window.alert('Image upload failed. Use jpeg/png/webp under 50MB.');
+            window.alert('Image upload failed. Use jpg/png/webp under 50MB.');
             return;
         }
         const json = (await res.json()) as { url: string };
@@ -194,7 +194,7 @@ export default function RichTextEditor({
                     <input
                         ref={fileInputRef}
                         type="file"
-                        accept="image/jpeg,image/png,image/webp,image/gif"
+                        accept=".jpg,.jpeg,.png,.webp,.gif,image/jpeg,image/png,image/webp,image/gif"
                         className="hidden"
                         onChange={(e) => {
                             uploadImage(e.target.files?.[0] ?? null);

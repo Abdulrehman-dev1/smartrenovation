@@ -97,7 +97,7 @@ function GalleryPanel({
                         ref={inputRef}
                         type="file"
                         className="hidden"
-                        accept="image/jpeg,image/png,image/webp"
+                        accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
                         multiple
                         disabled={busy}
                         onChange={(e) => {
@@ -376,7 +376,7 @@ export default function ProjectDualGallery({
             setError(
                 err instanceof Error && err.message === 'network'
                     ? 'Network error during upload.'
-                    : 'Upload failed. Use jpeg/png/webp under 50MB.',
+                    : 'Upload failed. Use jpg/png/webp under 50MB.',
             );
         } finally {
             setBusy(false);

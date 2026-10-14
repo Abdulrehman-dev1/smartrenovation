@@ -111,7 +111,7 @@ export default function MediaUploader({
                     setMessage('Uploaded. Optimizations are queued.');
                 }
             } else {
-                setError('Upload failed. Use jpeg/png/webp under 50MB.');
+                setError('Upload failed. Use jpg/png/webp under 50MB.');
             }
         };
 
@@ -176,7 +176,7 @@ export default function MediaUploader({
                     <input
                         type="file"
                         className="hidden"
-                        accept="image/jpeg,image/png,image/webp"
+                        accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
                         multiple={multiple}
                         disabled={busy}
                         onChange={(e) => {

@@ -58,7 +58,7 @@ export default function Tester() {
                     }
                     resolve();
                 } else {
-                    setError('Upload failed. Check file type (jpeg/png/webp) and size.');
+                    setError('Upload failed. Check file type (jpg/png/webp) and size.');
                     reject(new Error('upload failed'));
                 }
             };
@@ -82,7 +82,7 @@ export default function Tester() {
                 </p>
                 <input
                     type="file"
-                    accept="image/jpeg,image/png,image/webp"
+                    accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
                     multiple
                     onChange={(e) => setFiles(e.target.files)}
                 />

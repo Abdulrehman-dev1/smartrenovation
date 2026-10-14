@@ -29,7 +29,7 @@ class ServiceImageRequest extends FormRequest
             'files.*' => [
                 'required',
                 'file',
-                'mimes:jpeg,jpg,png,webp',
+                'mimes:jpeg,jpg,png,webp', 'mimetypes:image/jpeg,image/pjpeg,image/png,image/webp',
                 'max:51200',
             ],
         ];

@@ -73,7 +73,7 @@ export default function ArticleImageUploader({
                     setMessage('Uploaded.');
                 }
             } else {
-                setError('Upload failed. Use jpeg/png/webp under 50MB.');
+                setError('Upload failed. Use jpg/png/webp under 50MB.');
             }
         };
 
@@ -117,7 +117,7 @@ export default function ArticleImageUploader({
                         ref={inputRef}
                         type="file"
                         className="hidden"
-                        accept="image/jpeg,image/png,image/webp"
+                        accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
                         disabled={busy}
                         onChange={(e) => {
                             upload(e.target.files);
@@ -126,7 +126,7 @@ export default function ArticleImageUploader({
                     />
                 </label>
             </div>
-            <p className="mb-3 text-xs text-slate-500">jpeg / png / webp up to 50MB. Images are resized on upload.</p>
+            <p className="mb-3 text-xs text-slate-500">jpg / png / webp up to 50MB. Images are resized on upload.</p>
             {error && <p className="mb-2 text-xs font-medium text-rose-600">{error}</p>}
             {message && <p className="mb-2 text-xs text-emerald-700">{message}</p>}
             {busy && (

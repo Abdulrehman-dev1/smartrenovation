@@ -59,7 +59,7 @@ export default function PendingImagePicker({
     value,
     onChange,
     error,
-    accept = 'image/jpeg,image/png,image/webp',
+    accept = '.jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp',
     transferLabel,
     onTransferSelected,
     imageRooms,
@@ -96,7 +96,7 @@ export default function PendingImagePicker({
         setLocalError('');
         const files = Array.from(list).filter((f) => f.type.startsWith('image/'));
         if (!files.length) {
-            setLocalError('Use jpeg, png, or webp images.');
+            setLocalError('Use jpg, png, or webp images.');
             return;
         }
 

@@ -49,7 +49,7 @@ class UpdateArticleRequest extends FormRequest
                     $fail('Schema must be valid JSON object.');
                 }
             }],
-            'cover' => ['nullable', 'file', 'mimes:jpeg,jpg,png,webp', 'max:51200'],
+            'cover' => ['nullable', 'file', 'mimes:jpeg,jpg,png,webp', 'mimetypes:image/jpeg,image/pjpeg,image/png,image/webp', 'max:51200'],
         ];
     }
 }

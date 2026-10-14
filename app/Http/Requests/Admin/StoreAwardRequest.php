@@ -20,7 +20,7 @@ class StoreAwardRequest extends FormRequest
             'organization' => ['required', 'string', 'max:255'],
             'year' => ['required', 'string', 'max:50'],
             'status' => ['required', Rule::in(['draft', 'published'])],
-            'cover' => ['nullable', 'file', 'mimes:jpeg,jpg,png,webp', 'max:51200'],
+            'cover' => ['nullable', 'file', 'mimes:jpeg,jpg,png,webp', 'mimetypes:image/jpeg,image/pjpeg,image/png,image/webp', 'max:51200'],
         ];
     }
 

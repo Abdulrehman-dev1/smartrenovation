@@ -23,7 +23,7 @@ class EditorUploadRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'file' => ['required', 'file', 'mimes:jpeg,jpg,png,webp,gif', 'max:51200'],
+            'file' => ['required', 'file', 'mimes:jpeg,jpg,png,webp,gif', 'mimetypes:image/jpeg,image/pjpeg,image/png,image/webp,image/gif', 'max:51200'],
         ];
     }
 }

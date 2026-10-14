@@ -106,13 +106,13 @@ class UpdateProjectRequest extends FormRequest
                     $fail('Schema must be valid JSON object.');
                 }
             }],
-            'cover' => ['nullable', 'file', 'mimes:jpeg,jpg,png,webp', 'max:51200'],
+            'cover' => ['nullable', 'file', 'mimes:jpeg,jpg,png,webp', 'mimetypes:image/jpeg,image/pjpeg,image/png,image/webp', 'max:51200'],
             'gallery' => ['nullable', 'array'],
-            'gallery.*' => ['file', 'mimes:jpeg,jpg,png,webp', 'max:51200'],
+            'gallery.*' => ['file', 'mimes:jpeg,jpg,png,webp', 'mimetypes:image/jpeg,image/pjpeg,image/png,image/webp', 'max:51200'],
             'gallery_rooms' => ['nullable', 'array'],
             'gallery_rooms.*' => ['string', Rule::in(ProjectTaxonomy::imageRooms())],
             'gallery_hidden_files' => ['nullable', 'array'],
-            'gallery_hidden_files.*' => ['file', 'mimes:jpeg,jpg,png,webp', 'max:51200'],
+            'gallery_hidden_files.*' => ['file', 'mimes:jpeg,jpg,png,webp', 'mimetypes:image/jpeg,image/pjpeg,image/png,image/webp', 'max:51200'],
             'gallery_hidden_rooms' => ['nullable', 'array'],
             'gallery_hidden_rooms.*' => ['string', Rule::in(ProjectTaxonomy::imageRooms())],
             'collection_images' => ['nullable', 'array'],
