@@ -73,10 +73,10 @@ export default function ProjectImageUploader({
                     const json = JSON.parse(xhr.responseText);
                     if (collection === 'cover' && json.cover) {
                         setItems([json.cover]);
-                        router.reload({ preserveScroll: true });
+                        router.reload();
                     } else if (json.images) {
                         setItems(json.images as ImageItem[]);
-                        router.reload({ preserveScroll: true });
+                        router.reload();
                     }
                     setMessage(json.message ?? 'Uploaded.');
                 } catch {

@@ -86,7 +86,7 @@ function AwardImageUploader({
                     const json = JSON.parse(xhr.responseText);
                     if (json.cover) {
                         setItem(json.cover as FileItem);
-                        router.reload({ preserveScroll: true });
+                        router.reload();
                     }
                     setMessage(json.message ?? 'Uploaded.');
                 } catch {

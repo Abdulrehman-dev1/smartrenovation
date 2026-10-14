@@ -66,7 +66,7 @@ export default function ArticleImageUploader({
                     const json = JSON.parse(xhr.responseText);
                     if (json.cover) {
                         setItem(json.cover as ImageItem);
-                        router.reload({ preserveScroll: true });
+                        router.reload();
                     }
                     setMessage(json.message ?? 'Uploaded.');
                 } catch {

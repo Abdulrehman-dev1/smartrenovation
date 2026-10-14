@@ -106,7 +106,7 @@ export default function MediaUploader({
                     const next = (json.media ?? []) as MediaItem[];
                     setItems((prev) => (collection === 'cover' ? next : [...prev, ...next]));
                     setMessage(json.message ?? 'Uploaded. Optimizations are queued.');
-                    router.reload({ preserveScroll: true });
+                    router.reload();
                 } catch {
                     setMessage('Uploaded. Optimizations are queued.');
                 }
