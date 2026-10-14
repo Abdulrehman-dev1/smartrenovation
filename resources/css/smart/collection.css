@@ -23,18 +23,15 @@
 }
 .pin__media{position:relative;overflow:hidden;display:block;background:var(--bg-tint);}
 .pin__media img{width:100%;height:100%;display:block;object-fit:cover;}
-/* hover */
-.pin__media::after{content:"";position:absolute;inset:0;background:rgba(20,18,16,0);transition:background .5s var(--ease);}
+.pin__media::after{content:"";position:absolute;inset:0;background:rgba(20,18,16,0);}
 .pin:hover .pin__media::after{background:rgba(20,18,16,.18);}
-.pin__media img{transition:transform 1.3s var(--ease);}
-.pin:hover .pin__media img{transform:scale(1.05);}
 .pin__tag{
   position:absolute;left:0;bottom:0;z-index:2;
   padding:14px 16px;color:#fff;
   font-family:var(--font-ui);font-size:10px;letter-spacing:.18em;text-transform:uppercase;
-  opacity:0;transform:translateY(10px);transition:opacity .5s var(--ease),transform .5s var(--ease);
+  opacity:0;
 }
-.pin:hover .pin__tag{opacity:1;transform:none;}
+.pin:hover .pin__tag{opacity:1;}
 
 /* ---------- CTA BAND: shared styles in style.css ---------- */
 .collection .cta-band{margin-top:clamp(40px,7vh,70px);}

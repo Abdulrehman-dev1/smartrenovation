@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, router, useForm } from '@inertiajs/react';
 import { FormEvent, type ReactNode } from 'react';
 
 type FileItem = { path: string; url: string; name: string };
@@ -60,7 +60,7 @@ function AwardImageUploader({
 
     useEffect(() => {
         setItem(existing ?? null);
-    }, [existing]);
+    }, [existing?.path ?? '']);
 
     const base = `/admin/awards/${awardId}/images`;
 
@@ -84,7 +84,10 @@ function AwardImageUploader({
             if (xhr.status >= 200 && xhr.status < 300) {
                 try {
                     const json = JSON.parse(xhr.responseText);
-                    if (json.cover) setItem(json.cover as FileItem);
+                    if (json.cover) {
+                        setItem(json.cover as FileItem);
+                        router.reload({ preserveScroll: true });
+                    }
                     setMessage(json.message ?? 'Uploaded.');
                 } catch {
                     setMessage('Uploaded.');

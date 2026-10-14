@@ -11,17 +11,21 @@ class AwardImageStorage
 {
     public function storeCover(Award $award, UploadedFile $file): string
     {
-        if ($award->cover_image) {
-            $this->deletePath($award->cover_image);
-        }
-
+        $previous = $award->cover_image;
         $ext = strtolower($file->getClientOriginalExtension() ?: $file->extension() ?: 'jpg');
         $name = Str::uuid()->toString().'.'.$ext;
         $directory = "awards/{$award->id}/cover";
         $path = $file->storeAs($directory, $name, 'public');
+        if (! is_string($path) || $path === '') {
+            throw new \RuntimeException('Failed to store award image.');
+        }
 
         $this->optimizeInPlace($path);
         $award->forceFill(['cover_image' => $path])->save();
+
+        if (is_string($previous) && $previous !== '' && $previous !== $path) {
+            $this->deletePath($previous);
+        }
 
         return $path;
     }

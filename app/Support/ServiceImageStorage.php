@@ -11,12 +11,13 @@ class ServiceImageStorage
 {
     public function storeCover(Service $service, UploadedFile $file): string
     {
-        if ($service->cover_image) {
-            $this->deletePath($service->cover_image);
-        }
-
+        $previous = $service->cover_image;
         $path = $this->storeFile($service, $file, 'cover');
         $service->forceFill(['cover_image' => $path])->save();
+
+        if (is_string($previous) && $previous !== '' && $previous !== $path) {
+            $this->deletePath($previous);
+        }
 
         return $path;
     }
@@ -104,6 +105,9 @@ class ServiceImageStorage
         $name = Str::uuid()->toString().'.'.$ext;
         $directory = "services/{$service->id}/{$folder}";
         $path = $file->storeAs($directory, $name, 'public');
+        if (! is_string($path) || $path === '') {
+            throw new \RuntimeException('Failed to store service image.');
+        }
 
         $this->optimizeInPlace($path);
 

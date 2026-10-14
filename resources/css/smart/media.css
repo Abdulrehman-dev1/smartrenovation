@@ -40,15 +40,13 @@
 
 .media-card{display:flex;flex-direction:column;}
 .media-card__media{position:relative;overflow:hidden;aspect-ratio:4/3;background:var(--bg-tint);}
-.media-card__media img{width:100%;height:100%;object-fit:cover;transition:transform 1.3s var(--ease);}
-.media-card:hover .media-card__media img{transform:scale(1.05);}
+.media-card__media img{width:100%;height:100%;object-fit:cover;}
 
 /* press clippings: natural image height, no letterbox padding */
 .media-grid--press .media-card__media{aspect-ratio:auto;background:transparent;}
 .media-grid--press .media-card__media img{
   width:100%;height:auto;object-fit:contain;padding:0;display:block;
 }
-.media-grid--press .media-card:hover .media-card__media img{transform:scale(1.03);}
 .media-card__outlet{
   font-family:var(--font-ui);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);
   margin:16px 0 0;

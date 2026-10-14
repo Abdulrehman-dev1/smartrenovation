@@ -11,13 +11,14 @@ class ProjectImageStorage
 {
     public function storeCover(Project $project, UploadedFile $file): string
     {
-        if ($project->cover_image) {
-            $this->deletePath($project->cover_image);
-        }
-
+        $previous = $project->cover_image;
         $path = $this->storeFile($project, $file, 'cover');
         $project->forceFill(['cover_image' => $path])->save();
         $project->pruneCollectionImages();
+
+        if (is_string($previous) && $previous !== '' && $previous !== $path) {
+            $this->deletePath($previous);
+        }
 
         return $path;
     }
@@ -201,6 +202,9 @@ class ProjectImageStorage
         $name = Str::uuid()->toString().'.'.$ext;
         $directory = "projects/{$project->id}/{$folder}";
         $path = $file->storeAs($directory, $name, 'public');
+        if (! is_string($path) || $path === '') {
+            throw new \RuntimeException('Failed to store project image.');
+        }
 
         $this->optimizeInPlace($path);
 

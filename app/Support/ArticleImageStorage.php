@@ -11,12 +11,13 @@ class ArticleImageStorage
 {
     public function storeCover(Article $article, UploadedFile $file): string
     {
-        if ($article->cover_image) {
-            $this->deletePath($article->cover_image);
-        }
-
+        $previous = $article->cover_image;
         $path = $this->storeFile($article, $file, 'cover');
         $article->forceFill(['cover_image' => $path])->save();
+
+        if (is_string($previous) && $previous !== '' && $previous !== $path) {
+            $this->deletePath($previous);
+        }
 
         return $path;
     }
@@ -44,6 +45,9 @@ class ArticleImageStorage
         $name = Str::uuid()->toString().'.'.$ext;
         $directory = "articles/{$article->id}/{$folder}";
         $path = $file->storeAs($directory, $name, 'public');
+        if (! is_string($path) || $path === '') {
+            throw new \RuntimeException('Failed to store article image.');
+        }
 
         $this->optimizeInPlace($path);
 

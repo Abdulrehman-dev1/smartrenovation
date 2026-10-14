@@ -1,3 +1,4 @@
+import { router } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 
 type ImageItem = {
@@ -30,7 +31,7 @@ export default function PressImageUploader({
 
     useEffect(() => {
         setItem(existing);
-    }, [existing]);
+    }, [existing?.path ?? '']);
 
     const base = `/admin/press/${pressId}/images`;
 
@@ -63,7 +64,10 @@ export default function PressImageUploader({
             if (xhr.status >= 200 && xhr.status < 300) {
                 try {
                     const json = JSON.parse(xhr.responseText);
-                    if (json.cover) setItem(json.cover as ImageItem);
+                    if (json.cover) {
+                        setItem(json.cover as ImageItem);
+                        router.reload({ preserveScroll: true });
+                    }
                     setMessage(json.message ?? 'Uploaded.');
                 } catch {
                     setMessage('Uploaded.');

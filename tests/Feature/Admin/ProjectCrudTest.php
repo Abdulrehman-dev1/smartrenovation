@@ -135,4 +135,38 @@ class ProjectCrudTest extends TestCase
 
         $response->assertForbidden();
     }
+
+    public function test_replacing_cover_keeps_new_image_and_removes_old_file(): void
+    {
+        Storage::fake('public');
+        $user = $this->admin();
+
+        $this->actingAs($user)->post('/admin/projects', [
+            'slug' => 'cover-replace',
+            'name' => 'Cover Replace',
+            'status' => 'draft',
+            'cover' => UploadedFile::fake()->image('old-cover.jpg', 800, 600),
+        ])->assertRedirect(route('admin.projects.index'));
+
+        $project = Project::query()->where('slug', 'cover-replace')->firstOrFail();
+        $oldCover = $project->cover_image;
+        $this->assertNotNull($oldCover);
+        Storage::disk('public')->assertExists($oldCover);
+
+        $response = $this->actingAs($user)->postJson(route('admin.projects.images.store', $project), [
+            'collection' => 'cover',
+            'files' => [UploadedFile::fake()->image('new-cover.jpg', 900, 700)],
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('message', 'Cover uploaded.')
+            ->assertJsonStructure(['cover' => ['path', 'url', 'name']]);
+
+        $project->refresh();
+        $this->assertNotNull($project->cover_image);
+        $this->assertNotSame($oldCover, $project->cover_image);
+        Storage::disk('public')->assertExists($project->cover_image);
+        Storage::disk('public')->assertMissing($oldCover);
+        $this->assertSame($project->cover_image, $response->json('cover.path'));
+    }
 }

@@ -166,8 +166,8 @@ export default function Residential({
                 <section className="rl-awards" aria-label="Awards">
                     <div className="rl-awards-marquee">
                         <div className="rl-awards-marquee__track">
-                            {[...AWARDS, ...AWARDS].map((a, i) => (
-                                <article className="rl-award" key={`${a.badge}-${i}`}>
+                            {AWARDS.map((a) => (
+                                <article className="rl-award" key={a.badge}>
                                     <div className="rl-award__badge">
                                         <img src={`${IMG}/awards/${a.badge}`} alt={a.title} loading="lazy" />
                                     </div>

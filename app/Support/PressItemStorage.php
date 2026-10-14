@@ -11,12 +11,13 @@ class PressItemStorage
 {
     public function storeCover(PressItem $item, UploadedFile $file): string
     {
-        if ($item->cover_image) {
-            $this->deletePath($item->cover_image);
-        }
-
+        $previous = $item->cover_image;
         $path = $this->storeFile($item, $file, 'cover', optimize: true);
         $item->forceFill(['cover_image' => $path])->save();
+
+        if (is_string($previous) && $previous !== '' && $previous !== $path) {
+            $this->deletePath($previous);
+        }
 
         return $path;
     }
@@ -31,12 +32,13 @@ class PressItemStorage
 
     public function storePdf(PressItem $item, UploadedFile $file): string
     {
-        if ($item->pdf_path) {
-            $this->deletePath($item->pdf_path);
-        }
-
+        $previous = $item->pdf_path;
         $path = $this->storeFile($item, $file, 'pdf', optimize: false);
         $item->forceFill(['pdf_path' => $path])->save();
+
+        if (is_string($previous) && $previous !== '' && $previous !== $path) {
+            $this->deletePath($previous);
+        }
 
         return $path;
     }
@@ -67,6 +69,9 @@ class PressItemStorage
         $name = Str::uuid()->toString().'.'.$ext;
         $directory = "press/{$item->id}/{$folder}";
         $path = $file->storeAs($directory, $name, 'public');
+        if (! is_string($path) || $path === '') {
+            throw new \RuntimeException('Failed to store press file.');
+        }
 
         if ($optimize) {
             $this->optimizeInPlace($path);

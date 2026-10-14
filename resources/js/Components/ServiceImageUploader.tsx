@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
+import { router } from '@inertiajs/react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 type ImageItem = {
     path: string;
@@ -30,10 +31,12 @@ export default function ServiceImageUploader({
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState('');
     const [message, setMessage] = useState('');
+    const existingKey = useMemo(() => existing.map((i) => i.path).join('\0'), [existing]);
 
+    // Sync from server props only when paths change — not on every new array identity from the parent.
     useEffect(() => {
         setItems(existing);
-    }, [existing]);
+    }, [existingKey]);
 
     const base = `/admin/services/${serviceSlug}/images`;
 
@@ -68,8 +71,10 @@ export default function ServiceImageUploader({
                     const json = JSON.parse(xhr.responseText);
                     if (collection === 'cover' && json.cover) {
                         setItems([json.cover]);
+                        router.reload({ preserveScroll: true });
                     } else if (json.images) {
                         setItems(json.images as ImageItem[]);
+                        router.reload({ preserveScroll: true });
                     }
                     setMessage(json.message ?? 'Uploaded.');
                 } catch {

@@ -1,3 +1,4 @@
+import { router } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 
 type ImageItem = {
@@ -30,7 +31,7 @@ export default function ArticleImageUploader({
 
     useEffect(() => {
         setItem(existing);
-    }, [existing]);
+    }, [existing?.path ?? '']);
 
     const base = `/admin/articles/${articleSlug}/images`;
 
@@ -65,6 +66,7 @@ export default function ArticleImageUploader({
                     const json = JSON.parse(xhr.responseText);
                     if (json.cover) {
                         setItem(json.cover as ImageItem);
+                        router.reload({ preserveScroll: true });
                     }
                     setMessage(json.message ?? 'Uploaded.');
                 } catch {

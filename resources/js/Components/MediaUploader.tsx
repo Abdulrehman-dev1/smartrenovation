@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { router } from '@inertiajs/react';
+import { useEffect, useMemo, useState } from 'react';
 
 type MediaItem = {
     id: number;
@@ -36,10 +37,12 @@ export default function MediaUploader({
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState('');
     const [message, setMessage] = useState('');
+    const existingKey = useMemo(() => existing.map((i) => String(i.id)).join('\0'), [existing]);
 
+    // Sync from server props only when media ids change — not on every new array identity.
     useEffect(() => {
         setItems(existing);
-    }, [existing]);
+    }, [existingKey]);
 
     // Poll pending conversions for a short window after upload.
     useEffect(() => {
@@ -103,6 +106,7 @@ export default function MediaUploader({
                     const next = (json.media ?? []) as MediaItem[];
                     setItems((prev) => (collection === 'cover' ? next : [...prev, ...next]));
                     setMessage(json.message ?? 'Uploaded. Optimizations are queued.');
+                    router.reload({ preserveScroll: true });
                 } catch {
                     setMessage('Uploaded. Optimizations are queued.');
                 }

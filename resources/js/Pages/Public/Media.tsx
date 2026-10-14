@@ -1,5 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import PublicLayout from '../../Layouts/PublicLayout';
 import { WA_TRACK_CLASS, WaIcon } from '../../Components/Public/WaFloat';
 import { useSiteContact } from '@/hooks/useSiteContact';
@@ -32,35 +32,10 @@ export default function Media({ articles, press, awards, tab: initialTab = 'arti
     const [tab, setTab] = useState(
         TABS.some(([id]) => id === initialTab) ? initialTab : 'articles',
     );
-    const panelRef = useRef<HTMLDivElement | null>(null);
-
     useEffect(() => {
         const t = new URLSearchParams(window.location.search).get('tab');
         if (t && TABS.some(([id]) => id === t)) setTab(t);
     }, []);
-
-    useEffect(() => {
-        const root = panelRef.current;
-        if (!root) return;
-        const els = root.querySelectorAll('.reveal:not(.in), .reveal-img:not(.in)');
-        if (!('IntersectionObserver' in window)) {
-            els.forEach((e) => e.classList.add('in'));
-            return;
-        }
-        const io = new IntersectionObserver(
-            (entries) =>
-                entries.forEach((e) => {
-                    if (e.isIntersecting) {
-                        e.target.classList.add('in');
-                        e.target.querySelectorAll?.('.reveal-img:not(.in)').forEach((c) => c.classList.add('in'));
-                        io.unobserve(e.target);
-                    }
-                }),
-            { threshold: 0, rootMargin: '0px 0px -6% 0px' },
-        );
-        els.forEach((e) => io.observe(e));
-        return () => io.disconnect();
-    }, [tab]);
 
     const pickTab = (id: string) => {
         setTab(id);
@@ -96,7 +71,7 @@ export default function Media({ articles, press, awards, tab: initialTab = 'arti
                     ))}
                 </nav>
 
-                <div className="media-panel" ref={panelRef} key={tab}>
+                <div className="media-panel" key={tab}>
                     {tab === 'articles' && (
                         <div className="media-grid">
                             {articles.map((a) => (
