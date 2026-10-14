@@ -76,6 +76,8 @@
 .portfolio__grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0;width:100vw;margin-left:50%;transform:translateX(-50%);}
 .card{position:relative;display:block;overflow:hidden;}
 .card__media{position:relative;overflow:hidden;aspect-ratio:3/4;}
+.card__media img{transition:transform 1.4s var(--ease);}
+.card:hover .card__media img{transform:scale(1.06);}
 /* caption overlays the photo on hover so no white bands appear between rows */
 .card__row{
   position:absolute;left:0;right:0;bottom:0;z-index:2;
@@ -146,7 +148,8 @@
 .slider__track img{-webkit-user-drag:none;user-select:none;pointer-events:none;}
 .slide{position:relative;flex:0 0 auto;width:clamp(300px,42vw,600px);}
 .slide__media{position:relative;overflow:hidden;aspect-ratio:3/2;}
-.slide__media img{pointer-events:none;}
+.slide__media img{transition:transform 1.2s var(--ease);pointer-events:none;}
+.slide:hover .slide__media img{transform:scale(1.05);}
 .slide__scrim{display:none;}
 .slide__cap{padding:18px 2px 0;color:var(--ink);}
 .slide__year{font-family:var(--font-ui);font-size:11px;letter-spacing:.2em;color:var(--muted);}
