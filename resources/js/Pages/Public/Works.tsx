@@ -281,8 +281,7 @@ export default function Works({ projects, roomPhotos, filters, taxonomy }: Props
                         Our Work, <em>Across Dubai.</em>
                     </h1>
                     <p className="works-intro__lead reveal" data-delay="2">
-                        Turnkey renovation and fit-out across the city&apos;s most established communities — held by one
-                        studio from design to handover.
+                        Design and fit-out across the best communities — turnkey.
                     </p>
                 </section>
 

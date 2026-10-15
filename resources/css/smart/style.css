@@ -59,6 +59,7 @@
   padding:16px clamp(20px,4vw,48px);
   background:rgba(236,231,224,.88);backdrop-filter:blur(14px);
   border-bottom:1px solid var(--line-soft);
+  transition:padding .4s var(--ease),background .4s var(--ease);
 }
 .site-header.scrolled{padding:10px clamp(20px,4vw,48px);background:rgba(236,231,224,.96);}
 .site-nav{display:flex;gap:clamp(14px,1.7vw,26px);}
@@ -66,17 +67,17 @@
 .site-nav--right{justify-self:end;align-items:center;}
 .site-nav a{
   font-family:var(--font-ui);font-size:11.5px;letter-spacing:.13em;text-transform:uppercase;
-  color:var(--ink);font-weight:500;position:relative;padding:4px 0;opacity:.85;white-space:nowrap;
+  color:var(--ink);font-weight:500;position:relative;padding:4px 0;opacity:.85;transition:opacity .3s;white-space:nowrap;
 }
 .site-nav a:hover{opacity:1;}
-.site-nav a::after{content:"";position:absolute;left:0;bottom:0;width:0;height:1px;background:var(--ink);}
+.site-nav a::after{content:"";position:absolute;left:0;bottom:0;width:0;height:1px;background:var(--ink);transition:width .4s var(--ease);}
 .site-nav a:hover::after{width:100%;}
 
 .brand{justify-self:center;display:flex;align-items:center;gap:11px;}
-.brand__icon{height:38px;width:38px;display:block;flex-shrink:0;object-fit:contain;}
+.brand__icon{height:38px;width:38px;display:block;flex-shrink:0;object-fit:contain;transition:height .4s var(--ease),width .4s var(--ease);}
 .brand__word{
   font-family:var(--font-ui);font-size:16px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;
-  color:var(--ink);white-space:nowrap;line-height:1;
+  color:var(--ink);white-space:nowrap;line-height:1;transition:font-size .4s var(--ease);
 }
 .site-header.scrolled .brand__icon,
 .smart-site .site-header.scrolled .brand__icon{height:32px;width:32px;max-width:32px;max-height:32px;}
@@ -87,7 +88,7 @@
 
 .burger{display:none;flex-direction:column;gap:5px;width:26px;justify-self:end;}
 .mobile-menu{display:none;}
-.burger span{height:2px;background:var(--ink);border-radius:2px;}
+.burger span{height:2px;background:var(--ink);border-radius:2px;transition:.35s var(--ease);}
 
 /* =========================================================
    BUTTONS / CTAs
@@ -96,9 +97,11 @@
   display:inline-flex;align-items:center;justify-content:center;gap:10px;
   padding:15px 28px;border-radius:40px;
   font-family:var(--font-ui);font-size:12px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;
+  transition:transform .4s var(--ease),background .4s var(--ease),color .4s var(--ease),border-color .4s var(--ease);
   white-space:nowrap;
 }
 .smart-site .btn svg{width:16px;height:16px;}
+.smart-site .btn:hover{transform:translateY(-2px);}
 .smart-site .btn--wa{background:var(--wa);color:#fff;}
 .smart-site .btn--wa:hover{background:#1ebe5a;}
 .smart-site .btn--solid{background:var(--ink);color:#fff;}
@@ -117,8 +120,9 @@
   position:fixed;right:clamp(18px,2vw,28px);bottom:clamp(18px,2vw,28px);z-index:120;
   width:58px;height:58px;border-radius:50%;background:var(--wa);
   display:flex;align-items:center;justify-content:center;
-  box-shadow:0 12px 30px rgba(37,211,102,.4);
+  box-shadow:0 12px 30px rgba(37,211,102,.4);transition:transform .4s var(--ease);
 }
+.wa-float:hover{transform:scale(1.08);}
 .wa-float svg{width:30px;height:30px;}
 
 /* Call button — sits above the WhatsApp float, mobile web only */
@@ -128,10 +132,10 @@
   bottom:calc(clamp(18px,2vw,28px) + 70px);z-index:120;
   width:54px;height:54px;border-radius:50%;background:var(--ink);color:#fff;
   align-items:center;justify-content:center;
-  box-shadow:0 12px 30px rgba(16,16,16,.32);
+  box-shadow:0 12px 30px rgba(16,16,16,.32);transition:transform .4s var(--ease);
 }
 .smart-site a.call-float svg,.call-float svg{width:26px;height:26px;fill:currentColor;color:#fff;}
-.smart-site a.call-float:hover,.call-float:hover{color:#fff;}
+.smart-site a.call-float:hover,.call-float:hover{transform:scale(1.08);color:#fff;}
 @media (max-width:760px){ .smart-site a.call-float,.call-float{display:flex;} }
 
 /* =========================================================
@@ -267,7 +271,7 @@
   transition:none !important;
 }
 
-/* Keep image hover zoom only */
+/* Keep image zoom, slider smoothness, and UI hover polish */
 .smart-site .card__media img,
 .smart-site .slide__media img,
 .smart-site .work__media img,
@@ -275,4 +279,116 @@
 .smart-site .media-card__media img,
 .smart-site .pin__media img{
   transition:transform 1.3s var(--ease) !important;
+}
+.smart-site .slider__track{
+  transition:transform .7s var(--ease) !important;
+}
+.smart-site .slider__track.dragging{
+  transition:none !important;
+}
+.smart-site .slider__dots button{
+  transition:background .35s,transform .35s !important;
+}
+.smart-site .slider__arrow{
+  transition:background .35s var(--ease),color .35s var(--ease),border-color .35s !important;
+}
+
+.smart-site .btn{
+  transition:transform .4s var(--ease),background .4s var(--ease),color .4s var(--ease),border-color .4s var(--ease) !important;
+}
+.smart-site .site-nav a{
+  transition:opacity .3s !important;
+}
+.smart-site .site-nav a::after{
+  transition:width .4s var(--ease) !important;
+}
+.smart-site .site-header{
+  transition:padding .4s var(--ease),background .4s var(--ease) !important;
+}
+.smart-site .brand__icon{
+  transition:height .4s var(--ease),width .4s var(--ease) !important;
+}
+.smart-site .brand__word{
+  transition:font-size .4s var(--ease) !important;
+}
+.smart-site .burger span{
+  transition:.35s var(--ease) !important;
+}
+.smart-site .wa-float,
+.smart-site a.call-float,
+.smart-site .call-float{
+  transition:transform .4s var(--ease) !important;
+}
+.smart-site .site-footer__col a,
+.smart-site .site-footer__col span{
+  transition:color .3s !important;
+}
+.smart-site .contact-form input,
+.smart-site .contact-form textarea{
+  transition:border-color .3s !important;
+}
+.smart-site .styles__list li a{
+  transition:padding-left .45s var(--ease),color .45s var(--ease) !important;
+}
+.smart-site .styles__arrow{
+  transition:transform .45s var(--ease),color .45s !important;
+}
+.smart-site .media-tab{
+  transition:color .35s var(--ease) !important;
+}
+.smart-site .media-tab::after{
+  transition:width .4s var(--ease) !important;
+}
+.smart-site .media-card__title{
+  transition:opacity .35s var(--ease) !important;
+}
+.smart-site .back-link{
+  transition:color .3s !important;
+}
+.smart-site .reviews__badge{
+  transition:opacity .3s var(--ease) !important;
+}
+.smart-site .hero__scroll{
+  transition:background .3s var(--ease) !important;
+}
+.smart-site button.pill,
+.smart-site .filters .pill{
+  transition:color .3s var(--ease),background .3s var(--ease),border-color .3s var(--ease) !important;
+}
+.smart-site .filters__search-input{
+  transition:border-color .3s var(--ease) !important;
+}
+.smart-site button.filters__search-clear,
+.smart-site .filters__search-clear{
+  transition:color .25s,background .25s !important;
+}
+.smart-site button.filters__search-btn,
+.smart-site .filters__search-btn{
+  transition:opacity .3s var(--ease),background .3s var(--ease),color .3s var(--ease) !important;
+}
+.smart-site button.filters__dropdown-trigger,
+.smart-site .filters__dropdown-trigger{
+  transition:border-color .25s var(--ease),background .25s var(--ease),box-shadow .25s var(--ease) !important;
+}
+.smart-site .filters__dropdown-chevron{
+  transition:transform .25s var(--ease),color .25s var(--ease) !important;
+}
+.smart-site button.filters__dropdown-option,
+.smart-site .filters__dropdown-option{
+  transition:background .2s,color .2s !important;
+}
+.smart-site .filters__reset-btn{
+  transition:opacity .3s !important;
+}
+.smart-site .next-project__title{
+  transition:opacity .4s !important;
+}
+.smart-site .pin__media::after{
+  transition:background .5s var(--ease) !important;
+}
+.smart-site .pin__tag{
+  transition:opacity .5s var(--ease) !important;
+}
+.smart-site .card__row{
+  transition:opacity .5s var(--ease) !important;
 }

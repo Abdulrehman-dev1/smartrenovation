@@ -16,9 +16,9 @@ class ProjectTaxonomy
             'villa' => 'Villas',
             'apartment' => 'Apartments',
             'penthouse' => 'Penthouses',
+            'commercial' => 'Commercial',
             'residence' => 'Residences',
             'landscape' => 'Landscape',
-            'commercial' => 'Commercial',
         ];
     }
 
@@ -31,9 +31,9 @@ class ProjectTaxonomy
             'villa' => 'Villa',
             'apartment' => 'Apartment',
             'penthouse' => 'Penthouse',
+            'commercial' => 'Commercial',
             'residence' => 'Residence',
             'landscape' => 'Landscape Design',
-            'commercial' => 'Commercial',
         ];
     }
 
@@ -438,17 +438,19 @@ class ProjectTaxonomy
      */
     public static function formOptions(): array
     {
+        $categoryOrder = array_flip(array_keys(self::categories()));
+
         return [
             'categories' => Category::query()
-                ->orderBy('name')
                 ->get(['id', 'slug', 'name', 'type_label'])
+                ->sortBy(fn (Category $c) => $categoryOrder[$c->slug] ?? 999)
+                ->values()
                 ->map(fn (Category $c) => [
                     'id' => $c->id,
                     'value' => $c->slug,
                     'label' => $c->name,
                     'type_label' => $c->type_label,
                 ])
-                ->values()
                 ->all(),
             'locations' => Location::query()
                 ->orderBy('name')
