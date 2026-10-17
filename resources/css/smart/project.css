@@ -30,7 +30,8 @@
 
 .project-gallery{
   display:grid;
-  grid-template-columns:repeat(3,minmax(0,1fr));
+  /* 6 cols so last-row leftovers can fill evenly: 1→100%, 2→50/50, else 33/33/33 */
+  grid-template-columns:repeat(6,minmax(0,1fr));
   gap:0;
   width:100%;
   padding:0;
@@ -39,6 +40,17 @@
 .smart-site button.project-gallery__item,.project-gallery__item,.project-gallery figure{
   display:block;margin:0;padding:0;overflow:hidden;aspect-ratio:3/2;
   background:var(--bg-tint);border:none;cursor:zoom-in;
+  grid-column:span 2;
+}
+/* 1 leftover in last row → hide (avoid awkward full-width orphan) */
+.project-gallery > :last-child:nth-child(3n + 1){
+  display:none;
+}
+/* 2 leftovers in last row → 50% each, same height as a normal cell */
+.project-gallery > :nth-last-child(2):nth-child(3n + 1),
+.project-gallery > :last-child:nth-child(3n + 2){
+  grid-column:span 3;
+  aspect-ratio:9/4;
 }
 .project-gallery img,.project-gallery__item img{
   width:100%;
