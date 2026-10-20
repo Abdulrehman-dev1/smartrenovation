@@ -84,6 +84,49 @@ class ProjectImageStorage
     }
 
     /**
+     * Promote a gallery image to cover; previous cover takes its place in the same collection.
+     * Files stay on disk — only database references are swapped.
+     *
+     * @throws \InvalidArgumentException When the path is not in the given gallery field.
+     */
+    public function promoteToCover(Project $project, string $path, string $field = 'gallery_images'): void
+    {
+        $items = $project->normalizedGallery($field);
+        $index = null;
+        $promoted = null;
+
+        foreach ($items as $i => $item) {
+            if ($item['path'] === $path) {
+                $index = $i;
+                $promoted = $item;
+                break;
+            }
+        }
+
+        if ($promoted === null || $index === null) {
+            throw new \InvalidArgumentException('Image not found in gallery.');
+        }
+
+        $previousCover = $project->cover_image;
+        array_splice($items, $index, 1);
+
+        if (is_string($previousCover) && $previousCover !== '') {
+            array_splice($items, $index, 0, [[
+                'path' => $previousCover,
+                'room' => $promoted['room'] ?? ProjectTaxonomy::OTHER_ROOM,
+            ]]);
+        }
+
+        $project->forceFill([
+            'cover_image' => $promoted['path'],
+            $field => array_values($items),
+        ])->save();
+
+        $project->syncRoomsFromGallery();
+        $project->pruneCollectionImages();
+    }
+
+    /**
      * @param  list<string>  $orderedPaths
      */
     public function reorder(Project $project, string $field, array $orderedPaths): void

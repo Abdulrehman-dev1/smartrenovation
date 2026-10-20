@@ -119,18 +119,15 @@ export default function ProjectFormTabs({
         <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
             <div className="border-b border-slate-200 bg-slate-50/80 px-2 pt-2 sm:px-4">
                 <nav className="-mb-px flex gap-1 overflow-x-auto" aria-label="Project form sections">
-                    {TABS.map((item) => {
+                    {TABS.filter((item) => {
+                        if (item.id === 'collection' && !collectionEnabled) return false;
+                        return true;
+                    }).map((item) => {
                         const active = tab === item.id;
                         const hasError = errorFlags[item.id];
-                        const disabled =
-                            (item.id === 'collection' && !collectionEnabled) ||
-                            (item.id === 'rooms' && !roomsEnabled);
+                        const disabled = item.id === 'rooms' && !roomsEnabled;
                         const disabledHint =
-                            item.id === 'collection'
-                                ? 'Add images in the Images tab first.'
-                                : item.id === 'rooms'
-                                  ? 'Add gallery images in the Images tab first.'
-                                  : undefined;
+                            item.id === 'rooms' ? 'Add gallery images in the Images tab first.' : undefined;
                         return (
                             <button
                                 key={item.id}
@@ -163,11 +160,7 @@ export default function ProjectFormTabs({
                 </nav>
             </div>
             <div className="p-4 sm:p-6">
-                {tab === 'collection' && !collectionEnabled ? (
-                    <p className="rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-600">
-                        Add images in the Images tab first.
-                    </p>
-                ) : tab === 'rooms' && !roomsEnabled ? (
+                {tab === 'rooms' && !roomsEnabled ? (
                     <p className="rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-600">
                         Add gallery images in the Images tab first.
                     </p>

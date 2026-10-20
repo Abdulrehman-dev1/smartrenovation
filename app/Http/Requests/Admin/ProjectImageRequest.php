@@ -43,6 +43,13 @@ class ProjectImageRequest extends FormRequest
             ];
         }
 
+        if ($this->isMethod('post') && $this->routeIs('admin.projects.images.promote-cover')) {
+            return [
+                'collection' => ['required', Rule::in(['gallery', 'gallery_hidden'])],
+                'path' => ['required', 'string'],
+            ];
+        }
+
         return [
             'collection' => ['required', Rule::in(['cover', 'gallery', 'gallery_hidden'])],
             'files' => ['required', 'array', 'min:1'],

@@ -141,6 +141,34 @@ export default function ServiceImageUploader({
         }
     };
 
+    const promoteCover = async (path: string) => {
+        setBusy(true);
+        setError('');
+        const res = await fetch(`${base}/promote-cover`, {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken(),
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: JSON.stringify({ path }),
+        });
+        setBusy(false);
+
+        if (!res.ok) {
+            setError('Could not set image as cover.');
+            return;
+        }
+
+        const json = (await res.json()) as { images?: ImageItem[]; message?: string };
+        if (json.images) {
+            setItems(json.images);
+        }
+        setMessage(json.message ?? 'Cover updated.');
+        router.reload();
+    };
+
     const inputRef = useRef<HTMLInputElement>(null);
     const addLabel = busy
         ? 'Uploading…'
@@ -203,9 +231,18 @@ export default function ServiceImageUploader({
                                         <>
                                             <button
                                                 type="button"
+                                                className="rounded border px-1.5 py-0.5 text-[10px] font-medium disabled:opacity-40"
+                                                onClick={() => promoteCover(item.path)}
+                                                disabled={busy}
+                                                title="Swap with cover image"
+                                            >
+                                                Set as cover
+                                            </button>
+                                            <button
+                                                type="button"
                                                 className="rounded border px-1.5 py-0.5 text-[10px] disabled:opacity-40"
                                                 onClick={() => move(index, -1)}
-                                                disabled={index === 0}
+                                                disabled={index === 0 || busy}
                                                 title="Move left"
                                             >
                                                 ←
@@ -214,7 +251,7 @@ export default function ServiceImageUploader({
                                                 type="button"
                                                 className="rounded border px-1.5 py-0.5 text-[10px] disabled:opacity-40"
                                                 onClick={() => move(index, 1)}
-                                                disabled={index === items.length - 1}
+                                                disabled={index === items.length - 1 || busy}
                                                 title="Move right"
                                             >
                                                 →
@@ -223,8 +260,9 @@ export default function ServiceImageUploader({
                                     )}
                                     <button
                                         type="button"
-                                        className="rounded border border-rose-200 px-1.5 py-0.5 text-[10px] text-rose-600"
+                                        className="rounded border border-rose-200 px-1.5 py-0.5 text-[10px] text-rose-600 disabled:opacity-40"
                                         onClick={() => remove(item.path)}
+                                        disabled={busy}
                                     >
                                         Remove
                                     </button>

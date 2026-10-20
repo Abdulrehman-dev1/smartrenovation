@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\AwardImageController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\CollectionItemController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\EditorUploadController;
 use App\Http\Controllers\Admin\LeadController;
 use App\Http\Controllers\Admin\LocationController;
 use App\Http\Controllers\Admin\MediaUploadController;
@@ -15,6 +16,7 @@ use App\Http\Controllers\Admin\PressController;
 use App\Http\Controllers\Admin\PressImageController;
 use App\Http\Controllers\Admin\PressPdfController;
 use App\Http\Controllers\Admin\ProjectController;
+use App\Http\Controllers\Admin\ProjectImageController;
 use App\Http\Controllers\Admin\RedirectController;
 use App\Http\Controllers\Admin\ReviewController;
 use App\Http\Controllers\Admin\ServiceController;
@@ -36,16 +38,18 @@ Route::middleware(['auth', 'verified'])
             Route::post('locations', [LocationController::class, 'store'])->name('locations.store');
             Route::put('locations/{location}', [LocationController::class, 'update'])->name('locations.update');
             Route::delete('locations/{location}', [LocationController::class, 'destroy'])->name('locations.destroy');
-            Route::post('projects/{project}/images', [\App\Http\Controllers\Admin\ProjectImageController::class, 'store'])
+            Route::post('projects/{project}/images', [ProjectImageController::class, 'store'])
                 ->name('projects.images.store');
-            Route::delete('projects/{project}/images', [\App\Http\Controllers\Admin\ProjectImageController::class, 'destroy'])
+            Route::delete('projects/{project}/images', [ProjectImageController::class, 'destroy'])
                 ->name('projects.images.destroy');
-            Route::post('projects/{project}/images/reorder', [\App\Http\Controllers\Admin\ProjectImageController::class, 'reorder'])
+            Route::post('projects/{project}/images/reorder', [ProjectImageController::class, 'reorder'])
                 ->name('projects.images.reorder');
-            Route::post('projects/{project}/images/transfer', [\App\Http\Controllers\Admin\ProjectImageController::class, 'transfer'])
+            Route::post('projects/{project}/images/transfer', [ProjectImageController::class, 'transfer'])
                 ->name('projects.images.transfer');
-            Route::post('projects/{project}/images/rooms', [\App\Http\Controllers\Admin\ProjectImageController::class, 'updateRooms'])
+            Route::post('projects/{project}/images/rooms', [ProjectImageController::class, 'updateRooms'])
                 ->name('projects.images.rooms');
+            Route::post('projects/{project}/images/promote-cover', [ProjectImageController::class, 'promoteCover'])
+                ->name('projects.images.promote-cover');
             Route::resource('services', ServiceController::class);
             Route::post('services/{service}/images', [ServiceImageController::class, 'store'])
                 ->name('services.images.store');
@@ -53,6 +57,8 @@ Route::middleware(['auth', 'verified'])
                 ->name('services.images.destroy');
             Route::post('services/{service}/images/reorder', [ServiceImageController::class, 'reorder'])
                 ->name('services.images.reorder');
+            Route::post('services/{service}/images/promote-cover', [ServiceImageController::class, 'promoteCover'])
+                ->name('services.images.promote-cover');
             Route::resource('articles', ArticleController::class);
             Route::post('articles/{article}/images', [ArticleImageController::class, 'store'])
                 ->name('articles.images.store');
@@ -94,7 +100,7 @@ Route::middleware(['auth', 'verified'])
             Route::get('media/{media}/status', [MediaUploadController::class, 'status'])->name('media.status');
             Route::delete('media/{media}', [MediaUploadController::class, 'destroy'])->name('media.destroy');
 
-            Route::post('editor-uploads', [\App\Http\Controllers\Admin\EditorUploadController::class, 'store'])
+            Route::post('editor-uploads', [EditorUploadController::class, 'store'])
                 ->name('editor-uploads.store');
         });
     });

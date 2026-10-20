@@ -132,6 +132,32 @@ class ProjectImageController extends Controller
         ]);
     }
 
+    public function promoteCover(ProjectImageRequest $request, Project $project): JsonResponse
+    {
+        $this->authorizeProject($project);
+
+        $collection = $request->validated('collection');
+        $field = $collection === 'gallery_hidden' ? 'gallery_hidden' : 'gallery_images';
+
+        try {
+            $this->images->promoteToCover($project, $request->validated('path'), $field);
+        } catch (\InvalidArgumentException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+
+        $project->refresh();
+
+        return response()->json([
+            'message' => 'Cover updated.',
+            'cover' => $project->cover_image
+                ? ['path' => $project->cover_image, 'url' => $project->coverUrl(), 'name' => basename($project->cover_image)]
+                : null,
+            'gallery' => $project->presentGallery('gallery_images'),
+            'gallery_hidden' => $project->presentGallery('gallery_hidden'),
+            'rooms' => $project->rooms,
+        ]);
+    }
+
     private function authorizeProject(Project $project): void
     {
         $user = request()->user();

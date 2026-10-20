@@ -77,6 +77,27 @@ class ServiceImageController extends Controller
         ]);
     }
 
+    public function promoteCover(ServiceImageRequest $request, Service $service): JsonResponse
+    {
+        $this->authorizeService();
+
+        try {
+            $this->images->promoteToCover($service, $request->validated('path'));
+        } catch (\InvalidArgumentException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+
+        $service->refresh();
+
+        return response()->json([
+            'message' => 'Cover updated.',
+            'cover' => $service->cover_image
+                ? ['path' => $service->cover_image, 'url' => $service->coverUrl(), 'name' => basename($service->cover_image)]
+                : null,
+            'images' => $service->presentGallery(),
+        ]);
+    }
+
     private function authorizeService(): void
     {
         $user = request()->user();

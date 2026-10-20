@@ -1,3 +1,4 @@
+import { router } from '@inertiajs/react';
 import { useEffect, useRef, useState, type RefObject } from 'react';
 
 type ImageItem = {
@@ -53,6 +54,7 @@ function GalleryPanel({
     onUpload,
     onRemove,
     onMove,
+    onPromoteCover,
     onTransfer,
     onAssignRoom,
     transferLabel,
@@ -72,6 +74,7 @@ function GalleryPanel({
     onUpload: (files: FileList | null) => void;
     onRemove: (path: string) => void;
     onMove: (index: number, direction: -1 | 1) => void;
+    onPromoteCover: (path: string) => void;
     onTransfer: () => void;
     onAssignRoom: (room: string) => void;
     transferLabel: string;
@@ -226,36 +229,48 @@ function GalleryPanel({
                                                         onClick={() => onToggle(item.path)}
                                                     />
                                                 </div>
-                                                <div className="flex items-center gap-1 border-t border-slate-100 px-2 py-1.5">
-                                                    <p className="min-w-0 flex-1 truncate text-[11px] text-slate-500" title={item.name}>
+                                                <div className="space-y-1 border-t border-slate-100 px-2 py-1.5">
+                                                    <p className="truncate text-[11px] text-slate-500" title={item.name}>
                                                         {item.name}
                                                     </p>
-                                                    <button
-                                                        type="button"
-                                                        className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-800 disabled:opacity-30"
-                                                        onClick={() => onMove(index, -1)}
-                                                        disabled={index === 0}
-                                                        title="Move earlier"
-                                                    >
-                                                        ←
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-800 disabled:opacity-30"
-                                                        onClick={() => onMove(index, 1)}
-                                                        disabled={index === items.length - 1}
-                                                        title="Move later"
-                                                    >
-                                                        →
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-rose-500 hover:bg-rose-50 hover:text-rose-700"
-                                                        onClick={() => onRemove(item.path)}
-                                                        title="Remove"
-                                                    >
-                                                        ×
-                                                    </button>
+                                                    <div className="flex items-center gap-1">
+                                                        <button
+                                                            type="button"
+                                                            className="rounded border border-slate-200 px-1.5 py-0.5 text-[10px] font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                                                            onClick={() => onPromoteCover(item.path)}
+                                                            disabled={busy}
+                                                            title="Swap with cover image"
+                                                        >
+                                                            Set as cover
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-800 disabled:opacity-30"
+                                                            onClick={() => onMove(index, -1)}
+                                                            disabled={index === 0 || busy}
+                                                            title="Move earlier"
+                                                        >
+                                                            ←
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-800 disabled:opacity-30"
+                                                            onClick={() => onMove(index, 1)}
+                                                            disabled={index === items.length - 1 || busy}
+                                                            title="Move later"
+                                                        >
+                                                            →
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-rose-500 hover:bg-rose-50 hover:text-rose-700 disabled:opacity-50"
+                                                            onClick={() => onRemove(item.path)}
+                                                            disabled={busy}
+                                                            title="Remove"
+                                                        >
+                                                            ×
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         );
@@ -520,6 +535,47 @@ export default function ProjectDualGallery({
         setMessage(json.message ?? 'Rooms updated.');
     };
 
+    const promoteCover = async (collection: 'gallery' | 'gallery_hidden', path: string) => {
+        setBusy(true);
+        setError('');
+        const res = await fetch(`${base}/promote-cover`, {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken(),
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: JSON.stringify({ collection, path }),
+        });
+        setBusy(false);
+
+        if (!res.ok) {
+            setError('Could not set image as cover.');
+            return;
+        }
+
+        const json = (await res.json()) as {
+            gallery: ImageItem[];
+            gallery_hidden: ImageItem[];
+            message?: string;
+        };
+        setGalleryItems(json.gallery ?? []);
+        setHiddenItems(json.gallery_hidden ?? []);
+        setSelectedGallery((prev) => {
+            const next = new Set(prev);
+            next.delete(path);
+            return next;
+        });
+        setSelectedHidden((prev) => {
+            const next = new Set(prev);
+            next.delete(path);
+            return next;
+        });
+        setMessage(json.message ?? 'Cover updated.');
+        router.reload();
+    };
+
     return (
         <div className="space-y-4">
             {error && <p className="text-xs font-medium text-rose-600">{error}</p>}
@@ -544,6 +600,7 @@ export default function ProjectDualGallery({
                 onUpload={(files) => upload('gallery', files)}
                 onRemove={(path) => remove('gallery', path)}
                 onMove={(index, dir) => reorder('gallery', galleryItems, index, dir)}
+                onPromoteCover={(path) => promoteCover('gallery', path)}
                 onTransfer={() => transfer('gallery', 'gallery_hidden')}
                 onAssignRoom={(room) => assignRoom('gallery', selectedGallery, room)}
                 transferLabel="Move to hidden"
@@ -571,6 +628,7 @@ export default function ProjectDualGallery({
                 onUpload={(files) => upload('gallery_hidden', files)}
                 onRemove={(path) => remove('gallery_hidden', path)}
                 onMove={(index, dir) => reorder('gallery_hidden', hiddenItems, index, dir)}
+                onPromoteCover={(path) => promoteCover('gallery_hidden', path)}
                 onTransfer={() => transfer('gallery_hidden', 'gallery')}
                 onAssignRoom={(room) => assignRoom('gallery_hidden', selectedHidden, room)}
                 transferLabel="Move to gallery"

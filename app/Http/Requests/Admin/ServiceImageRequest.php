@@ -23,6 +23,12 @@ class ServiceImageRequest extends FormRequest
             ];
         }
 
+        if ($this->isMethod('post') && $this->routeIs('admin.services.images.promote-cover')) {
+            return [
+                'path' => ['required', 'string'],
+            ];
+        }
+
         return [
             'collection' => ['required', Rule::in(['cover', 'gallery'])],
             'files' => ['required', 'array', 'min:1'],

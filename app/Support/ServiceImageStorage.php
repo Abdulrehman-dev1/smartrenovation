@@ -65,6 +65,41 @@ class ServiceImageStorage
     }
 
     /**
+     * Promote a gallery image to cover; previous cover takes its place in the gallery.
+     * Files stay on disk — only database references are swapped.
+     *
+     * @throws \InvalidArgumentException When the path is not in the gallery.
+     */
+    public function promoteToCover(Service $service, string $path): void
+    {
+        $items = $service->normalizedGallery();
+        $index = null;
+
+        foreach ($items as $i => $item) {
+            if ($item['path'] === $path) {
+                $index = $i;
+                break;
+            }
+        }
+
+        if ($index === null) {
+            throw new \InvalidArgumentException('Image not found in gallery.');
+        }
+
+        $previousCover = $service->cover_image;
+        array_splice($items, $index, 1);
+
+        if (is_string($previousCover) && $previousCover !== '') {
+            array_splice($items, $index, 0, [['path' => $previousCover]]);
+        }
+
+        $service->forceFill([
+            'cover_image' => $path,
+            'gallery_images' => array_values($items),
+        ])->save();
+    }
+
+    /**
      * @param  list<string>  $orderedPaths
      */
     public function reorder(Service $service, array $orderedPaths): void
