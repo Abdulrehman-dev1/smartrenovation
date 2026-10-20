@@ -40,17 +40,30 @@
 
 .service-gallery{
   display:grid;
-  grid-template-columns:repeat(3,minmax(0,1fr));
+  /* Match project gallery: 6 cols so last-row leftovers fill evenly */
+  grid-template-columns:repeat(6,minmax(0,1fr));
   gap:0;
   width:100%;
   padding:0;
   margin:0;
 }
 .service-gallery figure{
+  display:block;
   margin:0;
   overflow:hidden;
   aspect-ratio:3/2;
   background:var(--bg-tint);
+  grid-column:span 2;
+}
+/* 1 leftover in last row → hide (avoid awkward full-width orphan) */
+.service-gallery > :last-child:nth-child(3n + 1){
+  display:none;
+}
+/* 2 leftovers in last row → 50% each */
+.service-gallery > :nth-last-child(2):nth-child(3n + 1),
+.service-gallery > :last-child:nth-child(3n + 2){
+  grid-column:span 3;
+  aspect-ratio:9/4;
 }
 .service-gallery img{
   width:100%;
@@ -70,8 +83,16 @@
 /* ---------- RESPONSIVE ---------- */
 @media (max-width:820px){
   .svc-grid{grid-template-columns:1fr;}
-  .service-gallery{grid-template-columns:1fr 1fr;}
+  .service-gallery{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .service-gallery figure{grid-column:span 1;aspect-ratio:3/2;}
+  .service-gallery > :last-child:nth-child(3n + 1){display:block;}
+  .service-gallery > :nth-last-child(2):nth-child(3n + 1),
+  .service-gallery > :last-child:nth-child(3n + 2){
+    grid-column:span 1;
+    aspect-ratio:3/2;
+  }
 }
 @media (max-width:520px){
   .service-gallery{grid-template-columns:1fr;}
+  .service-gallery figure{grid-column:1 / -1;}
 }
