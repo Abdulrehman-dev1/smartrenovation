@@ -168,6 +168,8 @@
   overflow:hidden;
   background:var(--line);
   line-height:0;
+  border-radius:var(--photo-radius);
+  box-shadow:var(--photo-shadow);
 }
 .rl-feature__media img{
   width:100%;height:100%;
@@ -190,7 +192,7 @@
 
 .rl-gallery{
   padding:clamp(20px,3vw,40px) clamp(16px,3vw,40px);
-  overflow:hidden;
+  overflow:visible;
   background:var(--bg-soft);
 }
 .rl-gallery__grid{
@@ -207,6 +209,8 @@
   overflow:hidden;
   background:var(--line);
   min-height:0;
+  border-radius:var(--photo-radius);
+  box-shadow:var(--photo-shadow);
 }
 /* Live Modula custom-grid: 3+6+3 / 6+6 on a 12-col track */
 .rl-gallery__grid figure:nth-child(1),
@@ -237,6 +241,7 @@
 }
 .rl-about__media{
   margin:0;aspect-ratio:4/5;overflow:hidden;background:var(--line);
+  border-radius:var(--photo-radius);box-shadow:var(--photo-shadow);
 }
 .rl-about__media img{
   width:100%;height:100%;object-fit:cover;display:block;
@@ -265,6 +270,8 @@
   background:#2a2a2a;
   color:#fff;
   padding:clamp(28px,4vw,48px);
+  border-radius:var(--photo-radius);
+  overflow:hidden;
 }
 .rl-location__title{
   font-size:clamp(22px,2.6vw,34px);
@@ -284,6 +291,7 @@
   overflow:hidden;
   background:#111;
   min-height:220px;
+  border-radius:var(--photo-radius);
 }
 .rl-location__map iframe{
   position:absolute;inset:0;

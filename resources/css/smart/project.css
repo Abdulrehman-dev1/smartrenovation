@@ -23,8 +23,9 @@
 .project-photos--carousel{display:none;}
 
 .smart-site button.project-cover,.project-cover{
-  display:block;width:100%;margin:0;padding:0;overflow:hidden;aspect-ratio:3/2;
+  display:block;width:calc(100% - clamp(28px,4vw,44px));margin:0 auto clamp(10px,1.2vw,16px);padding:0;overflow:hidden;aspect-ratio:3/2;
   border:none;background:var(--bg-tint);cursor:zoom-in;
+  border-radius:var(--photo-radius);box-shadow:var(--photo-shadow);
 }
 .project-cover img{width:100%;height:100%;object-fit:cover;display:block;}
 
@@ -32,15 +33,16 @@
   display:grid;
   /* 6 cols so last-row leftovers can fill evenly: 1→100%, 2→50/50, else 33/33/33 */
   grid-template-columns:repeat(6,minmax(0,1fr));
-  gap:0;
-  width:100%;
-  padding:0;
-  margin:0;
+  gap:clamp(10px,1.2vw,16px);
+  width:calc(100% - clamp(28px,4vw,44px));
+  padding:0 0 clamp(10px,1.2vw,16px);
+  margin:0 auto;
 }
 .smart-site button.project-gallery__item,.project-gallery__item,.project-gallery figure{
   display:block;margin:0;padding:0;overflow:hidden;aspect-ratio:3/2;
   background:var(--bg-tint);border:none;cursor:zoom-in;
   grid-column:span 2;
+  border-radius:var(--photo-radius);box-shadow:var(--photo-shadow);
 }
 /* 1 leftover in last row → hide (avoid awkward full-width orphan) */
 .project-gallery > :last-child:nth-child(3n + 1){
@@ -63,6 +65,7 @@
 .project-carousel{
   position:relative;width:100%;
   background:var(--bg);
+  padding:0 clamp(14px,2vw,22px) 8px;
 }
 .project-carousel__track{
   display:flex;overflow-x:auto;scroll-snap-type:x mandatory;
@@ -74,6 +77,7 @@
   flex:0 0 100%;scroll-snap-align:center;margin:0;padding:0;
   border:none;background:transparent;cursor:zoom-in;
   aspect-ratio:4/5;overflow:hidden;
+  border-radius:var(--photo-radius);box-shadow:var(--photo-shadow);
 }
 .project-carousel__slide img{
   width:100%;height:100%;object-fit:cover;display:block;
@@ -198,7 +202,7 @@ body:has(.project-lightbox) .project-carousel__nav{visibility:hidden;}
 .next-project__label{font-family:var(--font-ui);font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--muted);}
 .next-project__title{font-size:clamp(34px,5.5vw,88px);font-weight:200;color:var(--ink);margin:14px 0 10px;transition:opacity .4s;}
 .next-project__meta{font-family:var(--font-ui);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);}
-.next-project__media{overflow:hidden;height:clamp(240px,42vh,420px);}
+.next-project__media{overflow:hidden;height:clamp(240px,42vh,420px);border-radius:var(--photo-radius);box-shadow:var(--photo-shadow);}
 .next-project__media img{display:block;width:100%;height:100%;object-fit:cover;}
 .next-project:hover .next-project__title{opacity:.55;}
 

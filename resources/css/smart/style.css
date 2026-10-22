@@ -16,6 +16,8 @@
   --wa:#25d366;              /* whatsapp green */
   --ease:cubic-bezier(.22,.61,.36,1);
   --radius:18px;
+  --photo-radius:clamp(16px,2vw,22px);
+  --photo-shadow:0 14px 36px rgba(22,22,22,.14),0 3px 10px rgba(22,22,22,.06);
   --maxw:1320px;
   --font-display:"Geist", ui-sans-serif, system-ui, sans-serif;
   --font-ui:"Montserrat", ui-sans-serif, system-ui, sans-serif;
@@ -32,6 +34,44 @@
 .smart-site a{color:inherit;text-decoration:none;}
 /* Public content images only — exclude header/footer brand mark */
 .smart-site img:not(.brand__icon){display:block;width:100%;height:100%;object-fit:cover;}
+
+/* Rounded + shadow photo frames (all public sections) */
+.smart-site :is(
+  .hero--stacked .hero__media,
+  .card,
+  .feature,
+  .slide__media,
+  .media-card__media,
+  .work__media,
+  .svc-card__media,
+  .pin__media,
+  .article__cover,
+  .article-body img,
+  .about-founders__img,
+  .team-card__media,
+  .project-cover,
+  .project-gallery__item,
+  .project-gallery figure,
+  .project-carousel__slide,
+  .next-project__media,
+  .service-cover,
+  .service-gallery figure,
+  .rl-feature__media,
+  .rl-gallery__grid figure,
+  .rl-about__media,
+  .rl-location__map
+){
+  border-radius:var(--photo-radius);
+  box-shadow:var(--photo-shadow);
+  overflow:hidden;
+}
+.smart-site button.project-cover,
+.smart-site button.project-gallery__item,
+.smart-site button.project-carousel__slide{
+  border-radius:var(--photo-radius);
+  box-shadow:var(--photo-shadow);
+  overflow:hidden;
+}
 .smart-site .brand__icon{
   display:block;width:38px;height:38px;max-width:38px;max-height:38px;
   object-fit:contain;flex-shrink:0;
