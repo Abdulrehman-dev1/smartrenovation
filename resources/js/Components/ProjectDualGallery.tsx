@@ -1,6 +1,6 @@
 import { router } from '@inertiajs/react';
 import { useEffect, useRef, useState, type RefObject } from 'react';
-import { GALLERY_ACCEPT, isVideoUrl } from '@/lib/media';
+import { GALLERY_ACCEPT, isVideoUrl, paintVideoThumbnail, videoThumbSrc } from '@/lib/media';
 
 type ImageItem = {
     path: string;
@@ -228,13 +228,22 @@ function GalleryPanel({
                                                     {isVideo ? (
                                                         <>
                                                             <video
-                                                                src={item.url}
+                                                                src={videoThumbSrc(item.url)}
                                                                 muted
                                                                 playsInline
                                                                 preload="metadata"
                                                                 className="h-full w-full cursor-pointer object-cover"
+                                                                ref={paintVideoThumbnail}
+                                                                onLoadedMetadata={(e) => paintVideoThumbnail(e.currentTarget)}
                                                                 onClick={() => onToggle(item.path)}
                                                             />
+                                                            <span className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                                                                <span className="inline-flex size-9 items-center justify-center rounded-full bg-black/55 text-white shadow-sm">
+                                                                    <svg viewBox="0 0 24 24" fill="currentColor" className="ml-0.5 size-4">
+                                                                        <path d="M8 5.5v13l11-6.5L8 5.5z" />
+                                                                    </svg>
+                                                                </span>
+                                                            </span>
                                                             <span className="pointer-events-none absolute bottom-2 right-2 rounded-md bg-black/65 px-1.5 py-0.5 text-[10px] font-medium text-white backdrop-blur-sm">
                                                                 Video
                                                             </span>

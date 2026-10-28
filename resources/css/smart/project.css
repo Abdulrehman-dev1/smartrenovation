@@ -52,15 +52,24 @@
   grid-column:span 2;
   border-radius:var(--photo-radius);box-shadow:var(--photo-shadow);
 }
-/* 1 leftover in last row → hide (avoid awkward full-width orphan) */
-.project-gallery > :last-child:nth-child(3n + 1){
+/* 1 leftover image in last row → hide (avoid awkward full-width orphan).
+   Always keep videos visible — they were being dropped when gallery count % 3 === 1. */
+.project-gallery > :last-child:nth-child(3n + 1):not(.project-gallery__item--video){
   display:none;
+}
+.project-gallery > :last-child.project-gallery__item--video:nth-child(3n + 1){
+  grid-column:1 / -1;
+  aspect-ratio:16/9;
 }
 /* 2 leftovers in last row → 50% each, same height as a normal cell */
 .project-gallery > :nth-last-child(2):nth-child(3n + 1),
 .project-gallery > :last-child:nth-child(3n + 2){
   grid-column:span 3;
   aspect-ratio:9/4;
+}
+.project-gallery > :last-child.project-gallery__item--video:nth-child(3n + 2),
+.project-gallery > :nth-last-child(2).project-gallery__item--video:nth-child(3n + 1){
+  aspect-ratio:16/9;
 }
 .project-gallery img,.project-gallery__item img,
 .project-gallery video,.project-gallery__item video,

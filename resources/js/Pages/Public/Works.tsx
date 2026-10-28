@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import PublicLayout from '../../Layouts/PublicLayout';
 import { WaIcon, WA_TRACK_CLASS } from '../../Components/Public/WaFloat';
 import { useSiteContact } from '@/hooks/useSiteContact';
-import { isVideoUrl, videoThumbSrc } from '@/lib/media';
+import { isVideoUrl, paintVideoThumbnail, videoThumbSrc } from '@/lib/media';
 
 type ProjectCard = {
     id: number;
@@ -371,6 +371,8 @@ export default function Works({ projects, roomPhotos, filters, taxonomy }: Props
                                                     muted
                                                     playsInline
                                                     preload="metadata"
+                                                    ref={paintVideoThumbnail}
+                                                    onLoadedMetadata={(e) => paintVideoThumbnail(e.currentTarget)}
                                                 />
                                             ) : (
                                                 <img src={im.url} alt="" loading="lazy" />

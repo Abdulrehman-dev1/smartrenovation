@@ -1,4 +1,4 @@
-import { isVideoUrl, videoThumbSrc } from '@/lib/media';
+import { isVideoUrl, paintVideoThumbnail, videoThumbSrc } from '@/lib/media';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
@@ -66,6 +66,8 @@ function GalleryMedia({
                 controls={controls}
                 autoPlay={autoPlay}
                 className="project-media__video"
+                ref={controls || autoPlay ? undefined : paintVideoThumbnail}
+                onLoadedMetadata={controls || autoPlay ? undefined : (e) => paintVideoThumbnail(e.currentTarget)}
             />
         );
     }
@@ -223,7 +225,7 @@ export default function ProjectGallery({ cover, coverAr, gallery, title }: Props
                                 <button
                                     type="button"
                                     key={src + i}
-                                    className="project-gallery__item"
+                                    className={`project-gallery__item${video ? ' project-gallery__item--video' : ''}`}
                                     onClick={() => openLightbox(index)}
                                     aria-label={video ? `Play video ${index + 1}` : `View photo ${index + 1}`}
                                 >
