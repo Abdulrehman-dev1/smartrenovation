@@ -1,11 +1,13 @@
 import { router } from '@inertiajs/react';
 import { useEffect, useRef, useState, type RefObject } from 'react';
+import { GALLERY_ACCEPT, isVideoUrl } from '@/lib/media';
 
 type ImageItem = {
     path: string;
     url: string;
     name: string;
     room: string;
+    type?: 'image' | 'video';
 };
 
 type Props = {
@@ -92,7 +94,7 @@ function GalleryPanel({
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
                 <div>
                     <h3 className="text-sm font-semibold text-slate-900">{label}</h3>
-                    <p className="mt-0.5 text-xs text-slate-500">JPEG, PNG, or WebP</p>
+                    <p className="mt-0.5 text-xs text-slate-500">JPEG, PNG, WebP, MP4, or WebM</p>
                 </div>
                 <label className="inline-flex cursor-pointer items-center rounded-lg bg-slate-900 px-3.5 py-2 text-xs font-medium text-white transition hover:bg-slate-800">
                     {busy ? 'Uploading…' : items.length ? 'Add more' : 'Upload'}
@@ -100,7 +102,7 @@ function GalleryPanel({
                         ref={inputRef}
                         type="file"
                         className="hidden"
-                        accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                        accept={GALLERY_ACCEPT}
                         multiple
                         disabled={busy}
                         onChange={(e) => {
@@ -181,7 +183,7 @@ function GalleryPanel({
                         <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-lg text-slate-400 shadow-sm">
                             +
                         </span>
-                        Drop images here or click to browse
+                        Drop images or videos here or click to browse
                     </button>
                 ) : (
                     <div className="space-y-6">
@@ -199,6 +201,7 @@ function GalleryPanel({
                                 <div className="grid grid-cols-[repeat(auto-fill,minmax(9.5rem,1fr))] gap-3">
                                     {section.items.map(({ item, index }) => {
                                         const isSelected = selected.has(item.path);
+                                        const isVideo = item.type === 'video' || isVideoUrl(item.path) || isVideoUrl(item.url);
                                         return (
                                             <div
                                                 key={item.path}
@@ -222,27 +225,45 @@ function GalleryPanel({
                                                             {item.room}
                                                         </span>
                                                     )}
-                                                    <img
-                                                        src={item.url}
-                                                        alt={item.name}
-                                                        className="h-full w-full cursor-pointer object-cover"
-                                                        onClick={() => onToggle(item.path)}
-                                                    />
+                                                    {isVideo ? (
+                                                        <>
+                                                            <video
+                                                                src={item.url}
+                                                                muted
+                                                                playsInline
+                                                                preload="metadata"
+                                                                className="h-full w-full cursor-pointer object-cover"
+                                                                onClick={() => onToggle(item.path)}
+                                                            />
+                                                            <span className="pointer-events-none absolute bottom-2 right-2 rounded-md bg-black/65 px-1.5 py-0.5 text-[10px] font-medium text-white backdrop-blur-sm">
+                                                                Video
+                                                            </span>
+                                                        </>
+                                                    ) : (
+                                                        <img
+                                                            src={item.url}
+                                                            alt={item.name}
+                                                            className="h-full w-full cursor-pointer object-cover"
+                                                            onClick={() => onToggle(item.path)}
+                                                        />
+                                                    )}
                                                 </div>
                                                 <div className="space-y-1 border-t border-slate-100 px-2 py-1.5">
                                                     <p className="truncate text-[11px] text-slate-500" title={item.name}>
                                                         {item.name}
                                                     </p>
                                                     <div className="flex items-center gap-1">
-                                                        <button
-                                                            type="button"
-                                                            className="rounded border border-slate-200 px-1.5 py-0.5 text-[10px] font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
-                                                            onClick={() => onPromoteCover(item.path)}
-                                                            disabled={busy}
-                                                            title="Swap with cover image"
-                                                        >
-                                                            Set as cover
-                                                        </button>
+                                                        {!isVideo && (
+                                                            <button
+                                                                type="button"
+                                                                className="rounded border border-slate-200 px-1.5 py-0.5 text-[10px] font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                                                                onClick={() => onPromoteCover(item.path)}
+                                                                disabled={busy}
+                                                                title="Swap with cover image"
+                                                            >
+                                                                Set as cover
+                                                            </button>
+                                                        )}
                                                         <button
                                                             type="button"
                                                             className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-800 disabled:opacity-30"
@@ -285,7 +306,7 @@ function GalleryPanel({
                             className="flex h-16 w-full items-center justify-center gap-2 rounded-xl border border-dashed border-slate-300 text-xs font-medium text-slate-500 transition hover:border-slate-400 hover:bg-slate-50 disabled:opacity-50"
                         >
                             <span className="text-base leading-none">+</span>
-                            Add more images
+                            Add more images or videos
                         </button>
                     </div>
                 )}
@@ -391,7 +412,7 @@ export default function ProjectDualGallery({
             setError(
                 err instanceof Error && err.message === 'network'
                     ? 'Network error during upload.'
-                    : 'Upload failed. Use jpg/png/webp under 50MB.',
+                    : 'Upload failed. Use jpg/png/webp/mp4/webm under 100MB.',
             );
         } finally {
             setBusy(false);
@@ -581,7 +602,7 @@ export default function ProjectDualGallery({
             {error && <p className="text-xs font-medium text-rose-600">{error}</p>}
             {message && <p className="text-xs text-emerald-700">{message}</p>}
             <GalleryPanel
-                label="Gallery images"
+                label="Gallery"
                 collection="gallery"
                 items={galleryItems}
                 imageRooms={rooms}

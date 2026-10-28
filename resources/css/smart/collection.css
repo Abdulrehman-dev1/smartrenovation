@@ -23,8 +23,8 @@
   padding:2px;
 }
 .pin__media{position:relative;overflow:hidden;display:block;background:var(--bg-tint);border-radius:var(--photo-radius);box-shadow:var(--photo-shadow);}
-.pin__media img{width:100%;height:100%;display:block;object-fit:cover;transition:transform 1.3s var(--ease);}
-.pin:hover .pin__media img{transform:scale(1.05);}
+.pin__media img,.pin__media video{width:100%;height:100%;display:block;object-fit:cover;transition:transform 1.3s var(--ease);}
+.pin:hover .pin__media img,.pin:hover .pin__media video{transform:scale(1.05);}
 .pin__media::after{content:"";position:absolute;inset:0;background:rgba(20,18,16,0);transition:background .5s var(--ease);}
 .pin:hover .pin__media::after{background:rgba(20,18,16,.18);}
 .pin__tag{

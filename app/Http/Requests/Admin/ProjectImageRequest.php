@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Support\ProjectMedia;
 use App\Support\ProjectTaxonomy;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -50,15 +51,15 @@ class ProjectImageRequest extends FormRequest
             ];
         }
 
+        $collection = $this->input('collection');
+        $fileRules = $collection === 'cover'
+            ? ProjectMedia::coverFileRules()
+            : ProjectMedia::galleryFileRules();
+
         return [
             'collection' => ['required', Rule::in(['cover', 'gallery', 'gallery_hidden'])],
             'files' => ['required', 'array', 'min:1'],
-            'files.*' => [
-                'required',
-                'file',
-                'mimes:jpeg,jpg,png,webp', 'mimetypes:image/jpeg,image/pjpeg,image/png,image/webp',
-                'max:51200',
-            ],
+            'files.*' => array_merge(['required'], $fileRules),
             'rooms' => ['nullable', 'array'],
             'rooms.*' => ['string', Rule::in(ProjectTaxonomy::imageRooms())],
         ];

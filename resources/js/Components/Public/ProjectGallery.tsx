@@ -1,3 +1,4 @@
+import { isVideoUrl, videoThumbSrc } from '@/lib/media';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
@@ -30,6 +31,46 @@ function CloseIcon() {
             <path d="M6 6L18 18M18 6L6 18" strokeLinecap="round" />
         </svg>
     );
+}
+
+function PlayBadge() {
+    return (
+        <span className="project-media__play" aria-hidden>
+            <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M8 5.5v13l11-6.5L8 5.5z" />
+            </svg>
+        </span>
+    );
+}
+
+function GalleryMedia({
+    src,
+    alt,
+    eager = false,
+    controls = false,
+    autoPlay = false,
+}: {
+    src: string;
+    alt?: string;
+    eager?: boolean;
+    controls?: boolean;
+    autoPlay?: boolean;
+}) {
+    if (isVideoUrl(src)) {
+        return (
+            <video
+                src={controls || autoPlay ? src : videoThumbSrc(src)}
+                muted={!controls}
+                playsInline
+                preload="metadata"
+                controls={controls}
+                autoPlay={autoPlay}
+                className="project-media__video"
+            />
+        );
+    }
+
+    return <img src={src} alt={alt ?? ''} loading={eager ? 'eager' : 'lazy'} />;
 }
 
 export default function ProjectGallery({ cover, coverAr, gallery, title }: Props) {
@@ -156,6 +197,7 @@ export default function ProjectGallery({ cover, coverAr, gallery, title }: Props
 
     const lightboxOpen = lightboxIndex !== null;
     const lightboxSrc = lightboxOpen ? images[lightboxIndex] : null;
+    const lightboxIsVideo = lightboxSrc ? isVideoUrl(lightboxSrc) : false;
 
     return (
         <>
@@ -169,22 +211,24 @@ export default function ProjectGallery({ cover, coverAr, gallery, title }: Props
                         onClick={() => openLightbox(0)}
                         aria-label={`View ${title} photo`}
                     >
-                        <img src={cover} alt={title} />
+                        <GalleryMedia src={cover} alt={title} eager />
                     </button>
                 )}
                 {gallery?.length > 0 && (
                     <section className="project-gallery" aria-label="Project gallery">
                         {gallery.map((src, i) => {
                             const index = cover ? i + 1 : i;
+                            const video = isVideoUrl(src);
                             return (
                                 <button
                                     type="button"
                                     key={src + i}
                                     className="project-gallery__item"
                                     onClick={() => openLightbox(index)}
-                                    aria-label={`View photo ${index + 1}`}
+                                    aria-label={video ? `Play video ${index + 1}` : `View photo ${index + 1}`}
                                 >
-                                    <img src={src} alt="" loading="lazy" />
+                                    <GalleryMedia src={src} />
+                                    {video && <PlayBadge />}
                                 </button>
                             );
                         })}
@@ -196,17 +240,25 @@ export default function ProjectGallery({ cover, coverAr, gallery, title }: Props
             <div className="project-photos project-photos--carousel">
                 <div className="project-carousel" aria-roledescription="carousel" aria-label={`${title} photos`}>
                     <div className="project-carousel__track" ref={trackRef}>
-                        {images.map((src, i) => (
-                            <button
-                                type="button"
-                                key={src + i}
-                                className="project-carousel__slide"
-                                onClick={() => openLightbox(i)}
-                                aria-label={`View photo ${i + 1} of ${images.length}`}
-                            >
-                                <img src={src} alt={i === 0 ? title : ''} loading={i === 0 ? 'eager' : 'lazy'} />
-                            </button>
-                        ))}
+                        {images.map((src, i) => {
+                            const video = isVideoUrl(src);
+                            return (
+                                <button
+                                    type="button"
+                                    key={src + i}
+                                    className="project-carousel__slide"
+                                    onClick={() => openLightbox(i)}
+                                    aria-label={
+                                        video
+                                            ? `Play video ${i + 1} of ${images.length}`
+                                            : `View photo ${i + 1} of ${images.length}`
+                                    }
+                                >
+                                    <GalleryMedia src={src} alt={i === 0 ? title : ''} eager={i === 0} />
+                                    {video && <PlayBadge />}
+                                </button>
+                            );
+                        })}
                     </div>
 
                     {images.length > 1 && (
@@ -261,7 +313,7 @@ export default function ProjectGallery({ cover, coverAr, gallery, title }: Props
                         className="project-lightbox"
                         role="dialog"
                         aria-modal="true"
-                        aria-label="Photo viewer"
+                        aria-label={lightboxIsVideo ? 'Video viewer' : 'Photo viewer'}
                         onClick={closeLightbox}
                         onTouchStart={(e) => {
                             touchStartX.current = e.changedTouches[0]?.clientX ?? null;
@@ -311,7 +363,11 @@ export default function ProjectGallery({ cover, coverAr, gallery, title }: Props
                         )}
 
                         <figure className="project-lightbox__figure" onClick={(e) => e.stopPropagation()}>
-                            <img src={lightboxSrc} alt={title} />
+                            {lightboxIsVideo ? (
+                                <GalleryMedia key={lightboxSrc} src={lightboxSrc} controls autoPlay />
+                            ) : (
+                                <img src={lightboxSrc} alt={title} />
+                            )}
                             <figcaption className="project-lightbox__count" aria-live="polite">
                                 <span key={lightboxIndex} className="project-lightbox__count-num">
                                     {lightboxIndex! + 1}

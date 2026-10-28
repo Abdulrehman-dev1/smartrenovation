@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import PublicLayout from '../../Layouts/PublicLayout';
 import { WaIcon, WA_TRACK_CLASS } from '../../Components/Public/WaFloat';
 import { useSiteContact } from '@/hooks/useSiteContact';
+import { isVideoUrl, videoThumbSrc } from '@/lib/media';
 
 type ProjectCard = {
     id: number;
@@ -355,20 +356,32 @@ export default function Works({ projects, roomPhotos, filters, taxonomy }: Props
                         </section>
                     ) : (
                         <section className="board" ref={gridRef as React.RefObject<HTMLElement>}>
-                            {roomPhotos.map((im, i) => (
-                                <article className="pin" key={im.url + i}>
-                                    <Link
-                                        className="pin__media"
-                                        href={`/projects/${im.slug}`}
-                                        style={{ aspectRatio: String(im.ar || 1.33) }}
-                                    >
-                                        <img src={im.url} alt="" loading="lazy" />
-                                        <span className="pin__tag">
-                                            {im.room} · {im.name}
-                                        </span>
-                                    </Link>
-                                </article>
-                            ))}
+                            {roomPhotos.map((im, i) => {
+                                const video = isVideoUrl(im.url);
+                                return (
+                                    <article className="pin" key={im.url + i}>
+                                        <Link
+                                            className="pin__media"
+                                            href={`/projects/${im.slug}`}
+                                            style={{ aspectRatio: String(im.ar || 1.33) }}
+                                        >
+                                            {video ? (
+                                                <video
+                                                    src={videoThumbSrc(im.url)}
+                                                    muted
+                                                    playsInline
+                                                    preload="metadata"
+                                                />
+                                            ) : (
+                                                <img src={im.url} alt="" loading="lazy" />
+                                            )}
+                                            <span className="pin__tag">
+                                                {im.room} · {im.name}
+                                            </span>
+                                        </Link>
+                                    </article>
+                                );
+                            })}
                         </section>
                     )
                 ) : (

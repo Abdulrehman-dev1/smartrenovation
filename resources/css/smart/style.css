@@ -315,9 +315,11 @@
 .smart-site .card__media img,
 .smart-site .slide__media img,
 .smart-site .work__media img,
+.smart-site .work__media video,
 .smart-site .svc-card__media img,
 .smart-site .media-card__media img,
-.smart-site .pin__media img{
+.smart-site .pin__media img,
+.smart-site .pin__media video{
   transition:transform 1.3s var(--ease) !important;
 }
 .smart-site .slider__track{

@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Support\ProjectImageStorage;
+use App\Support\ProjectMedia;
 use App\Support\ProjectTaxonomy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -48,7 +50,7 @@ class Project extends Model
     protected static function booted(): void
     {
         static::deleting(function (Project $project) {
-            app(\App\Support\ProjectImageStorage::class)->deleteAll($project);
+            app(ProjectImageStorage::class)->deleteAll($project);
         });
     }
 
@@ -95,7 +97,7 @@ class Project extends Model
     }
 
     /**
-     * @return list<array{path: string, url: string, name: string, room: string}>
+     * @return list<array{path: string, url: string, name: string, room: string, type: string}>
      */
     public function presentGallery(string $field = 'gallery_images'): array
     {
@@ -105,6 +107,7 @@ class Project extends Model
                 'url' => $this->pathToUrl($item['path']) ?? '',
                 'name' => basename($item['path']),
                 'room' => $item['room'],
+                'type' => ProjectMedia::isVideoPath($item['path']) ? 'video' : 'image',
             ])
             ->values()
             ->all();
@@ -180,16 +183,20 @@ class Project extends Model
     {
         $paths = [];
 
-        if (is_string($this->cover_image) && $this->cover_image !== '') {
+        if (is_string($this->cover_image) && $this->cover_image !== '' && ! ProjectMedia::isVideoPath($this->cover_image)) {
             $paths[] = $this->cover_image;
         }
 
         foreach ($this->normalizedGallery('gallery_images') as $item) {
-            $paths[] = $item['path'];
+            if (! ProjectMedia::isVideoPath($item['path'])) {
+                $paths[] = $item['path'];
+            }
         }
 
         foreach ($this->normalizedGallery('gallery_hidden') as $item) {
-            $paths[] = $item['path'];
+            if (! ProjectMedia::isVideoPath($item['path'])) {
+                $paths[] = $item['path'];
+            }
         }
 
         return array_values(array_unique($paths));
@@ -202,7 +209,7 @@ class Project extends Model
     {
         $out = [];
 
-        if (is_string($this->cover_image) && $this->cover_image !== '') {
+        if (is_string($this->cover_image) && $this->cover_image !== '' && ! ProjectMedia::isVideoPath($this->cover_image)) {
             $out[] = [
                 'path' => $this->cover_image,
                 'url' => $this->pathToUrl($this->cover_image) ?? '',
@@ -212,6 +219,9 @@ class Project extends Model
         }
 
         foreach ($this->normalizedGallery('gallery_images') as $index => $item) {
+            if (ProjectMedia::isVideoPath($item['path'])) {
+                continue;
+            }
             $out[] = [
                 'path' => $item['path'],
                 'url' => $this->pathToUrl($item['path']) ?? '',
@@ -221,6 +231,9 @@ class Project extends Model
         }
 
         foreach ($this->normalizedGallery('gallery_hidden') as $index => $item) {
+            if (ProjectMedia::isVideoPath($item['path'])) {
+                continue;
+            }
             $out[] = [
                 'path' => $item['path'],
                 'url' => $this->pathToUrl($item['path']) ?? '',

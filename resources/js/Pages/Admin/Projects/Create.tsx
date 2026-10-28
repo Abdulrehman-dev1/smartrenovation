@@ -9,6 +9,7 @@ import ProjectRoomsPicker, { type RoomAssignment, type RoomCandidate } from '@/C
 import RichTextEditor from '@/Components/RichTextEditor';
 import TaxonomySelect, { type CategoryOption, type LocationOption } from '@/Components/TaxonomySelect';
 import AdminLayout from '@/Layouts/AdminLayout';
+import { GALLERY_ACCEPT } from '@/lib/media';
 import { useAutoSlug } from '@/lib/useAutoSlug';
 import { Head, useForm } from '@inertiajs/react';
 import { FormEvent, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
@@ -390,7 +391,8 @@ export default function Create({
 
                             <div className={active === 'images' ? 'space-y-4' : 'hidden'}>
                                 <p className="text-xs text-slate-500">
-                                    Upload cover and gallery images here. Assign rooms in the Rooms tab.
+                                    Upload cover image plus gallery images or videos here. Assign rooms in the Rooms
+                                    tab.
                                 </p>
                                 <PendingImagePicker
                                     label="Cover image"
@@ -400,10 +402,11 @@ export default function Create({
                                     error={errors.cover}
                                 />
                                 <PendingImagePicker
-                                    label="Gallery images"
+                                    label="Gallery"
                                     value={galleryPending}
                                     onChange={syncGallery}
                                     error={errors.gallery}
+                                    accept={GALLERY_ACCEPT}
                                     transferLabel="Move to hidden"
                                     onTransferSelected={moveGalleryToHidden}
                                 />
@@ -412,6 +415,7 @@ export default function Create({
                                     value={hiddenPending}
                                     onChange={syncHidden}
                                     error={errors.gallery_hidden_files}
+                                    accept={GALLERY_ACCEPT}
                                     transferLabel="Move to gallery"
                                     onTransferSelected={moveHiddenToGallery}
                                 />

@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin;
 
 use App\Support\HtmlContent;
+use App\Support\ProjectMedia;
 use App\Support\ProjectTaxonomy;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -62,13 +63,13 @@ class StoreProjectRequest extends FormRequest
                     $fail('Schema must be valid JSON object.');
                 }
             }],
-            'cover' => ['nullable', 'file', 'mimes:jpeg,jpg,png,webp', 'mimetypes:image/jpeg,image/pjpeg,image/png,image/webp', 'max:51200'],
+            'cover' => array_merge(['nullable'], ProjectMedia::coverFileRules()),
             'gallery' => ['nullable', 'array'],
-            'gallery.*' => ['file', 'mimes:jpeg,jpg,png,webp', 'mimetypes:image/jpeg,image/pjpeg,image/png,image/webp', 'max:51200'],
+            'gallery.*' => ProjectMedia::galleryFileRules(),
             'gallery_rooms' => ['nullable', 'array'],
             'gallery_rooms.*' => ['string', Rule::in(ProjectTaxonomy::imageRooms())],
             'gallery_hidden_files' => ['nullable', 'array'],
-            'gallery_hidden_files.*' => ['file', 'mimes:jpeg,jpg,png,webp', 'mimetypes:image/jpeg,image/pjpeg,image/png,image/webp', 'max:51200'],
+            'gallery_hidden_files.*' => ProjectMedia::galleryFileRules(),
             'gallery_hidden_rooms' => ['nullable', 'array'],
             'gallery_hidden_rooms.*' => ['string', Rule::in(ProjectTaxonomy::imageRooms())],
             'collection_entries' => ['nullable', 'array'],

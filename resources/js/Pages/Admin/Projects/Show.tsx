@@ -2,6 +2,7 @@ import DangerButton from '@/Components/DangerButton';
 import Modal from '@/Components/Modal';
 import SecondaryButton from '@/Components/SecondaryButton';
 import AdminLayout from '@/Layouts/AdminLayout';
+import { isVideoUrl } from '@/lib/media';
 import { Head, Link, router } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
 
@@ -10,6 +11,7 @@ type ImageItem = {
     url: string;
     name: string;
     room?: string;
+    type?: 'image' | 'video';
 };
 
 type CollectionImageItem = {
@@ -92,7 +94,17 @@ function ImageGrid({
                             className="group overflow-hidden rounded border border-slate-200"
                         >
                             <div className="relative">
-                                <img src={image.url} alt={image.name} className="h-28 w-full object-cover" />
+                                {isVideoUrl(image.path) || isVideoUrl(image.url) ? (
+                                    <video
+                                        src={image.url}
+                                        muted
+                                        playsInline
+                                        preload="metadata"
+                                        className="h-28 w-full object-cover"
+                                    />
+                                ) : (
+                                    <img src={image.url} alt={image.name} className="h-28 w-full object-cover" />
+                                )}
                                 {badge && (
                                     <span className="absolute bottom-1.5 left-1.5 max-w-[90%] truncate rounded bg-black/65 px-1.5 py-0.5 text-[10px] font-medium text-white">
                                         {badge}

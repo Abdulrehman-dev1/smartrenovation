@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react';
+import { GALLERY_ACCEPT, IMAGE_ACCEPT, isImageFile, isVideoFile } from '@/lib/media';
 
 export type PendingImage = {
     id: string;
@@ -14,6 +15,7 @@ type Props = {
     onChange: (next: PendingImage[]) => void;
     error?: string;
     accept?: string;
+    hint?: string;
     transferLabel?: string;
     onTransferSelected?: (selected: PendingImage[]) => void;
     imageRooms?: string[];
@@ -59,7 +61,8 @@ export default function PendingImagePicker({
     value,
     onChange,
     error,
-    accept = '.jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp',
+    accept = IMAGE_ACCEPT,
+    hint,
     transferLabel,
     onTransferSelected,
     imageRooms,
@@ -72,6 +75,10 @@ export default function PendingImagePicker({
     const roomEnabled = Boolean(multiple && imageRooms?.length);
     const rooms = imageRooms ?? [];
     const selectable = canTransfer || roomEnabled;
+    const allowsVideo = accept.includes('video') || accept.includes('mp4') || accept.includes('webm');
+    const formatHint = hint ?? (allowsVideo ? 'JPEG, PNG, WebP, MP4, or WebM' : 'JPEG, PNG, or WebP');
+    const emptyLabel = allowsVideo ? 'Drop images or videos here or click to browse' : 'Drop images here or click to browse';
+    const moreLabel = allowsVideo ? 'Add more images or videos' : 'Add more images';
 
     useEffect(() => {
         return () => {
@@ -94,9 +101,9 @@ export default function PendingImagePicker({
     const addFiles = (list: FileList | null) => {
         if (!list?.length) return;
         setLocalError('');
-        const files = Array.from(list).filter((f) => f.type.startsWith('image/'));
+        const files = Array.from(list).filter((f) => isImageFile(f) || (allowsVideo && isVideoFile(f)));
         if (!files.length) {
-            setLocalError('Use jpg, png, or webp images.');
+            setLocalError(allowsVideo ? 'Use jpg, png, webp, mp4, or webm.' : 'Use jpg, png, or webp images.');
             return;
         }
 
@@ -166,7 +173,7 @@ export default function PendingImagePicker({
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
                 <div>
                     <h3 className="text-sm font-semibold text-slate-900">{label}</h3>
-                    <p className="mt-0.5 text-xs text-slate-500">JPEG, PNG, or WebP</p>
+                    <p className="mt-0.5 text-xs text-slate-500">{formatHint}</p>
                 </div>
                 <label
                     htmlFor={inputId}
@@ -255,7 +262,7 @@ export default function PendingImagePicker({
                         <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-lg text-slate-400 shadow-sm">
                             +
                         </span>
-                        Drop images here or click to browse
+                        {emptyLabel}
                     </button>
                 ) : (
                     <div className="space-y-6">
@@ -297,7 +304,7 @@ export default function PendingImagePicker({
                                 className="flex h-16 w-full items-center justify-center gap-2 rounded-xl border border-dashed border-slate-300 text-xs font-medium text-slate-500 transition hover:border-slate-400 hover:bg-slate-50"
                             >
                                 <span className="text-base leading-none">+</span>
-                                Add more images
+                                {moreLabel}
                             </button>
                         )}
                     </div>
@@ -352,12 +359,28 @@ function ThumbCard({
                         {item.room}
                     </span>
                 )}
-                <img
-                    src={item.preview}
-                    alt={item.file.name}
-                    className="h-full w-full object-cover"
-                    onClick={() => selectable && onToggle()}
-                />
+                {isVideoFile(item.file) ? (
+                    <>
+                        <video
+                            src={item.preview}
+                            muted
+                            playsInline
+                            preload="metadata"
+                            className="h-full w-full object-cover"
+                            onClick={() => selectable && onToggle()}
+                        />
+                        <span className="pointer-events-none absolute bottom-2 right-2 rounded-md bg-black/65 px-1.5 py-0.5 text-[10px] font-medium text-white backdrop-blur-sm">
+                            Video
+                        </span>
+                    </>
+                ) : (
+                    <img
+                        src={item.preview}
+                        alt={item.file.name}
+                        className="h-full w-full object-cover"
+                        onClick={() => selectable && onToggle()}
+                    />
+                )}
             </div>
             <div className="flex items-center gap-1 border-t border-slate-100 px-2 py-1.5">
                 <p className="min-w-0 flex-1 truncate text-[11px] text-slate-500" title={item.file.name}>

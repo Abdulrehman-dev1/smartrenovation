@@ -107,6 +107,10 @@ class ProjectImageStorage
             throw new \InvalidArgumentException('Image not found in gallery.');
         }
 
+        if (ProjectMedia::isVideoPath($path)) {
+            throw new \InvalidArgumentException('Videos cannot be used as the cover image.');
+        }
+
         $previousCover = $project->cover_image;
         array_splice($items, $index, 1);
 
@@ -256,6 +260,10 @@ class ProjectImageStorage
 
     private function optimizeInPlace(string $path): void
     {
+        if (ProjectMedia::isVideoPath($path)) {
+            return;
+        }
+
         $full = Storage::disk('public')->path($path);
         if (! is_file($full) || ! function_exists('imagecreatefromstring')) {
             return;
