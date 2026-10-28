@@ -145,6 +145,24 @@ export default function RichTextEditor({
         editor.commands.setYoutubeVideo({ src: url });
     };
 
+    const addInstagram = () => {
+        const url = window.prompt('Instagram post URL (https://www.instagram.com/p/… or /reel/…)');
+        if (!url) return;
+        const trimmed = url.trim().replace(/\/$/, '');
+        if (!/^https?:\/\/(www\.)?instagram\.com\/(p|reel|tv)\//i.test(trimmed)) {
+            window.alert('Please paste a valid Instagram post or reel URL.');
+            return;
+        }
+        const embed = `${trimmed}/embed`;
+        editor
+            .chain()
+            .focus()
+            .insertContent(
+                `<p><iframe src="${embed}" class="rounded-md aspect-[4/5] w-full max-w-md mx-auto" style="min-height:480px;border:0;" loading="lazy" allowtransparency="true" allowfullscreen></iframe></p><p></p>`,
+            )
+            .run();
+    };
+
     return (
         <div>
             <div className="overflow-hidden rounded-md border border-slate-300 bg-white shadow-sm">
@@ -190,6 +208,9 @@ export default function RichTextEditor({
                     </ToolbarButton>
                     <ToolbarButton title="YouTube video" onClick={addVideo}>
                         Video
+                    </ToolbarButton>
+                    <ToolbarButton title="Instagram post" onClick={addInstagram}>
+                        Instagram
                     </ToolbarButton>
                     <input
                         ref={fileInputRef}

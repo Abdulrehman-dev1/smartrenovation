@@ -2,10 +2,16 @@ import { isVideoUrl, paintVideoThumbnail, videoThumbSrc } from '@/lib/media';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
+export type GalleryMediaItem = {
+    url: string;
+    type?: 'image' | 'video';
+    poster?: string | null;
+};
+
 type Props = {
     cover?: string | null;
     coverAr?: number;
-    gallery: string[];
+    gallery: Array<string | GalleryMediaItem>;
     title: string;
 };
 
@@ -43,23 +49,45 @@ function PlayBadge() {
     );
 }
 
+function normalizeItem(item: string | GalleryMediaItem): GalleryMediaItem {
+    if (typeof item === 'string') {
+        return {
+            url: item,
+            type: isVideoUrl(item) ? 'video' : 'image',
+            poster: null,
+        };
+    }
+    return {
+        url: item.url,
+        type: item.type ?? (isVideoUrl(item.url) ? 'video' : 'image'),
+        poster: item.poster ?? null,
+    };
+}
+
 function GalleryMedia({
-    src,
+    item,
     alt,
     eager = false,
     controls = false,
     autoPlay = false,
 }: {
-    src: string;
+    item: GalleryMediaItem;
     alt?: string;
     eager?: boolean;
     controls?: boolean;
     autoPlay?: boolean;
 }) {
-    if (isVideoUrl(src)) {
+    const isVideo = item.type === 'video' || isVideoUrl(item.url);
+
+    if (isVideo && !controls && !autoPlay && item.poster) {
+        return <img src={item.poster} alt={alt ?? ''} loading={eager ? 'eager' : 'lazy'} />;
+    }
+
+    if (isVideo) {
         return (
             <video
-                src={controls || autoPlay ? src : videoThumbSrc(src)}
+                src={controls || autoPlay ? item.url : videoThumbSrc(item.url)}
+                poster={item.poster || undefined}
                 muted={!controls}
                 playsInline
                 preload="metadata"
@@ -72,18 +100,25 @@ function GalleryMedia({
         );
     }
 
-    return <img src={src} alt={alt ?? ''} loading={eager ? 'eager' : 'lazy'} />;
+    return <img src={item.url} alt={alt ?? ''} loading={eager ? 'eager' : 'lazy'} />;
 }
 
 export default function ProjectGallery({ cover, coverAr, gallery, title }: Props) {
-    const images = useMemo(() => {
-        const list: string[] = [];
-        if (cover) list.push(cover);
-        for (const src of gallery || []) {
-            if (src && !list.includes(src)) list.push(src);
+    const items = useMemo(() => {
+        const list: GalleryMediaItem[] = [];
+        if (cover) {
+            list.push({ url: cover, type: 'image', poster: null });
+        }
+        for (const raw of gallery || []) {
+            const item = normalizeItem(raw);
+            if (item.url && !list.some((existing) => existing.url === item.url)) {
+                list.push(item);
+            }
         }
         return list;
     }, [cover, gallery]);
+
+    const galleryOnly = useMemo(() => (gallery || []).map(normalizeItem).filter((item) => item.url), [gallery]);
 
     const [active, setActive] = useState(0);
     const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
@@ -98,11 +133,11 @@ export default function ProjectGallery({ cover, coverAr, gallery, title }: Props
     const goLightbox = useCallback(
         (dir: -1 | 1) => {
             setLightboxIndex((current) => {
-                if (current === null || images.length === 0) return current;
-                return (current + dir + images.length) % images.length;
+                if (current === null || items.length === 0) return current;
+                return (current + dir + items.length) % items.length;
             });
         },
-        [images.length],
+        [items.length],
     );
 
     useEffect(() => {
@@ -123,13 +158,13 @@ export default function ProjectGallery({ cover, coverAr, gallery, title }: Props
 
     const scrollCarouselTo = (index: number) => {
         const track = trackRef.current;
-        if (!track || index < 0 || index >= images.length) return;
+        if (!track || index < 0 || index >= items.length) return;
         const slide = track.children[index] as HTMLElement | undefined;
         if (!slide) return;
 
         const wraps =
-            (activeRef.current === 0 && index === images.length - 1) ||
-            (activeRef.current === images.length - 1 && index === 0);
+            (activeRef.current === 0 && index === items.length - 1) ||
+            (activeRef.current === items.length - 1 && index === 0);
 
         setActiveIndex(index);
         track.scrollTo({
@@ -174,7 +209,7 @@ export default function ProjectGallery({ cover, coverAr, gallery, title }: Props
             track.removeEventListener('scrollend', syncActiveFromScroll);
             if (scrollRaf.current !== null) window.cancelAnimationFrame(scrollRaf.current);
         };
-    }, [images.length]);
+    }, [items.length]);
 
     useEffect(() => {
         if (lightboxIndex === null) return;
@@ -195,15 +230,16 @@ export default function ProjectGallery({ cover, coverAr, gallery, title }: Props
         };
     }, [lightboxIndex, goLightbox]);
 
-    if (images.length === 0) return null;
+    if (items.length === 0) return null;
 
     const lightboxOpen = lightboxIndex !== null;
-    const lightboxSrc = lightboxOpen ? images[lightboxIndex] : null;
-    const lightboxIsVideo = lightboxSrc ? isVideoUrl(lightboxSrc) : false;
+    const lightboxItem = lightboxOpen ? items[lightboxIndex] : null;
+    const lightboxIsVideo = lightboxItem
+        ? lightboxItem.type === 'video' || isVideoUrl(lightboxItem.url)
+        : false;
 
     return (
         <>
-            {/* Desktop / tablet grid */}
             <div className="project-photos project-photos--grid">
                 {cover && (
                     <button
@@ -213,23 +249,23 @@ export default function ProjectGallery({ cover, coverAr, gallery, title }: Props
                         onClick={() => openLightbox(0)}
                         aria-label={`View ${title} photo`}
                     >
-                        <GalleryMedia src={cover} alt={title} eager />
+                        <GalleryMedia item={{ url: cover, type: 'image' }} alt={title} eager />
                     </button>
                 )}
-                {gallery?.length > 0 && (
+                {galleryOnly.length > 0 && (
                     <section className="project-gallery" aria-label="Project gallery">
-                        {gallery.map((src, i) => {
+                        {galleryOnly.map((item, i) => {
                             const index = cover ? i + 1 : i;
-                            const video = isVideoUrl(src);
+                            const video = item.type === 'video' || isVideoUrl(item.url);
                             return (
                                 <button
                                     type="button"
-                                    key={src + i}
+                                    key={item.url + i}
                                     className={`project-gallery__item${video ? ' project-gallery__item--video' : ''}`}
                                     onClick={() => openLightbox(index)}
                                     aria-label={video ? `Play video ${index + 1}` : `View photo ${index + 1}`}
                                 >
-                                    <GalleryMedia src={src} />
+                                    <GalleryMedia item={item} />
                                     {video && <PlayBadge />}
                                 </button>
                             );
@@ -238,37 +274,36 @@ export default function ProjectGallery({ cover, coverAr, gallery, title }: Props
                 )}
             </div>
 
-            {/* Mobile carousel */}
             <div className="project-photos project-photos--carousel">
                 <div className="project-carousel" aria-roledescription="carousel" aria-label={`${title} photos`}>
                     <div className="project-carousel__track" ref={trackRef}>
-                        {images.map((src, i) => {
-                            const video = isVideoUrl(src);
+                        {items.map((item, i) => {
+                            const video = item.type === 'video' || isVideoUrl(item.url);
                             return (
                                 <button
                                     type="button"
-                                    key={src + i}
+                                    key={item.url + i}
                                     className="project-carousel__slide"
                                     onClick={() => openLightbox(i)}
                                     aria-label={
                                         video
-                                            ? `Play video ${i + 1} of ${images.length}`
-                                            : `View photo ${i + 1} of ${images.length}`
+                                            ? `Play video ${i + 1} of ${items.length}`
+                                            : `View photo ${i + 1} of ${items.length}`
                                     }
                                 >
-                                    <GalleryMedia src={src} alt={i === 0 ? title : ''} eager={i === 0} />
+                                    <GalleryMedia item={item} alt={i === 0 ? title : ''} eager={i === 0} />
                                     {video && <PlayBadge />}
                                 </button>
                             );
                         })}
                     </div>
 
-                    {images.length > 1 && (
+                    {items.length > 1 && (
                         <>
                             <button
                                 type="button"
                                 className="project-carousel__nav project-carousel__nav--prev"
-                                onClick={() => scrollCarouselTo((active - 1 + images.length) % images.length)}
+                                onClick={() => scrollCarouselTo((active - 1 + items.length) % items.length)}
                                 aria-label="Previous photo"
                             >
                                 <ChevronLeftIcon />
@@ -276,14 +311,14 @@ export default function ProjectGallery({ cover, coverAr, gallery, title }: Props
                             <button
                                 type="button"
                                 className="project-carousel__nav project-carousel__nav--next"
-                                onClick={() => scrollCarouselTo((active + 1) % images.length)}
+                                onClick={() => scrollCarouselTo((active + 1) % items.length)}
                                 aria-label="Next photo"
                             >
                                 <ChevronRightIcon />
                             </button>
-                            {images.length <= 12 && (
+                            {items.length <= 12 && (
                                 <div className="project-carousel__dots" role="tablist" aria-label="Photo slides">
-                                    {images.map((_, i) => (
+                                    {items.map((_, i) => (
                                         <button
                                             key={i}
                                             type="button"
@@ -301,7 +336,7 @@ export default function ProjectGallery({ cover, coverAr, gallery, title }: Props
                                     {active + 1}
                                 </span>
                                 <span className="project-carousel__count-sep"> / </span>
-                                <span>{images.length}</span>
+                                <span>{items.length}</span>
                             </span>
                         </>
                     )}
@@ -309,7 +344,7 @@ export default function ProjectGallery({ cover, coverAr, gallery, title }: Props
             </div>
 
             {lightboxOpen &&
-                lightboxSrc &&
+                lightboxItem &&
                 createPortal(
                     <div
                         className="project-lightbox"
@@ -337,7 +372,7 @@ export default function ProjectGallery({ cover, coverAr, gallery, title }: Props
                             <CloseIcon />
                         </button>
 
-                        {images.length > 1 && (
+                        {items.length > 1 && (
                             <>
                                 <button
                                     type="button"
@@ -366,15 +401,15 @@ export default function ProjectGallery({ cover, coverAr, gallery, title }: Props
 
                         <figure className="project-lightbox__figure" onClick={(e) => e.stopPropagation()}>
                             {lightboxIsVideo ? (
-                                <GalleryMedia key={lightboxSrc} src={lightboxSrc} controls autoPlay />
+                                <GalleryMedia key={lightboxItem.url} item={lightboxItem} controls autoPlay />
                             ) : (
-                                <img src={lightboxSrc} alt={title} />
+                                <img src={lightboxItem.url} alt={title} />
                             )}
                             <figcaption className="project-lightbox__count" aria-live="polite">
                                 <span key={lightboxIndex} className="project-lightbox__count-num">
                                     {lightboxIndex! + 1}
                                 </span>
-                                <span> / {images.length}</span>
+                                <span> / {items.length}</span>
                             </figcaption>
                         </figure>
                     </div>,

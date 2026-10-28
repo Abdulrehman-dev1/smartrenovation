@@ -67,7 +67,7 @@ class ProjectController extends Controller
                 'rooms' => $project->rooms,
                 'cover' => $project->coverUrl(),
                 'cover_ar' => 1.5,
-                'gallery' => $project->galleryUrls(),
+                'gallery' => $project->presentPublicGallery(),
             ],
             'next' => $next ? [
                 'slug' => $next->slug,

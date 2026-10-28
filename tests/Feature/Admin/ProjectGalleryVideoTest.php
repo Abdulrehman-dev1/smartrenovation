@@ -41,10 +41,12 @@ class ProjectGalleryVideoTest extends TestCase
 
         $project = Project::query()->where('slug', 'video-gallery-project')->firstOrFail();
         $video = UploadedFile::fake()->create('walkthrough.mp4', 2048, 'video/mp4');
+        $poster = UploadedFile::fake()->image('walkthrough-cover.jpg', 800, 600);
 
         $response = $this->actingAs($user)->postJson(route('admin.projects.images.store', $project), [
             'collection' => 'gallery',
             'files' => [$video],
+            'posters' => [$poster],
             'rooms' => ['Other'],
         ]);
 
@@ -56,10 +58,37 @@ class ProjectGalleryVideoTest extends TestCase
         $gallery = $project->normalizedGallery('gallery_images');
         $this->assertCount(1, $gallery);
         $this->assertTrue(ProjectMedia::isVideoPath($gallery[0]['path']));
+        $this->assertNotEmpty($gallery[0]['poster'] ?? null);
         Storage::disk('public')->assertExists($gallery[0]['path']);
+        Storage::disk('public')->assertExists($gallery[0]['poster']);
 
         $presented = $project->presentGallery('gallery_images');
         $this->assertSame('video', $presented[0]['type']);
+        $this->assertNotEmpty($presented[0]['poster_url']);
+    }
+
+    public function test_gallery_video_upload_requires_cover_image(): void
+    {
+        Storage::fake('public');
+        $user = $this->admin();
+
+        $this->actingAs($user)->post('/admin/projects', [
+            'slug' => 'video-needs-poster',
+            'name' => 'Video Needs Poster',
+            'status' => 'draft',
+        ])->assertRedirect(route('admin.projects.index'));
+
+        $project = Project::query()->where('slug', 'video-needs-poster')->firstOrFail();
+        $video = UploadedFile::fake()->create('clip.mp4', 1024, 'video/mp4');
+
+        $response = $this->actingAs($user)->postJson(route('admin.projects.images.store', $project), [
+            'collection' => 'gallery',
+            'files' => [$video],
+            'rooms' => ['Other'],
+        ]);
+
+        $response->assertStatus(422)->assertJsonValidationErrors('posters.0');
+        $this->assertSame([], $project->fresh()->normalizedGallery('gallery_images'));
     }
 
     public function test_cover_upload_rejects_video(): void
@@ -103,6 +132,7 @@ class ProjectGalleryVideoTest extends TestCase
         $this->actingAs($user)->postJson(route('admin.projects.images.store', $project), [
             'collection' => 'gallery',
             'files' => [UploadedFile::fake()->create('clip.mp4', 1024, 'video/mp4')],
+            'posters' => [UploadedFile::fake()->image('clip-cover.jpg', 640, 480)],
             'rooms' => ['Other'],
         ])->assertOk();
 

@@ -1,0 +1,1 @@
+import{t as e}from"./app-Cp2xfquk.js";var t=e();function n({size:e=36,className:n=``,alt:r=`Smart Renovation`,...i}){return(0,t.jsx)(`img`,{src:`/assets/img/brand/favicon.png`,width:e,height:e,alt:r,className:`shrink-0 rounded-full object-contain ${n}`,style:{width:e,height:e,maxWidth:e,maxHeight:e,objectFit:`contain`},...i})}export{n as t};

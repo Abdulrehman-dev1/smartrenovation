@@ -7,6 +7,7 @@ use App\Http\Controllers\Public\CollectionController;
 use App\Http\Controllers\Public\ContactController;
 use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\MediaController;
+use App\Http\Controllers\Public\ProcessController;
 use App\Http\Controllers\Public\ProjectController;
 use App\Http\Controllers\Public\ResidentialController;
 use App\Http\Controllers\Public\ServiceController;
@@ -31,6 +32,8 @@ Route::get('/articles/{slug}', [ArticleController::class, 'show'])->name('articl
 Route::get('/media/{slug}', [ArticleController::class, 'show'])->name('articles.show.legacy');
 Route::get('/collection', CollectionController::class)->name('collection');
 Route::get('/about', AboutController::class)->name('about');
+Route::get('/process', ProcessController::class)->name('process');
+Route::redirect('/how-we-work', '/process');
 Route::get('/residential', ResidentialController::class)->name('residential');
 Route::redirect('/smart-renovation-residential', '/residential');
 Route::get('/contact', [ContactController::class, 'show'])->name('contact');

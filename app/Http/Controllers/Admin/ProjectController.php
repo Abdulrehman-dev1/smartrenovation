@@ -192,6 +192,9 @@ class ProjectController extends Controller
                 'collection_images' => $project->normalizedCollectionImages(),
                 'collection_candidates' => $project->presentCollectionCandidates(),
             ]),
+            'can' => [
+                'delete' => request()->user()->can('projects.delete'),
+            ],
         ]));
     }
 

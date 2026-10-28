@@ -26,28 +26,43 @@ class ProjectImageStorage
     /**
      * @param  list<UploadedFile>  $files
      * @param  list<string>|null  $rooms  Aligned with $files; missing entries default to Other
-     * @return list<array{path: string, room: string}>
+     * @param  list<UploadedFile|null>|null  $posters  Aligned with $files; required for video files
+     * @return list<array{path: string, room: string, poster?: string}>
      */
     public function appendGallery(
         Project $project,
         array $files,
         string $field = 'gallery_images',
-        ?array $rooms = null
+        ?array $rooms = null,
+        ?array $posters = null
     ): array {
         $items = $project->normalizedGallery($field);
         $added = [];
         $allowed = array_flip(ProjectTaxonomy::imageRooms());
+        $folder = $field === 'gallery_hidden' ? 'gallery_hidden' : 'gallery';
 
         foreach (array_values($files) as $index => $file) {
             if (! $file instanceof UploadedFile) {
                 continue;
             }
-            $path = $this->storeFile($project, $file, $field === 'gallery_hidden' ? 'gallery_hidden' : 'gallery');
+            $path = $this->storeFile($project, $file, $folder);
             $room = $rooms[$index] ?? ProjectTaxonomy::OTHER_ROOM;
             if (! is_string($room) || ! isset($allowed[$room])) {
                 $room = ProjectTaxonomy::OTHER_ROOM;
             }
             $item = ['path' => $path, 'room' => $room];
+
+            $poster = $posters[$index] ?? null;
+            if (ProjectMedia::isVideoPath($path)) {
+                if (! $poster instanceof UploadedFile) {
+                    $this->deletePath($path);
+                    throw new \InvalidArgumentException('Videos require a cover image.');
+                }
+                $item['poster'] = $this->storeFile($project, $poster, $folder.'/posters');
+            } elseif ($poster instanceof UploadedFile) {
+                $item['poster'] = $this->storeFile($project, $poster, $folder.'/posters');
+            }
+
             $items[] = $item;
             $added[] = $item;
         }
@@ -62,12 +77,24 @@ class ProjectImageStorage
 
     public function removePath(Project $project, string $path, string $field): void
     {
-        $items = collect($project->normalizedGallery($field))
+        $items = $project->normalizedGallery($field);
+        $poster = null;
+        foreach ($items as $item) {
+            if ($item['path'] === $path) {
+                $poster = $item['poster'] ?? null;
+                break;
+            }
+        }
+
+        $remaining = collect($items)
             ->reject(fn (array $item) => $item['path'] === $path)
             ->values()
             ->all();
         $this->deletePath($path);
-        $project->forceFill([$field => $items])->save();
+        if (is_string($poster) && $poster !== '') {
+            $this->deletePath($poster);
+        }
+        $project->forceFill([$field => $remaining])->save();
         if ($field === 'gallery_images') {
             $project->syncRoomsFromGallery();
             $project->pruneCollectionImages();

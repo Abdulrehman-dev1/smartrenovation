@@ -8,6 +8,9 @@ import ProjectImageUploader from '@/Components/ProjectImageUploader';
 import ProjectRoomsPicker, { type RoomAssignment, type RoomCandidate } from '@/Components/ProjectRoomsPicker';
 import RichTextEditor from '@/Components/RichTextEditor';
 import TaxonomySelect, { type CategoryOption, type LocationOption } from '@/Components/TaxonomySelect';
+import DangerButton from '@/Components/DangerButton';
+import Modal from '@/Components/Modal';
+import SecondaryButton from '@/Components/SecondaryButton';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { useAutoSlug } from '@/lib/useAutoSlug';
 import { Head, router, useForm } from '@inertiajs/react';
@@ -107,6 +110,7 @@ export default function Edit({
         'Modern Minimalist',
         'Glam Eclectic',
     ],
+    can = { delete: false },
 }: {
     project: Project;
     categories: CategoryOption[];
@@ -114,12 +118,15 @@ export default function Edit({
     rooms?: string[];
     image_rooms?: string[];
     collection_styles?: string[];
+    can?: { delete?: boolean };
 }) {
     const [categories, setCategories] = useState(initialCategories);
     const [locations, setLocations] = useState(initialLocations);
     const [roomAssignments, setRoomAssignments] = useState<RoomAssignment>(() => roomsFromProject(project));
     const [roomsBusy, setRoomsBusy] = useState(false);
     const [roomsError, setRoomsError] = useState('');
+    const [confirmingDelete, setConfirmingDelete] = useState(false);
+    const [deleting, setDeleting] = useState(false);
 
     useEffect(() => {
         setRoomAssignments(roomsFromProject(project));
@@ -319,6 +326,14 @@ export default function Edit({
         put(`/admin/projects/${project.slug}`, { preserveScroll: true });
     };
 
+    const confirmDelete = () => {
+        if (deleting) return;
+        setDeleting(true);
+        router.delete(`/admin/projects/${project.slug}`, {
+            onFinish: () => setDeleting(false),
+        });
+    };
+
     return (
         <AdminLayout header={<h2 className="text-xl font-semibold text-slate-800">Edit project</h2>}>
             <Head title={`Edit ${project.name}`} />
@@ -479,7 +494,18 @@ export default function Edit({
                     )}
                 </ProjectFormTabs>
 
-                <div className="flex justify-end">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                    {can.delete ? (
+                        <button
+                            type="button"
+                            onClick={() => setConfirmingDelete(true)}
+                            className="rounded-lg border border-rose-200 px-4 py-2.5 text-sm font-medium text-rose-600 hover:bg-rose-50"
+                        >
+                            Delete project
+                        </button>
+                    ) : (
+                        <span />
+                    )}
                     <button
                         type="submit"
                         disabled={processing}
@@ -489,6 +515,25 @@ export default function Edit({
                     </button>
                 </div>
             </form>
+
+            <Modal show={confirmingDelete} onClose={() => !deleting && setConfirmingDelete(false)} maxWidth="md">
+                <div className="p-6">
+                    <h2 className="text-lg font-semibold text-slate-900">Are you sure?</h2>
+                    <p className="mt-2 text-sm text-slate-600">
+                        Are you sure you want to delete{' '}
+                        <span className="font-medium text-slate-800">{project.name}</span>? This will permanently remove
+                        the project and cannot be undone.
+                    </p>
+                    <div className="mt-6 flex justify-end gap-3">
+                        <SecondaryButton onClick={() => setConfirmingDelete(false)} disabled={deleting}>
+                            Cancel
+                        </SecondaryButton>
+                        <DangerButton onClick={confirmDelete} disabled={deleting}>
+                            {deleting ? 'Deleting…' : 'Yes, delete project'}
+                        </DangerButton>
+                    </div>
+                </div>
+            </Modal>
         </AdminLayout>
     );
 }

@@ -12,6 +12,7 @@ export type SiteContact = {
     whatsappLink: string;
     email: string;
     address: string;
+    instagram?: string;
 };
 
 export type PageProps<

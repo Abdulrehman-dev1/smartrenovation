@@ -60,8 +60,52 @@ class ProjectImageRequest extends FormRequest
             'collection' => ['required', Rule::in(['cover', 'gallery', 'gallery_hidden'])],
             'files' => ['required', 'array', 'min:1'],
             'files.*' => array_merge(['required'], $fileRules),
+            'posters' => ['nullable', 'array'],
+            'posters.*' => array_merge(['nullable'], ProjectMedia::coverFileRules()),
             'rooms' => ['nullable', 'array'],
             'rooms.*' => ['string', Rule::in(ProjectTaxonomy::imageRooms())],
         ];
+    }
+
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator): void {
+            if (! $this->isMethod('post') || ! $this->routeIs('*.projects.images.store')) {
+                return;
+            }
+
+            $collection = $this->input('collection');
+            if (! in_array($collection, ['gallery', 'gallery_hidden'], true)) {
+                return;
+            }
+
+            $files = $this->file('files', []);
+            if (! is_array($files)) {
+                return;
+            }
+
+            $posters = $this->file('posters', []);
+            if (! is_array($posters)) {
+                $posters = [];
+            }
+
+            foreach (array_values($files) as $index => $file) {
+                if (! $file) {
+                    continue;
+                }
+                $name = strtolower((string) $file->getClientOriginalName());
+                $ext = strtolower((string) ($file->getClientOriginalExtension() ?: $file->extension() ?: ''));
+                $isVideo = str_starts_with((string) $file->getMimeType(), 'video/')
+                    || in_array($ext, ProjectMedia::videoExtensions(), true)
+                    || preg_match('/\.(mp4|webm)$/', $name);
+
+                if ($isVideo && empty($posters[$index])) {
+                    $validator->errors()->add(
+                        "posters.$index",
+                        'Please upload a cover image for this video.'
+                    );
+                }
+            }
+        });
     }
 }

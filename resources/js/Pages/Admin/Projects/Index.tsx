@@ -325,18 +325,18 @@ export default function Index({
 
             <Modal show={deleting !== null} onClose={closeDeleteModal} maxWidth="md">
                 <div className="p-6">
-                    <h2 className="text-lg font-semibold text-slate-900">Delete project?</h2>
+                    <h2 className="text-lg font-semibold text-slate-900">Are you sure?</h2>
                     <p className="mt-2 text-sm text-slate-600">
-                        This will permanently delete{' '}
-                        <span className="font-medium text-slate-800">{deleting?.name}</span>
-                        . This action cannot be undone.
+                        Are you sure you want to delete{' '}
+                        <span className="font-medium text-slate-800">{deleting?.name}</span>? This will permanently remove
+                        the project and cannot be undone.
                     </p>
                     <div className="mt-6 flex justify-end gap-3">
                         <SecondaryButton onClick={closeDeleteModal} disabled={processing}>
                             Cancel
                         </SecondaryButton>
                         <DangerButton onClick={confirmDelete} disabled={processing}>
-                            {processing ? 'Deleting…' : 'Delete project'}
+                            {processing ? 'Deleting…' : 'Yes, delete project'}
                         </DangerButton>
                     </div>
                 </div>

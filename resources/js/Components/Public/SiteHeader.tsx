@@ -8,6 +8,7 @@ const NAV_LEFT = [
 ];
 
 const NAV_RIGHT = [
+    { href: '/process', label: 'How We Work' },
     { href: '/media', label: 'Media' },
     { href: '/#contact', label: 'Contact' },
 ];

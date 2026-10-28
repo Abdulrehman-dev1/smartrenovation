@@ -10,6 +10,7 @@ const defaults: SiteContact = {
     whatsappLink: 'https://wa.me/971567907213',
     email: 'info@smartrenovation.ae',
     address: '',
+    instagram: '',
 };
 
 export function useSiteContact(): SiteContact {

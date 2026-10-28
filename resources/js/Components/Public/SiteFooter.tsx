@@ -2,7 +2,7 @@ import { useSiteContact } from '@/hooks/useSiteContact';
 import { Link } from '@inertiajs/react';
 
 export default function SiteFooter() {
-    const { phone, callLink, email, address } = useSiteContact();
+    const { phone, callLink, email, address, instagram } = useSiteContact();
 
     const addressLines =
         address.trim() !== ''
@@ -27,6 +27,7 @@ export default function SiteFooter() {
                     <Link href="/about">About</Link>
                     <Link href="/services">Services</Link>
                     <Link href="/works">Projects</Link>
+                    <Link href="/process">How We Work</Link>
                     <Link href="/media">Media</Link>
                     <a href="/#contact">Contact</a>
                 </nav>
@@ -43,6 +44,11 @@ export default function SiteFooter() {
                     </span>
                     <a href={`mailto:${email}`}>{email}</a>
                     <a href={callLink}>{phone}</a>
+                    {instagram ? (
+                        <a href={instagram} target="_blank" rel="noopener noreferrer">
+                            Instagram
+                        </a>
+                    ) : null}
                 </div>
             </div>
 

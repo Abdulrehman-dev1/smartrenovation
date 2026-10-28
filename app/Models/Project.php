@@ -97,7 +97,32 @@ class Project extends Model
     }
 
     /**
-     * @return list<array{path: string, url: string, name: string, room: string, type: string}>
+     * Public gallery payload with video posters for thumbnails.
+     *
+     * @return list<array{url: string, type: string, poster: ?string}>
+     */
+    public function presentPublicGallery(): array
+    {
+        return collect($this->normalizedGallery('gallery_images'))
+            ->map(function (array $item) {
+                $url = $this->pathToUrl($item['path']);
+                if (! $url) {
+                    return null;
+                }
+
+                return [
+                    'url' => $url,
+                    'type' => ProjectMedia::isVideoPath($item['path']) ? 'video' : 'image',
+                    'poster' => isset($item['poster']) ? $this->pathToUrl($item['poster']) : null,
+                ];
+            })
+            ->filter()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, room: string, type: string, poster: ?string, poster_url: ?string}>
      */
     public function presentGallery(string $field = 'gallery_images'): array
     {
@@ -108,15 +133,17 @@ class Project extends Model
                 'name' => basename($item['path']),
                 'room' => $item['room'],
                 'type' => ProjectMedia::isVideoPath($item['path']) ? 'video' : 'image',
+                'poster' => $item['poster'] ?? null,
+                'poster_url' => isset($item['poster']) ? $this->pathToUrl($item['poster']) : null,
             ])
             ->values()
             ->all();
     }
 
     /**
-     * Normalize gallery JSON to list of {path, room}.
+     * Normalize gallery JSON to list of {path, room, poster?}.
      *
-     * @return list<array{path: string, room: string}>
+     * @return list<array{path: string, room: string, poster?: string}>
      */
     public function normalizedGallery(string $field = 'gallery_images'): array
     {
@@ -135,7 +162,7 @@ class Project extends Model
 
     /**
      * @param  array<string, int>|null  $allowed
-     * @return array{path: string, room: string}|null
+     * @return array{path: string, room: string, poster?: string}|null
      */
     public static function normalizeGalleryItem(mixed $item, ?array $allowed = null): ?array
     {
@@ -159,7 +186,13 @@ class Project extends Model
             $room = ProjectTaxonomy::OTHER_ROOM;
         }
 
-        return ['path' => $path, 'room' => $room];
+        $normalized = ['path' => $path, 'room' => $room];
+        $poster = $item['poster'] ?? null;
+        if (is_string($poster) && $poster !== '') {
+            $normalized['poster'] = $poster;
+        }
+
+        return $normalized;
     }
 
     public function syncRoomsFromGallery(): void

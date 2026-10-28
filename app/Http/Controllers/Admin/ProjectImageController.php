@@ -41,7 +41,23 @@ class ProjectImageController extends Controller
         if (! is_array($rooms)) {
             $rooms = [];
         }
-        $this->images->appendGallery($project, $files, $field, array_values($rooms));
+        $posters = $request->file('posters', []);
+        if (! is_array($posters)) {
+            $posters = [];
+        }
+
+        try {
+            $this->images->appendGallery(
+                $project,
+                array_values($files),
+                $field,
+                array_values($rooms),
+                $posters
+            );
+        } catch (\InvalidArgumentException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+
         $project->refresh();
 
         return response()->json([

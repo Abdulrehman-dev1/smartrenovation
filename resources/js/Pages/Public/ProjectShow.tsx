@@ -1,6 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
+import { useState } from 'react';
 import PublicLayout from '../../Layouts/PublicLayout';
-import ProjectGallery from '../../Components/Public/ProjectGallery';
+import ProjectGallery, { type GalleryMediaItem } from '../../Components/Public/ProjectGallery';
 import { WaIcon, WA_TRACK_CLASS } from '../../Components/Public/WaFloat';
 import { useSiteContact } from '@/hooks/useSiteContact';
 
@@ -16,7 +17,7 @@ type Props = {
         type?: string | null;
         cover?: string | null;
         cover_ar?: number;
-        gallery: string[];
+        gallery: Array<string | GalleryMediaItem>;
     };
     next?: {
         slug: string;
@@ -29,9 +30,31 @@ type Props = {
 };
 
 export default function ProjectShow({ project, next, previewDraft, seo }: Props) {
-    const { whatsappLink, callLink, email } = useSiteContact();
+    const { whatsappLink, callLink, email, instagram } = useSiteContact();
+    const [shareNote, setShareNote] = useState('');
     const titleMain = (project.name || '').split('|')[0].trim();
     const pageTitle = seo?.title || `${titleMain} — Smart Renovation`;
+
+    const sharePage = async () => {
+        const url = typeof window !== 'undefined' ? window.location.href : '';
+        const payload = {
+            title: titleMain,
+            text: `Smart Renovation — ${titleMain}`,
+            url,
+        };
+
+        try {
+            if (navigator.share) {
+                await navigator.share(payload);
+                return;
+            }
+            await navigator.clipboard.writeText(url);
+            setShareNote('Link copied — paste it into Instagram.');
+            window.setTimeout(() => setShareNote(''), 3500);
+        } catch {
+            // User cancelled share sheet or clipboard denied.
+        }
+    };
 
     return (
         <PublicLayout>
@@ -70,6 +93,25 @@ export default function ProjectShow({ project, next, previewDraft, seo }: Props)
                                 <span>{project.year}</span>
                             </div>
                         )}
+                        <div className="project-meta__col">
+                            <span className="project-meta__label">Share</span>
+                            <div className="project-share">
+                                <button type="button" className="project-share__btn" onClick={() => void sharePage()}>
+                                    Share
+                                </button>
+                                {instagram ? (
+                                    <a
+                                        className="project-share__btn"
+                                        href={instagram}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        Instagram
+                                    </a>
+                                ) : null}
+                            </div>
+                            {shareNote ? <span className="project-share__note">{shareNote}</span> : null}
+                        </div>
                     </div>
                 </section>
 

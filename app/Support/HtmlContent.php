@@ -20,10 +20,10 @@ class HtmlContent
         $clean = preg_replace('/\s(on\w+)\s*=\s*("|\')[^"\']*("|\')/i', '', $clean) ?? $clean;
         $clean = preg_replace('/(href|src)\s*=\s*("|\')\s*javascript:[^"\']*("|\')/i', '$1=$2#$3', $clean) ?? $clean;
 
-        // Only allow youtube/vimeo iframes
+        // Only allow youtube/vimeo/instagram iframes
         $clean = preg_replace_callback('/<iframe\b[^>]*>.*?<\/iframe>/is', function (array $matches) {
             $tag = $matches[0];
-            if (preg_match('/src\s*=\s*("|\')(https?:\/\/(?:www\.)?(?:youtube\.com|youtube-nocookie\.com|youtu\.be|player\.vimeo\.com)[^"\']*)\1/i', $tag)) {
+            if (preg_match('/src\s*=\s*("|\')(https?:\/\/(?:www\.)?(?:youtube\.com|youtube-nocookie\.com|youtu\.be|player\.vimeo\.com|www\.instagram\.com|instagram\.com)[^"\']*)\1/i', $tag)) {
                 return $tag;
             }
 

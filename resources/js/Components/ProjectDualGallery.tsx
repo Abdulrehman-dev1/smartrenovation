@@ -1,6 +1,13 @@
 import { router } from '@inertiajs/react';
 import { useEffect, useRef, useState, type RefObject } from 'react';
-import { GALLERY_ACCEPT, isVideoUrl, paintVideoThumbnail, videoThumbSrc } from '@/lib/media';
+import {
+    GALLERY_ACCEPT,
+    IMAGE_ACCEPT,
+    isVideoFile,
+    isVideoUrl,
+    paintVideoThumbnail,
+    videoThumbSrc,
+} from '@/lib/media';
 
 type ImageItem = {
     path: string;
@@ -8,6 +15,13 @@ type ImageItem = {
     name: string;
     room: string;
     type?: 'image' | 'video';
+    poster?: string | null;
+    poster_url?: string | null;
+};
+
+type UploadSlot = {
+    file: File;
+    poster: File | null;
 };
 
 type Props = {
@@ -227,16 +241,25 @@ function GalleryPanel({
                                                     )}
                                                     {isVideo ? (
                                                         <>
-                                                            <video
-                                                                src={videoThumbSrc(item.url)}
-                                                                muted
-                                                                playsInline
-                                                                preload="metadata"
-                                                                className="h-full w-full cursor-pointer object-cover"
-                                                                ref={paintVideoThumbnail}
-                                                                onLoadedMetadata={(e) => paintVideoThumbnail(e.currentTarget)}
-                                                                onClick={() => onToggle(item.path)}
-                                                            />
+                                                            {item.poster_url ? (
+                                                                <img
+                                                                    src={item.poster_url}
+                                                                    alt={item.name}
+                                                                    className="h-full w-full cursor-pointer object-cover"
+                                                                    onClick={() => onToggle(item.path)}
+                                                                />
+                                                            ) : (
+                                                                <video
+                                                                    src={videoThumbSrc(item.url)}
+                                                                    muted
+                                                                    playsInline
+                                                                    preload="metadata"
+                                                                    className="h-full w-full cursor-pointer object-cover"
+                                                                    ref={paintVideoThumbnail}
+                                                                    onLoadedMetadata={(e) => paintVideoThumbnail(e.currentTarget)}
+                                                                    onClick={() => onToggle(item.path)}
+                                                                />
+                                                            )}
                                                             <span className="pointer-events-none absolute inset-0 flex items-center justify-center">
                                                                 <span className="inline-flex size-9 items-center justify-center rounded-full bg-black/55 text-white shadow-sm">
                                                                     <svg viewBox="0 0 24 24" fill="currentColor" className="ml-0.5 size-4">
@@ -339,6 +362,10 @@ export default function ProjectDualGallery({
     const [progress, setProgress] = useState(0);
     const [error, setError] = useState('');
     const [message, setMessage] = useState('');
+    const [posterPrompt, setPosterPrompt] = useState<{
+        collection: 'gallery' | 'gallery_hidden';
+        slots: UploadSlot[];
+    } | null>(null);
     const galleryInputRef = useRef<HTMLInputElement>(null);
     const hiddenInputRef = useRef<HTMLInputElement>(null);
 
@@ -353,12 +380,15 @@ export default function ProjectDualGallery({
     /** Stay under PHP max_file_uploads (often 20) by uploading in batches. */
     const UPLOAD_CHUNK = 15;
 
-    const uploadChunk = (collection: 'gallery' | 'gallery_hidden', chunk: File[]) =>
+    const uploadChunk = (collection: 'gallery' | 'gallery_hidden', chunk: UploadSlot[]) =>
         new Promise<{ images: ImageItem[]; message?: string }>((resolve, reject) => {
             const form = new FormData();
-            chunk.forEach((file) => {
-                form.append('files[]', file);
+            chunk.forEach((slot, index) => {
+                form.append('files[]', slot.file);
                 form.append('rooms[]', 'Other');
+                if (slot.poster) {
+                    form.append(`posters[${index}]`, slot.poster);
+                }
             });
             form.append('collection', collection);
 
@@ -369,7 +399,6 @@ export default function ProjectDualGallery({
             xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
             xhr.upload.onprogress = (event) => {
                 if (event.lengthComputable) {
-                    // Progress within current chunk only; overall set by caller.
                     setProgress(Math.round((event.loaded / event.total) * 100));
                 }
             };
@@ -385,47 +414,78 @@ export default function ProjectDualGallery({
                         resolve({ images: [] });
                     }
                 } else {
-                    reject(new Error('upload_failed'));
+                    let detail = 'upload_failed';
+                    try {
+                        const json = JSON.parse(xhr.responseText);
+                        detail = json.message || Object.values(json.errors || {}).flat()[0] || detail;
+                    } catch {
+                        // keep default
+                    }
+                    reject(new Error(String(detail)));
                 }
             };
             xhr.onerror = () => reject(new Error('network'));
             xhr.send(form);
         });
 
-    const upload = async (collection: 'gallery' | 'gallery_hidden', files: FileList | null) => {
-        if (!files?.length) return;
-        const all = Array.from(files);
+    const runUpload = async (collection: 'gallery' | 'gallery_hidden', slots: UploadSlot[]) => {
         setBusy(true);
         setError('');
         setProgress(0);
-        setMessage(`Uploading 0 / ${all.length}…`);
+        setMessage(`Uploading 0 / ${slots.length}…`);
 
         try {
             let lastImages: ImageItem[] | null = null;
-            for (let i = 0; i < all.length; i += UPLOAD_CHUNK) {
-                const chunk = all.slice(i, i + UPLOAD_CHUNK);
-                const done = Math.min(i + chunk.length, all.length);
-                setMessage(`Uploading ${done} / ${all.length}…`);
+            for (let i = 0; i < slots.length; i += UPLOAD_CHUNK) {
+                const chunk = slots.slice(i, i + UPLOAD_CHUNK);
+                const done = Math.min(i + chunk.length, slots.length);
+                setMessage(`Uploading ${done} / ${slots.length}…`);
                 const result = await uploadChunk(collection, chunk);
                 lastImages = result.images;
                 if (collection === 'gallery') setGalleryItems(result.images);
                 else setHiddenItems(result.images);
-                setProgress(Math.round((done / all.length) * 100));
+                setProgress(Math.round((done / slots.length) * 100));
             }
             setMessage(
                 lastImages
-                    ? `Uploaded ${all.length} image${all.length === 1 ? '' : 's'}.`
+                    ? `Uploaded ${slots.length} file${slots.length === 1 ? '' : 's'}.`
                     : 'Uploaded.',
             );
         } catch (err) {
             setError(
                 err instanceof Error && err.message === 'network'
                     ? 'Network error during upload.'
-                    : 'Upload failed. Use jpg/png/webp/mp4/webm under 100MB.',
+                    : err instanceof Error
+                      ? err.message
+                      : 'Upload failed. Use jpg/png/webp/mp4/webm under 100MB.',
             );
         } finally {
             setBusy(false);
         }
+    };
+
+    const upload = async (collection: 'gallery' | 'gallery_hidden', files: FileList | null) => {
+        if (!files?.length) return;
+        const all = Array.from(files);
+        const slots: UploadSlot[] = all.map((file) => ({ file, poster: null }));
+        const needsPoster = slots.some((slot) => isVideoFile(slot.file));
+        if (needsPoster) {
+            setPosterPrompt({ collection, slots });
+            return;
+        }
+        await runUpload(collection, slots);
+    };
+
+    const confirmPosterPrompt = async () => {
+        if (!posterPrompt) return;
+        const missing = posterPrompt.slots.find((slot) => isVideoFile(slot.file) && !slot.poster);
+        if (missing) {
+            setError(`Please choose a cover image for “${missing.file.name}”.`);
+            return;
+        }
+        const { collection, slots } = posterPrompt;
+        setPosterPrompt(null);
+        await runUpload(collection, slots);
     };
 
     const remove = async (collection: 'gallery' | 'gallery_hidden', path: string) => {
@@ -666,6 +726,67 @@ export default function ProjectDualGallery({
                 progress={progress}
                 inputRef={hiddenInputRef}
             />
+
+            {posterPrompt && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
+                    <div className="w-full max-w-lg rounded-xl bg-white p-5 shadow-xl">
+                        <h3 className="text-base font-semibold text-slate-900">Cover image required</h3>
+                        <p className="mt-1 text-sm text-slate-600">
+                            Videos need a cover image that shows in the gallery before playback.
+                        </p>
+                        <div className="mt-4 max-h-72 space-y-3 overflow-y-auto">
+                            {posterPrompt.slots.map((slot, index) =>
+                                isVideoFile(slot.file) ? (
+                                    <div
+                                        key={`${slot.file.name}-${index}`}
+                                        className="rounded-lg border border-slate-200 p-3"
+                                    >
+                                        <p className="truncate text-sm font-medium text-slate-800" title={slot.file.name}>
+                                            {slot.file.name}
+                                        </p>
+                                        <label className="mt-2 flex cursor-pointer items-center justify-between gap-3 rounded-md border border-dashed border-slate-300 bg-slate-50 px-3 py-2 text-xs text-slate-600 hover:border-slate-400">
+                                            <span>{slot.poster ? slot.poster.name : 'Choose cover image (JPEG, PNG, WebP)'}</span>
+                                            <input
+                                                type="file"
+                                                className="hidden"
+                                                accept={IMAGE_ACCEPT}
+                                                onChange={(e) => {
+                                                    const file = e.target.files?.[0] ?? null;
+                                                    setPosterPrompt((prev) => {
+                                                        if (!prev) return prev;
+                                                        const next = [...prev.slots];
+                                                        next[index] = { ...next[index], poster: file };
+                                                        return { ...prev, slots: next };
+                                                    });
+                                                    e.target.value = '';
+                                                }}
+                                            />
+                                        </label>
+                                    </div>
+                                ) : null,
+                            )}
+                        </div>
+                        <div className="mt-5 flex justify-end gap-2">
+                            <button
+                                type="button"
+                                className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                                onClick={() => setPosterPrompt(null)}
+                                disabled={busy}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                className="rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50"
+                                onClick={() => void confirmPosterPrompt()}
+                                disabled={busy}
+                            >
+                                Upload
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

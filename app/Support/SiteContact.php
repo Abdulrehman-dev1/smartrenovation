@@ -15,7 +15,8 @@ class SiteContact
      *     whatsapp: string,
      *     whatsappLink: string,
      *     email: string,
-     *     address: string
+     *     address: string,
+     *     instagram: string
      * }
      */
     public static function shared(): array
@@ -24,6 +25,7 @@ class SiteContact
         $whatsapp = trim((string) Setting::get('whatsapp_number', '971567907213'));
         $email = trim((string) Setting::get('contact_email', 'info@smartrenovation.ae'));
         $address = trim((string) Setting::get('contact_address', ''));
+        $instagram = trim((string) Setting::get('social_instagram', ''));
 
         $telDigits = preg_replace('/[^\d+]/', '', $phone) ?? '';
         if ($telDigits !== '' && ! str_starts_with($telDigits, '+')) {
@@ -39,6 +41,7 @@ class SiteContact
             'whatsappLink' => $waDigits !== '' ? 'https://wa.me/'.$waDigits : 'https://wa.me/971567907213',
             'email' => $email !== '' ? $email : 'info@smartrenovation.ae',
             'address' => $address,
+            'instagram' => $instagram,
         ];
     }
 }

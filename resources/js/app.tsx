@@ -7,6 +7,7 @@ import '../css/smart/collection.css';
 import '../css/smart/services.css';
 import '../css/smart/article.css';
 import '../css/smart/about.css';
+import '../css/smart/process.css';
 import '../css/smart/residential-landing.css';
 import '../css/smart/media.css';
 import '../css/admin-safe.css';
