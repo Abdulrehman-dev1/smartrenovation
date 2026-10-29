@@ -6,6 +6,7 @@ export type GalleryMediaItem = {
     url: string;
     type?: 'image' | 'video';
     poster?: string | null;
+    room?: string | null;
 };
 
 type Props = {
@@ -55,13 +56,23 @@ function normalizeItem(item: string | GalleryMediaItem): GalleryMediaItem {
             url: item,
             type: isVideoUrl(item) ? 'video' : 'image',
             poster: null,
+            room: null,
         };
     }
     return {
         url: item.url,
         type: item.type ?? (isVideoUrl(item.url) ? 'video' : 'image'),
         poster: item.poster ?? null,
+        room: item.room ?? null,
     };
+}
+
+function RoomBadge({ room }: { room?: string | null }) {
+    if (!room) {
+        return null;
+    }
+
+    return <span className="project-gallery__room">{room}</span>;
 }
 
 function GalleryMedia({
@@ -263,10 +274,15 @@ export default function ProjectGallery({ cover, coverAr, gallery, title }: Props
                                     key={item.url + i}
                                     className={`project-gallery__item${video ? ' project-gallery__item--video' : ''}`}
                                     onClick={() => openLightbox(index)}
-                                    aria-label={video ? `Play video ${index + 1}` : `View photo ${index + 1}`}
+                                    aria-label={
+                                        video
+                                            ? `Play video ${index + 1}${item.room ? ` — ${item.room}` : ''}`
+                                            : `View photo ${index + 1}${item.room ? ` — ${item.room}` : ''}`
+                                    }
                                 >
                                     <GalleryMedia item={item} />
                                     {video && <PlayBadge />}
+                                    <RoomBadge room={item.room} />
                                 </button>
                             );
                         })}
@@ -287,12 +303,13 @@ export default function ProjectGallery({ cover, coverAr, gallery, title }: Props
                                     onClick={() => openLightbox(i)}
                                     aria-label={
                                         video
-                                            ? `Play video ${i + 1} of ${items.length}`
-                                            : `View photo ${i + 1} of ${items.length}`
+                                            ? `Play video ${i + 1} of ${items.length}${item.room ? ` — ${item.room}` : ''}`
+                                            : `View photo ${i + 1} of ${items.length}${item.room ? ` — ${item.room}` : ''}`
                                     }
                                 >
                                     <GalleryMedia item={item} alt={i === 0 ? title : ''} eager={i === 0} />
                                     {video && <PlayBadge />}
+                                    <RoomBadge room={item.room} />
                                 </button>
                             );
                         })}

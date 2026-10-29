@@ -17,6 +17,7 @@ type Props = {
         type?: string | null;
         cover?: string | null;
         cover_ar?: number;
+        rooms?: string[] | null;
         gallery: Array<string | GalleryMediaItem>;
     };
     next?: {
@@ -85,6 +86,12 @@ export default function ProjectShow({ project, next, previewDraft, seo }: Props)
                             <div className="project-meta__col">
                                 <span className="project-meta__label">Type</span>
                                 <span>{project.type}</span>
+                            </div>
+                        )}
+                        {(project.rooms ?? []).length > 0 && (
+                            <div className="project-meta__col">
+                                <span className="project-meta__label">Rooms</span>
+                                <span>{(project.rooms ?? []).join(', ')}</span>
                             </div>
                         )}
                         {project.year && (

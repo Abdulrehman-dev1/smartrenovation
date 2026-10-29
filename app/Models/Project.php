@@ -99,7 +99,7 @@ class Project extends Model
     /**
      * Public gallery payload with video posters for thumbnails.
      *
-     * @return list<array{url: string, type: string, poster: ?string}>
+     * @return list<array{url: string, type: string, poster: ?string, room: ?string}>
      */
     public function presentPublicGallery(): array
     {
@@ -110,10 +110,13 @@ class Project extends Model
                     return null;
                 }
 
+                $room = $item['room'] ?? ProjectTaxonomy::OTHER_ROOM;
+
                 return [
                     'url' => $url,
                     'type' => ProjectMedia::isVideoPath($item['path']) ? 'video' : 'image',
                     'poster' => isset($item['poster']) ? $this->pathToUrl($item['poster']) : null,
+                    'room' => $room !== ProjectTaxonomy::OTHER_ROOM ? $room : null,
                 ];
             })
             ->filter()

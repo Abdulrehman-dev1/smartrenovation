@@ -143,4 +143,46 @@ class ProjectGalleryRoomsTest extends TestCase
                 ->where('projects', [])
             );
     }
+
+    public function test_public_project_gallery_includes_room_labels(): void
+    {
+        Storage::fake('public');
+        $this->seed(RoleAndPermissionSeeder::class);
+
+        $category = Category::query()->where('slug', 'apartment')->firstOrFail();
+        $location = Location::query()->where('name', 'Palm Jumeirah')->firstOrFail();
+
+        $project = Project::query()->create([
+            'slug' => 'room-labels-public',
+            'name' => 'Room Labels Public',
+            'status' => 'published',
+            'published_at' => now(),
+            'category_id' => $category->id,
+            'location_id' => $location->id,
+        ]);
+
+        app(ProjectImageStorage::class)->appendGallery(
+            $project,
+            [
+                UploadedFile::fake()->image('k1.jpg', 200, 200),
+                UploadedFile::fake()->image('l1.jpg', 200, 200),
+                UploadedFile::fake()->image('other.jpg', 200, 200),
+            ],
+            'gallery_images',
+            ['Kitchen', 'Living', 'Other']
+        );
+
+        $project->refresh();
+
+        $this->get('/projects/room-labels-public')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Public/ProjectShow')
+                ->where('project.rooms', ['Kitchen', 'Living'])
+                ->has('project.gallery', 3)
+                ->where('project.gallery.0.room', 'Kitchen')
+                ->where('project.gallery.1.room', 'Living')
+                ->where('project.gallery.2.room', null)
+            );
+    }
 }
